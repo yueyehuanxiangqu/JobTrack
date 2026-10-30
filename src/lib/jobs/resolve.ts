@@ -1,0 +1,270 @@
+import prisma from "@/lib/db";
+import { JOB_TYPES, WORKPLACE_TYPES, matchEnumEntry } from "@/models/job.model";
+import { canonicalizeEntityValue } from "./canonicalize";
+
+export interface ResolvedEntity {
+  id: string;
+  label: string;
+  created: boolean;
+}
+
+// Extended shape needed so createTag's callers (TagInput.tsx) get back the full Tag
+export interface ResolvedTag extends ResolvedEntity {
+  value: string;
+  createdBy: string;
+}
+
+// Bucket A — resolve-or-create by exact-normalized value
+
+interface EntityRow {
+  id: string;
+  label: string;
+}
+
+interface EntityDelegate {
+  findUnique(args: {
+    where: { value_createdBy: { value: string; createdBy: string } };
+  }): Promise<EntityRow | null>;
+  create(args: {
+    data: { label: string; value: string; createdBy: string };
+  }): Promise<EntityRow>;
+}
+
+// findUnique-then-create is a check-then-act race under the
+// value_createdBy unique constraint: if two concurrent calls resolve the
+// same value, the loser's create throws P2002. Re-fetch and return the
+// winner's row instead of propagating, so a benign race never surfaces as
+// an error to the caller (e.g. runner.ts's job-save catch, which can't
+// distinguish this from an unrelated Job.jobUrl race).
+async function resolveEntity(
+  delegate: EntityDelegate,
+  label: string,
+  userId: string,
+  opts: { stripLegalSuffix?: boolean } = {},
+): Promise<ResolvedEntity> {
+  const trimmed = label.trim();
+  const value = canonicalizeEntityValue(trimmed, opts);
+  if (!value) throw new Error("A non-empty label is required");
+  const existing = await delegate.findUnique({
+    where: { value_createdBy: { value, createdBy: userId } },
+  });
+  if (existing) return { id: existing.id, label: existing.label, created: false };
+
+  try {
+    const created = await delegate.create({
+      data: { label: trimmed, value, createdBy: userId },
+    });
+    return { id: created.id, label: created.label, created: true };
+  } catch (err: any) {
+    if (err?.code === "P2002") {
+      const winner = await delegate.findUnique({
+        where: { value_createdBy: { value, createdBy: userId } },
+      });
+      if (winner) return { id: winner.id, label: winner.label, created: false };
+    }
+    throw err;
+  }
+}
+
+export function resolveCompany(
+  label: string,
+  userId: string,
+): Promise<ResolvedEntity> {
+  return resolveEntity(prisma.company, label, userId, { stripLegalSuffix: true });
+}
+
+export function resolveJobTitle(
+  label: string,
+  userId: string,
+): Promise<ResolvedEntity> {
+  return resolveEntity(prisma.jobTitle, label, userId);
+}
+
+export function resolveLocation(
+  label: string,
+  userId: string,
+): Promise<ResolvedEntity> {
+  return resolveEntity(prisma.location, label, userId);
+}
+
+export function resolveJobSource(
+  label: string,
+  userId: string,
+): Promise<ResolvedEntity> {
+  return resolveEntity(prisma.jobSource, label, userId);
+}
+
+export function resolveContactRole(
+  label: string,
+  userId: string,
+): Promise<ResolvedEntity> {
+  return resolveEntity(prisma.contactRole, label, userId);
+}
+
+export async function resolveTag(
+  label: string,
+  userId: string,
+): Promise<ResolvedTag> {
+  const trimmed = label.trim();
+  const value = canonicalizeEntityValue(trimmed);
+  const existing = await prisma.tag.findUnique({
+    where: { value_createdBy: { value, createdBy: userId } },
+  });
+  if (existing) return { id: existing.id, label: existing.label, value: existing.value, createdBy: existing.createdBy, created: false };
+  try {
+    const tag = await prisma.tag.create({
+      data: { label: trimmed, value, createdBy: userId },
+    });
+    return { id: tag.id, label: tag.label, value: tag.value, createdBy: tag.createdBy, created: true };
+  } catch (err: any) {
+    if (err?.code === "P2002") {
+      const winner = await prisma.tag.findUnique({
+        where: { value_createdBy: { value, createdBy: userId } },
+      });
+      if (winner) {
+        return { id: winner.id, label: winner.label, value: winner.value, createdBy: winner.createdBy, created: false };
+      }
+    }
+    throw err;
+  }
+}
+
+export async function resolveTags(
+  labels: string[],
+  userId: string,
+  maxTags: number,
+): Promise<{ resolved: ResolvedEntity[]; dropped: string[] }> {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const l of labels) {
+    const trimmed = l.trim();
+    if (!trimmed) continue;
+    const key = canonicalizeEntityValue(trimmed);
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(trimmed);
+    }
+  }
+
+  const toResolve = unique.slice(0, maxTags);
+  const dropped = unique.slice(maxTags);
+
+  const resolved = await Promise.all(toResolve.map((l) => resolveTag(l, userId)));
+  return { resolved, dropped };
+}
+
+// Not resolveEntity: that delegate creates exactly { label, value, createdBy }
+// and cannot carry statusId and sortOrder, so the pattern is followed rather
+// than the function reused (spec decision 3).
+export async function resolveJobStageType(
+  label: string,
+  userId: string,
+  statusId: string,
+): Promise<ResolvedEntity> {
+  const trimmed = label.trim();
+  const value = canonicalizeEntityValue(trimmed);
+  if (!value) throw new Error("A non-empty label is required");
+
+  const existing = await prisma.jobStageType.findUnique({
+    where: { value_createdBy: { value, createdBy: userId } },
+  });
+  if (existing) return { id: existing.id, label: existing.label, created: false };
+
+  // A custom type slots in after the last type of its own parent status, not
+  // at the end of the vocabulary: sortStages orders the timeline by sortOrder,
+  // so an appended type would render after the terminal stages. Never wrap
+  // this in a transaction — it writes through the base client on purpose.
+  const siblings = await prisma.jobStageType.aggregate({
+    where: { createdBy: userId, statusId },
+    _max: { sortOrder: true },
+  });
+  const all = await prisma.jobStageType.aggregate({
+    where: { createdBy: userId },
+    _max: { sortOrder: true },
+  });
+  const sortOrder =
+    (siblings._max.sortOrder ?? all._max.sortOrder ?? -1) + 1;
+
+  await prisma.jobStageType.updateMany({
+    where: { createdBy: userId, sortOrder: { gte: sortOrder } },
+    data: { sortOrder: { increment: 1 } },
+  });
+
+  try {
+    const created = await prisma.jobStageType.create({
+      data: {
+        label: trimmed,
+        value,
+        statusId,
+        sortOrder,
+        createdBy: userId,
+      },
+    });
+    return { id: created.id, label: created.label, created: true };
+  } catch (err: any) {
+    if (err?.code === "P2002") {
+      const winner = await prisma.jobStageType.findUnique({
+        where: { value_createdBy: { value, createdBy: userId } },
+      });
+      if (winner) return { id: winner.id, label: winner.label, created: false };
+    }
+    throw err;
+  }
+}
+
+// The status -> stage-type reverse lookup. Keyed on the canonical form of the
+// status LABEL, not status.value: canonicalizeEntityValue("Offer Accepted") is
+// "offer accepted", so keying on "offer-accepted" would mint a duplicate.
+export async function resolveStageTypeForStatusId(
+  statusId: string,
+  userId: string,
+): Promise<string> {
+  const status = await prisma.jobStatus.findUnique({
+    where: { id: statusId },
+    select: { id: true, label: true },
+  });
+  if (!status) throw new Error("Job status not found");
+  const resolved = await resolveJobStageType(status.label, userId, status.id);
+  return resolved.id;
+}
+
+// Bucket B — resolve-ONLY, never create
+
+// A caller-correctable bad value, as opposed to a database or programming
+// failure. The message names the field and lists the valid values, so callers
+// that can retry (the agent chat's add_job) may show it to their caller.
+export class JobResolutionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "JobResolutionError";
+  }
+}
+
+export function resolveJobType(input?: string): string {
+  const entries = Object.entries(JOB_TYPES) as [string, string][];
+  if (!input) return entries[0][0];
+  const match = matchEnumEntry(JOB_TYPES, input);
+  if (match) return match[0];
+  const valid = entries.map(([, value]) => value);
+  throw new JobResolutionError(`Invalid jobType "${input}". Valid values: ${valid.join(", ")}`);
+}
+
+export function resolveWorkplaceType(input?: string): string | null {
+  if (!input) return null;
+  const match = matchEnumEntry(WORKPLACE_TYPES, input);
+  if (match) return match[0];
+  const valid = Object.values(WORKPLACE_TYPES);
+  throw new JobResolutionError(`Invalid workplaceType "${input}". Valid values: ${valid.join(", ")}`);
+}
+
+export async function resolveJobStatus(value?: string): Promise<string> {
+  const target = (value ?? "draft").toLowerCase();
+  const status = await prisma.jobStatus.findUnique({ where: { value: target } });
+  if (!status) {
+    const all = await prisma.jobStatus.findMany({ select: { value: true } });
+    throw new JobResolutionError(
+      `Invalid status "${target}". Valid values: ${all.map((s) => s.value).join(", ")}`,
+    );
+  }
+  return status.id;
+}

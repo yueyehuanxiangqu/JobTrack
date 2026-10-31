@@ -41,6 +41,7 @@ The Phase 1 root and formats remain unchanged:
   config\electron\              Electron cookies/cache/preferences
   data\jobsync.db
   data\files\resumes\
+  data\files\jobs\
   data\backups\
   logs\desktop-<timestamp>.log
   logs\desktop-migrations.log
@@ -62,6 +63,11 @@ If another application occupies the port, an error identifies the conflict and
 no process belonging to that application is stopped.
 
 `JOBSYNC_HOME` is an absolute test override. Leave it unset in ordinary use.
+
+Phase 3C adds [per-job documents](JOB_ATTACHMENTS.md) without changing the data
+root, authentication or desktop lifecycle. Its verification uses an unpacked
+production app; a new NSIS installer is deferred. Older installers in
+`dist-desktop` are not automatically updated by `desktop:pack`.
 
 ## Runtime and lifecycle
 

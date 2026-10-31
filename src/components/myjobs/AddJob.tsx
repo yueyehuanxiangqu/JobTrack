@@ -26,7 +26,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { addDays } from "date-fns";
 import { Loader,PlusCircle } from "lucide-react";
 import {
-useCallback,
 useEffect,
 useRef,
 useState,
@@ -47,25 +46,19 @@ FormMessage,
 } from "../ui/form";
 import { RadioGroup,RadioGroupItem } from "../ui/radio-group";
 
-import { getCoverLetterList } from "@/actions/coverLetter.actions";
-import { getResumeList } from "@/actions/profile.actions";
 import { APP_CONSTANTS,APPLIED_STATUS_VALUES } from "@/lib/constants";
-import {
-buildIncompleteResumeHint,
-isSelectableResume,
-} from "@/lib/resumeSections";
-import { CoverLetter,Resume } from "@/models/profile.model";
 import {
 getFromLocalStorage,
 saveToLocalStorage,
 } from "@/utils/localstorage.utils";
-import { redirect,useRouter,useSearchParams } from "next/navigation";
+import { useRouter,useSearchParams } from "next/navigation";
 import { Combobox } from "../ComboBox";
-import { IncompleteResumeHint } from "../IncompleteResumeHint";
-import CreateResume from "../profile/CreateResume";
 import TiptapEditor from "../TiptapEditor";
 import { Input } from "../ui/input";
 import { NotesCollapsibleSection } from "./NotesCollapsibleSection";
+import { DocumentInputs, SelectedDocuments } from "./DocumentInputs";
+import { DOCUMENT_KINDS, DOCUMENT_LABELS, JobDocument, documentInputError } from "@/models/jobAttachment.model";
+import Link from "next/link";
 
 type AddJobProps = {
   jobStatuses: JobStatus[];
@@ -97,9 +90,10 @@ export function AddJob({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [dialogOpen, setDialogOpen] = useState(initialOpen ?? false);
-  const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
-  const [resumes, setResumes] = useState<Resume[]>([]);
-  const [coverLetters, setCoverLetters] = useState<CoverLetter[]>([]);
+  const [files, setFiles] = useState<SelectedDocuments>({});
+  const [existingDocuments, setExistingDocuments] = useState<JobDocument[]>([]);
+  const [savedJobId, setSavedJobId] = useState<string | null>(null);
+  const [documentError, setDocumentError] = useState("");
   const [availableTags, setAvailableTags] = useState<Tag[]>(tags);
   const [isPending, startTransition] = useTransition();
 
@@ -150,26 +144,9 @@ export function AddJob({
   // The date the form filled in itself, so it can take it back again.
   const autoFilledDate = useRef<Date | null>(null);
 
-  const loadResumes = useCallback(async () => {
-    try {
-      const resumes = await getResumeList(1, APP_CONSTANTS.RESUME_PICKER_LIMIT);
-      setResumes(resumes.data ?? []);
-    } catch (error) {
-      console.error("Failed to load resumes:", error);
-    }
-  }, [setResumes]);
-
-  const loadCoverLetters = useCallback(async () => {
-    try {
-      const result = await getCoverLetterList(1, 100);
-      setCoverLetters(result.data);
-    } catch (error) {
-      console.error("Failed to load cover letters:", error);
-    }
-  }, [setCoverLetters]);
-
   useEffect(() => {
     if (editJob) {
+      setFiles({}); setSavedJobId(null); setDocumentError("");
       reset({
         id: editJob.id,
         userId: editJob.userId,
@@ -203,41 +180,50 @@ export function AddJob({
   }, [editJob, reset]);
 
   useEffect(() => {
-    if (!dialogOpen) return;
-    loadResumes();
-    loadCoverLetters();
-  }, [dialogOpen, loadResumes, loadCoverLetters]);
+    if (!dialogOpen || !editJob) { setExistingDocuments([]); return; }
+    const controller = new AbortController();
+    fetch(`/api/jobs/${encodeURIComponent(editJob.id)}/documents`, { signal: controller.signal })
+      .then(async (response) => { if (!response.ok) throw new Error(); setExistingDocuments((await response.json()).documents); })
+      .catch(() => { if (!controller.signal.aborted) setDocumentError("Could not load current documents. You can manage them on the job details page."); });
+    return () => controller.abort();
+  }, [dialogOpen, editJob]);
 
-  const setNewResumeId = (id: string) => {
-    setTimeout(() => {
-      setValue("resume", id);
-    }, 500);
+  const finishSave = () => {
+    reset(); setFiles({}); setSavedJobId(null); setDocumentError(""); setDialogOpen(false);
+    router.push(redirectPath ?? "/dashboard/myjobs"); router.refresh();
   };
-
   function onSubmit(data: z.infer<typeof AddJobFormSchema>) {
-    const selected = resumes.find((r) => r.id === data.resume);
-    if (selected && !isSelectableResume(selected)) {
-      toastError(buildIncompleteResumeHint());
-      return;
+    for (const kind of DOCUMENT_KINDS) {
+      if (files[kind] && documentInputError(files[kind]!)) { setDocumentError(`${DOCUMENT_LABELS[kind]}: ${documentInputError(files[kind]!)}`); return; }
     }
     startTransition(async () => {
-      const result = editJob ? await updateJob(data) : await addJob(data);
-      toastActionResult(result, {
-        success: `Job has been ${editJob ? "updated" : "created"} successfully`,
-        onSuccess: () => {
-          saveToLocalStorage(
-            APP_CONSTANTS.LAST_JOB_LOCATION_STORAGE_KEY,
-            data.location,
-          );
-          saveToLocalStorage(
-            APP_CONSTANTS.LAST_JOB_SOURCE_STORAGE_KEY,
-            data.source,
-          );
-          reset();
-          setDialogOpen(false);
-          redirect(redirectPath ?? "/dashboard/myjobs");
-        },
-      });
+      setDocumentError("");
+      let jobId = savedJobId;
+      if (!jobId) {
+        const result = editJob ? await updateJob(data) : await addJob(data);
+        if (!result?.success) { toastActionResult(result, { success: `Job has been ${editJob ? "updated" : "created"} successfully` }); return; }
+        jobId = editJob?.id ?? result.data?.id;
+        setSavedJobId(jobId ?? null);
+        saveToLocalStorage(APP_CONSTANTS.LAST_JOB_LOCATION_STORAGE_KEY, data.location);
+        saveToLocalStorage(APP_CONSTANTS.LAST_JOB_SOURCE_STORAGE_KEY, data.source);
+      }
+      const selected = DOCUMENT_KINDS.filter((kind) => files[kind]);
+      if (selected.length) {
+        try {
+          if (!jobId) throw new Error("Reopen the saved job to upload its documents.");
+          const body = new FormData();
+          for (const kind of selected) body.set(kind, files[kind]!);
+          const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/documents`, { method: "PUT", body });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error);
+          if (result.warning) toastError(result.warning);
+        } catch (failure) {
+          setDocumentError(`Job saved, but documents could not be confirmed: ${failure instanceof Error ? failure.message : "Connection failed."} Retry documents below, or open this job's Documents section. Retrying does not create another job.`);
+          return;
+        }
+      }
+      toastActionResult({ success: true }, { success: `Job has been ${editJob ? "updated" : "created"} successfully` });
+      finishSave();
     });
   }
 
@@ -247,7 +233,7 @@ export function AddJob({
     : "Track a new job application.";
 
   const addJobForm = () => {
-    reset(newJobDefaultValues);
+    reset(newJobDefaultValues); setFiles({}); setSavedJobId(null); setDocumentError("");
     autoFilledDate.current = null;
     resetEditJob();
     setDialogOpen(true);
@@ -286,10 +272,6 @@ export function AddJob({
 
   const closeDialog = () => setDialogOpen(false);
 
-  const createResume = () => {
-    setResumeDialogOpen(true);
-  };
-
   return (
     <>
       {!hideTrigger && (
@@ -306,7 +288,7 @@ export function AddJob({
           </span>
         </Button>
       )}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!isPending) setDialogOpen(open); }}>
         <DialogOverlay>
           <DialogContent className="h-full xl:h-[85vh] lg:h-[95vh] lg:max-w-screen-lg lg:max-h-screen overflow-y-scroll">
             <DialogHeader>
@@ -320,6 +302,7 @@ export function AddJob({
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4"
               >
+                <fieldset className="contents" disabled={isPending || !!savedJobId} inert={isPending || !!savedJobId}>
                 {/* Job Title */}
                 <div>
                   <FormField
@@ -560,65 +543,6 @@ export function AddJob({
 
                 </div>
 
-                {/* Resume */}
-                <div className="flex items-end">
-                  <FormField
-                    control={form.control}
-                    name="resume"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Resume</FormLabel>
-                        <SelectFormCtrl
-                          label="Resume"
-                          options={resumes?.map((r) =>
-                            isSelectableResume(r)
-                              ? r
-                              : {
-                                  ...r,
-                                  disabled: true,
-                                  suffix: <IncompleteResumeHint />,
-                                },
-                          )}
-                          field={field}
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button variant="link" type="button" onClick={createResume}>
-                    Add New
-                  </Button>
-                  <CreateResume
-                    resumeDialogOpen={resumeDialogOpen}
-                    setResumeDialogOpen={setResumeDialogOpen}
-                    reloadResumes={loadResumes}
-                    setNewResumeId={setNewResumeId}
-                  />
-                </div>
-
-                {/* Cover Letter */}
-                <div className="flex items-end self-start">
-                  <FormField
-                    control={form.control}
-                    name="coverLetter"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Cover Letter</FormLabel>
-                        <SelectFormCtrl
-                          label="Cover Letter"
-                          options={coverLetters}
-                          field={field}
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div>
-
-                </div>
-
                 {/* Job Description */}
                 <div className="md:col-span-2">
                   <FormField
@@ -638,6 +562,14 @@ export function AddJob({
                   />
                 </div>
                 {editJob && <NotesCollapsibleSection jobId={editJob.id} />}
+                </fieldset>
+                <DocumentInputs files={files} onChange={setFiles} existing={existingDocuments} disabled={isPending} />
+                {documentError && <div role="alert" className="md:col-span-2 space-y-2 text-sm text-destructive">
+                  <p>{documentError}</p>
+                  {savedJobId && <><Link className="underline" href={`/dashboard/myjobs/${savedJobId}`}>Open saved job</Link>
+                    <Button type="button" variant="outline" onClick={finishSave}>Finish without retrying documents</Button></>}
+                </div>}
+
                 <div className="md:col-span-2">
                   <DialogFooter
                   // className="md:col-span
@@ -649,11 +581,11 @@ export function AddJob({
                         className="mt-2 md:mt-0 w-full"
                         onClick={closeDialog}
                       >
-                        Cancel
+                        {savedJobId ? "Close" : "Cancel"}
                       </Button>
                     </div>
-                    <Button type="submit" data-testid="save-job-btn">
-                      Save
+                    <Button type={savedJobId ? "button" : "submit"} onClick={() => { if (savedJobId) onSubmit(form.getValues()); }} disabled={isPending} data-testid="save-job-btn">
+                      {savedJobId ? "Retry documents" : "Save"}
                       {isPending && (
                         <Loader className="h-4 w-4 shrink-0 spinner" />
                       )}

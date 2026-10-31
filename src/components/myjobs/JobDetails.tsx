@@ -17,6 +17,7 @@ import { Tabs,TabsContent,TabsList,TabsTrigger } from "../ui/tabs";
 
 import { useState } from "react";
 import { NotesSection } from "./NotesSection";
+import JobDocuments from "./JobDocuments";
 
 import { deleteJobById,updateJobStatus } from "@/actions/job.actions";
 import { toastError,toastSuccess } from "@/lib/toast";
@@ -161,6 +162,7 @@ function JobDetails({
 
         />
 
+        <JobDocuments jobId={job.id} />
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="w-full justify-start overflow-x-auto">
             <TabsTrigger value="description">Description</TabsTrigger>

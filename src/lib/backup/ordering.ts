@@ -23,6 +23,7 @@ export type BackupModel =
   | "CoverLetter"
   | "Automation"
   | "Job"
+  | "JobAttachment"
   | "Note"
   | "Contact"
   | "ContactRole"
@@ -68,9 +69,8 @@ export const MODEL_SPECS: Record<BackupModel, ModelSpec> = {
 
   Profile: { delegate: "profile", owner: "userId", fks: {}, scope: byUser },
 
-  // File holds no foreign key — Resume.FileId points at it — so it is scoped
-  // through the back-relation, matching deleteFile in profile.actions.ts.
-  File: { delegate: "file", fks: {}, scope: byResume },
+  // File is owned through either the legacy Resume or a job document.
+  File: { delegate: "file", fks: {}, scope: (userId) => ({ OR: [byResume(userId), { JobAttachment: { Job: { userId } } }] }) },
 
   Resume: {
     delegate: "resume",
@@ -142,6 +142,7 @@ export const MODEL_SPECS: Record<BackupModel, ModelSpec> = {
     scope: byUser,
   },
   Note: { delegate: "note", owner: "userId", fks: { jobId: "Job" }, scope: byUser },
+  JobAttachment: { delegate: "jobAttachment", fks: { jobId: "Job", fileId: "File" }, scope: (userId) => ({ Job: { userId } }) },
   Contact: {
     delegate: "contact",
     owner: "createdBy",
@@ -236,6 +237,7 @@ export const INSERT_ORDER: BackupModel[] = [
   "CoverLetter",
   "Automation",
   "Job",
+  "JobAttachment",
   "Note",
   "Contact",
   "JobContact",

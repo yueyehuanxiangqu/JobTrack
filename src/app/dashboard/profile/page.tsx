@@ -1,10 +1,10 @@
-import ProfileContainer from "@/components/profile/ProfileContainer";
+import LegacyFiles from "@/components/profile/LegacyFiles";
 import React from "react";
 
 function Profile() {
   return (
     <div className="col-span-3">
-      <ProfileContainer />
+      <LegacyFiles />
     </div>
   );
 }

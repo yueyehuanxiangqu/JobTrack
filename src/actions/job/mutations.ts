@@ -10,6 +10,7 @@ import { appendStatusStage } from "./shared";
 import { jobFieldsForStage } from "../jobStage/shared";
 import { resolveStageTypeForStatusId } from "@/lib/jobs/resolve";
 import { APPLIED_STATUS_VALUES } from "@/lib/constants";
+import { deleteJobWithDocuments } from "@/lib/documents/service";
 
 type JobRefs = {
   jobTitleId?: string | null;
@@ -257,12 +258,7 @@ export const deleteJobById = async (
   try {
     const user = await requireUser();
 
-    const res = await prisma.job.delete({
-      where: {
-        id: jobId,
-        userId: user.id,
-      },
-    });
+    const res = await deleteJobWithDocuments(user.id, jobId);
     revalidatePath("/dashboard");
     return { res, success: true };
   } catch (error) {

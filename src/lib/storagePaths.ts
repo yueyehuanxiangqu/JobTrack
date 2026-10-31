@@ -13,6 +13,7 @@ export function storagePaths() {
     data,
     files: path.join(data, "files"),
     resumes: path.join(data, "files", "resumes"),
+    jobAttachments: path.join(data, "files", "jobs"),
     backups: path.join(data, "backups"),
   };
 }

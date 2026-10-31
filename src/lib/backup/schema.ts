@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-export const BACKUP_FORMAT_VERSION = 1;
+export const BACKUP_FORMAT_VERSION = 2;
 
 export const ManifestSchema = z.object({
-  formatVersion: z.literal(BACKUP_FORMAT_VERSION),
+  formatVersion: z.union([z.literal(1), z.literal(BACKUP_FORMAT_VERSION)]),
   appVersion: z.string(),
   exportedAt: z.string(),
   sourceEmail: z.string(),
@@ -388,6 +388,7 @@ export const BackupDataSchema = z.object({
   CoverLetter: group(CoverLetter),
   Automation: group(Automation),
   Job: group(Job),
+  JobAttachment: group(z.object({ id, jobId: id, fileId: id, kind: z.enum(["CV", "COVER_LETTER"]), size: z.number().int().positive().max(10485760) })),
   Note: group(Note),
   Contact: group(Contact),
   JobContact: group(JobContact),

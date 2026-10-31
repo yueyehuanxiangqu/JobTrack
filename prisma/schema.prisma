@@ -114,6 +114,7 @@ model File {
   fileType   String
   uploadedAt DateTime @default(now())
   Resume     Resume?
+  JobAttachment JobAttachment?
 }
 
 model ResumeSection {
@@ -463,6 +464,7 @@ model Job {
   CoverLetter   CoverLetter? @relation(fields: [coverLetterId], references: [id])
   coverLetterId String?
   Notes         Note[]
+  Documents     JobAttachment[]
   tags        Tag[]
   contactLinks  JobContact[]
   stages        JobStage[]
@@ -486,6 +488,19 @@ model Job {
   // Also has a hand-written partial unique index (not expressible here):
   // UNIQUE(userId, jobUrl) WHERE automationId IS NOT NULL
   // See migrations/20260710000002_job_automation_url_unique
+}
+
+// Each job owns its own uploaded bytes; legacy Resume/File relationships remain.
+model JobAttachment {
+  id       String @id @default(uuid())
+  jobId    String
+  kind     String
+  fileId   String @unique
+  size     Int
+  Job      Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  File     File   @relation(fields: [fileId], references: [id], onDelete: Restrict)
+
+  @@unique([jobId, kind])
 }
 
 model ActivityType {

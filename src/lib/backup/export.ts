@@ -6,6 +6,9 @@ import { INSERT_ORDER, MODEL_SPECS, type BackupModel } from "./ordering";
 import { BackupDataSchema, type BackupData } from "./schema";
 import { buildManifest } from "./manifest";
 import { isResumeFilePath } from "@/lib/resumeFiles";
+import { safeDocumentPath } from "@/lib/documents/files";
+import { withDocumentLock } from "@/lib/documents/lock";
+import { BackupError } from "./manifest";
 
 type Row = Record<string, unknown>;
 
@@ -114,12 +117,25 @@ export async function buildBackupZip(
   sourceEmail: string,
   sourceUsername?: string | null,
 ): Promise<{ buffer: Buffer; fileName: string }> {
+  return withDocumentLock(() => buildBackupZipUnlocked(userId, sourceEmail, sourceUsername));
+}
+async function buildBackupZipUnlocked(userId: string, sourceEmail: string, sourceUsername?: string | null): Promise<{ buffer: Buffer; fileName: string }> {
   const data = await collectBackupData(userId);
 
   // File bytes are read outside the read transaction. A row committed inside
   // the snapshot whose bytes land later is covered by the fileMissing marker.
   const zip = new JSZip();
   for (const file of data.File) {
+    const document = data.JobAttachment.find((row) => row.fileId === file.id);
+    if (document) {
+      try {
+        await safeDocumentPath(document.jobId, file.filePath);
+        const bytes = await fs.readFile(file.filePath);
+        if (bytes.length !== document.size) throw new Error("Size mismatch");
+        zip.file(`files/${file.id}/${path.basename(file.filePath)}`, bytes);
+      } catch { throw new BackupError("A job document is unavailable. Replace it or restore it from a backup before exporting."); }
+      continue;
+    }
     // A stored path outside the resumes directory is never read into the zip
     if (!isResumeFilePath(file.filePath)) {
       file.fileMissing = true;

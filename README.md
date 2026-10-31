@@ -12,6 +12,7 @@ JobTrack helps individual job seekers organize applications, interviews, tasks, 
 - **Interview management** — Keep interview rounds and schedules linked to applications.
 - **Tasks and Activities** — Organize to-dos and record time spent on your job search.
 - **Local data storage** — Store records and uploaded files on your computer.
+- **Job documents** — Keep one optional CV and one optional Cover Letter per application, with PDF/DOCX upload, download, replacement and deletion. Older library documents remain accessible under Legacy Files.
 - **Backup and export** — Create and restore ZIP backups, and export applications to CSV.
 
 ## Getting Started

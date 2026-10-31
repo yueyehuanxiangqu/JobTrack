@@ -50,6 +50,7 @@ before Next loads any checkout `.env` file. It does not change Windows settings.
   config\instance.json          current instance identity and private control token
   data\jobsync.db               SQLite database
   data\files\resumes\           uploaded/generated resume attachments
+  data\files\jobs\              independent per-job CV/Cover Letter files
   data\backups\<user-id>\        pre-import ZIP recovery snapshots
   logs\initialization.log       dependency, Prisma and build output
   logs\server-<timestamp>.log    server output
@@ -65,6 +66,8 @@ The existing in-app ZIP backup includes business data and resume files; it does
 not include passwords, provider API keys or runtime secrets. It remains the preferred
 way to transfer business data, including from Docker to the native runtime. Native
 mode does not automatically open or modify a Docker database or move its files.
+New exports use ZIP format v2 for job documents. Current versions also restore v1
+backups; older builds cannot read v2. See [job document storage](JOB_ATTACHMENTS.md).
 For a complete offline filesystem copy, stop JobSync first and copy the entire
 local root, including config and all SQLite sidecar files if present. Do not copy a
 live database file by itself.

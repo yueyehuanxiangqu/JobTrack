@@ -33,6 +33,7 @@ vi.mock("@/actions/note.actions", () => ({
 }));
 
 vi.mock("@/lib/toast", () => ({
+  toastError: vi.fn(),
   toastActionResult: vi.fn((result, opts) => {
     if (result?.success) opts.onSuccess?.(result.data);
   }),
@@ -40,7 +41,7 @@ vi.mock("@/lib/toast", () => ({
 
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),
-  useRouter: vi.fn(() => ({ replace: vi.fn() })),
+  useRouter: vi.fn(() => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() })),
   useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
 
@@ -219,7 +220,7 @@ describe("AddJob Component", () => {
     expect(options.length).toBeGreaterThan(0);
     expect(options[0].textContent).toBe("Draft");
   });
-  it("should closes the dialog and submit to save job when clicked on save button", async () => {
+  async function fillValidForm() {
     const jobTitleInput = screen.getByRole("combobox", {
       name: /job title/i,
     }) as HTMLSelectElement;
@@ -260,6 +261,9 @@ describe("AddJob Component", () => {
       pTag.textContent = "New Job Description";
     }
 
+  }
+  it("should closes the dialog and submit to save job when clicked on save button", async () => {
+    await fillValidForm();
     const dialog = await screen.findByRole("dialog");
     const saveBtn = screen.getByTestId("save-job-btn");
     await user.click(saveBtn);
@@ -284,6 +288,37 @@ describe("AddJob Component", () => {
       });
     });
   }, 10000);
+  it("stages both optional files in memory and leaves no upload when cancelled", async () => {
+    const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
+    try {
+      await user.upload(screen.getByLabelText("CV", { exact: true }), new File(["cv"], "中文.pdf", { type: "application/pdf" }));
+      await user.upload(screen.getByLabelText("Cover Letter", { exact: true }), new File(["letter"], "cover.docx", { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }));
+      expect(screen.getByText("Selected: 中文.pdf")).toBeVisible();
+      await user.click(screen.getByRole("button", { name: "Cancel" }));
+      expect(fetcher).not.toHaveBeenCalled(); expect(addJob).not.toHaveBeenCalled();
+    } finally { vi.unstubAllGlobals(); }
+  });
+  it("retries documents for the already-saved Job ID instead of creating a duplicate job", async () => {
+    (addJob as any).mockResolvedValueOnce({ success: true, data: { id: "saved-job" } });
+    const fetcher = vi.fn().mockResolvedValueOnce({ ok: false, json: async () => ({ error: "Disk full" }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ documents: [] }) });
+    vi.stubGlobal("fetch", fetcher);
+    try {
+      await fillValidForm();
+      await user.upload(screen.getByLabelText("CV", { exact: true }), new File(["cv"], "中文.pdf", { type: "application/pdf" }));
+      await user.click(screen.getByTestId("save-job-btn"));
+      expect(await screen.findByRole("alert")).toHaveTextContent("Job saved, but documents could not be confirmed");
+      expect(screen.getByRole("link", { name: "Open saved job" })).toHaveAttribute("href", "/dashboard/myjobs/saved-job");
+      const retry = screen.getByRole("button", { name: "Retry documents" });
+      await waitFor(() => expect(retry).toBeEnabled(), { timeout: 3000 });
+      await user.click(retry);
+      await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument(), { timeout: 3000 });
+      expect(addJob).toHaveBeenCalledTimes(1);
+      expect(fetcher).toHaveBeenCalledTimes(2);
+      expect(fetcher.mock.calls.every((call) => call[0] === "/api/jobs/saved-job/documents")).toBe(true);
+    } finally { vi.unstubAllGlobals(); }
+  });
+
 });
 
 describe("AddJob Component - Last Used Location/Source", () => {
@@ -498,6 +533,7 @@ describe("AddJob Component - Edit Mode", () => {
       );
     });
   });
+
 });
 
 describe("AddJob Component - Error Handling", () => {

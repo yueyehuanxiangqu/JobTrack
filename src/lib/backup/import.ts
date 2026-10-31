@@ -1,3 +1,6 @@
+import { withDocumentLock } from "@/lib/documents/lock";
+import { documentPath, safeDocumentPath, withDocumentJournal, recoverDocumentFiles, type DocumentFile } from "@/lib/documents/files";
+import { validateDocument } from "@/lib/documents/validation";
 import { CONTACT_ROLES,JOB_STAGES } from "@/lib/constants";
 import db from "@/lib/db";
 import { isResumeFilePath } from "@/lib/resumeFiles";
@@ -178,9 +181,11 @@ async function wipe(tx: Tx, userId: string): Promise<void> {
   // clean panel. ApiKey and McpAccessToken are deliberately absent.
   await tx.chatConversation.deleteMany({ where: { userId } });
 
+  // Capture File IDs before deleting the relations used to scope them.
+  const files = await tx.file.findMany({ where: MODEL_SPECS.File.scope(userId), select: { id: true } }) as { id: string }[];
   for (const model of DELETE_ORDER) {
     const spec = MODEL_SPECS[model];
-    await tx[spec.delegate].deleteMany({ where: spec.scope(userId) });
+    await tx[spec.delegate].deleteMany({ where: model === "File" ? { id: { in: files.map((file) => file.id) } } : spec.scope(userId) });
   }
 }
 
@@ -195,6 +200,12 @@ export async function importBackup(
   confirmWipe: boolean,
   username?: string | null,
 ): Promise<ImportResult> {
+  return withDocumentLock(async () => {
+    await recoverDocumentFiles();
+    return importBackupUnlocked(bytes, userId, userEmail, confirmWipe, username);
+  });
+}
+async function importBackupUnlocked(bytes: Buffer, userId: string, userEmail: string, confirmWipe: boolean, username?: string | null): Promise<ImportResult> {
   // A JWT session outlives the database it was minted against: a container
   // with a fresh dev.db still accepts the old cookie, and every scoped read
   // returns empty instead of failing. wipe()'s user.update is the only
@@ -213,6 +224,19 @@ export async function importBackup(
   const zip = await openBackupZip(bytes);
   const manifest = await readManifest(zip);
   const data = await readData(zip);
+
+  // IdMap is shared across model groups. Ambiguous imported identifiers could
+  // otherwise change a job's mapped ID after its document path was prepared.
+  if (data.JobAttachment.length) {
+    const identifiers = new Set<string>();
+    for (const model of INSERT_ORDER) {
+      for (const row of rowsFor(data, model)) {
+        const id = row.id as string;
+        if (identifiers.has(id)) throw new BackupError("Backup contains ambiguous record identifiers. Nothing was replaced.");
+        identifiers.add(id);
+      }
+    }
+  }
 
   const targetCounts = await countTargetContent(userId);
   const targetIsEmpty = Object.values(targetCounts).every((n) => n === 0);
@@ -241,6 +265,32 @@ export async function importBackup(
     for (const row of rowsFor(data, model)) idMap.mint(row.id as string);
   }
 
+  const documentFiles = new Map(data.JobAttachment.map((row) => [row.fileId, row]));
+  const slots = new Set<string>();
+  const prepared = new Map<string, { bytes: Buffer; target: string; mimeType: string }>();
+  const intents: DocumentFile[] = [];
+  for (const document of data.JobAttachment) {
+    const slot = `${document.jobId}:${document.kind}`;
+    const file = data.File.find((row) => row.id === document.fileId);
+    if (slots.has(slot) || documentFiles.size !== data.JobAttachment.length || !data.Job.some((row) => row.id === document.jobId) || !file || data.Resume.some((row) => row.FileId === document.fileId)) throw new BackupError("Invalid job document relationships in backup.");
+    slots.add(slot);
+    const prefix = `files/${file.id}/`;
+    const entries = Object.values(zip.files).filter((entry) => !entry.dir && entry.name.startsWith(prefix));
+    if (file.fileMissing || entries.length !== 1) throw new BackupError("Backup is missing a job document. Nothing was replaced.");
+    try {
+      const bytes = await entries[0].async("nodebuffer");
+      const checked = await validateDocument(file.fileName, bytes);
+      if (bytes.length !== document.size) throw new Error("Size mismatch");
+      const jobId = idMap.get(document.jobId)!;
+      const fileId = idMap.get(file.id)!;
+      const target = documentPath(jobId, fileId, checked.extension);
+      prepared.set(file.id, { bytes, target, mimeType: checked.mimeType });
+      intents.push({ id: fileId, jobId, filePath: target });
+    } catch { throw new BackupError("Backup contains an invalid job document. Nothing was replaced."); }
+  }
+  const oldDocuments = await db.jobAttachment.findMany({ where: { Job: { userId } }, include: { File: true } });
+  intents.push(...oldDocuments.map((row) => ({ id: row.fileId, jobId: row.jobId, filePath: row.File.filePath })));
+  return withDocumentJournal(intents, async () => {
   // Files are written before the transaction: a failed import leaves orphaned
   // bytes (unlinked below) rather than committed rows pointing at nothing.
   const writtenPaths: string[] = [];
@@ -255,8 +305,20 @@ export async function importBackup(
   const newFileTypes = new Map<string, string>();
   const rejectedFiles: string[] = [];
 
+  const counts: Record<string, number> = {};
+  const oldFilePaths = (await db.file.findMany({ where: MODEL_SPECS.File.scope(userId), select: { filePath: true } })).map((file) => file.filePath);
+  try {
   for (const file of data.File) {
     const newId = idMap.get(file.id)!;
+    const document = prepared.get(file.id);
+    if (document) {
+      newFilePaths.set(file.id, document.target);
+      newFileTypes.set(file.id, document.mimeType);
+      await safeDocumentPath(intents.find((intent) => intent.filePath === document.target)!.jobId, document.target, true);
+      await fs.writeFile(document.target, document.bytes, { flag: "wx", flush: true });
+      writtenPaths.push(document.target);
+      continue;
+    }
     const prefix = `files/${file.id}/`;
     // A prefix scan, not `new RegExp(prefix)`: file.id comes out of the
     // payload, and interpolating it into a pattern hands an untrusted string
@@ -295,17 +357,6 @@ export async function importBackup(
     });
   }
 
-  // Captured before the wipe so the old bytes can be unlinked after it commits.
-  const oldFilePaths = (
-    await db.file.findMany({
-      where: MODEL_SPECS.File.scope(userId),
-      select: { filePath: true },
-    })
-  ).map((f) => f.filePath);
-
-  const counts: Record<string, number> = {};
-
-  try {
     await db.$transaction(
       async (transaction) => {
         const tx = transaction as unknown as Tx;
@@ -419,7 +470,7 @@ export async function importBackup(
   // Without this every restore-over-existing leaves the previous account's
   // resume files in UPLOADS_DIR forever with no row pointing at them.
   for (const filePath of oldFilePaths) {
-    if (writtenPaths.includes(filePath)) continue;
+    if (writtenPaths.includes(filePath) || oldDocuments.some((row) => row.File.filePath === filePath)) continue;
     if (!isResumeFilePath(filePath)) {
       log.warn("[Backup] Skipped removing a file outside the resumes directory", {
         "file.path": filePath,
@@ -435,4 +486,5 @@ export async function importBackup(
   }
 
   return { counts, filesWritten: writtenPaths.length, snapshotPath };
+  });
 }

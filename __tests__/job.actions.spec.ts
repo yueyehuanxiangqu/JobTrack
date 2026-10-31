@@ -89,6 +89,14 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+// File lifecycle/rollback is exercised against SQLite in jobDocumentStorage.spec.ts.
+vi.mock("@/lib/documents/service", () => ({
+  deleteJobWithDocuments: async (userId: string, jobId: string) => {
+    const { default: db } = await import("@/lib/db");
+    return db.job.delete({ where: { id: jobId, userId } });
+  },
+}));
+
 describe("jobActions", () => {
   const mockUser = { id: "user-id" };
   const jobData = {

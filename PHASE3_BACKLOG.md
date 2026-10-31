@@ -8,11 +8,11 @@ Phase 3B implements username/password accounts and an explicit, password-verifie
 transition for existing email accounts. See [account migration](USERNAME_MIGRATION.md)
 and [validation](PHASE3_VALIDATION.md).
 
-The following work is deferred and is **not implemented** by these changes:
+Phase 3C adds independent CV and Cover Letter uploads per job. The original
+library is now read-only under Legacy Files. See [job documents](JOB_ATTACHMENTS.md).
 
-- **Phase 3C:** independent CV and Cover Letter attachments per job, including
-  upload/download/replace/delete without selecting a global resume. The current
-  shared document library remains until that replacement is implemented.
+The following work remains deferred:
+
 - **Phase 4:** English, Simplified Chinese and Traditional Chinese; persisted
   language settings and responsive layout improvements for small windows/zoom.
 - **Phase 5:** user-initiated AI Autofill from a URL or pasted JD, with configurable

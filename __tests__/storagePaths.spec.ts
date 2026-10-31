@@ -13,6 +13,7 @@ it("uses the isolated native data root for every attachment and backup path", ()
     data: path.join(home, "data"),
     files: path.join(home, "data", "files"),
     resumes: path.join(home, "data", "files", "resumes"),
+    jobAttachments: path.join(home, "data", "files", "jobs"),
     backups: path.join(home, "data", "backups"),
   });
 });

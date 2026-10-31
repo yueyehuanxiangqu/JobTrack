@@ -224,29 +224,20 @@ try {
 
   const pdf = await renderToBuffer(React.createElement(Document, null,
     React.createElement(Page, null, React.createElement(Text, null, "Native runtime upload test"))));
-  await page.goto(`${origin}/dashboard/profile`);
-  await page.getByRole("button", { name: "New", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Add New Resume", exact: true }).click();
-  await page.getByLabel("Upload Resume (Optional)", { exact: true }).setInputFiles({ name: "测试 resume.pdf", mimeType: "application/pdf", buffer: pdf });
-  await page.getByTestId("resume-title-input").fill(resumeTitle);
-  await expect(page.getByText("Auto-fill with AI", { exact: true })).toHaveCount(0);
-  await page.getByRole("dialog").getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.getByRole("dialog")).toBeHidden();
+  // Seed a legacy document through its compatibility API; normal uploads now belong to jobs.
+  const legacyUpload = await page.request.post(`${origin}/api/profile/resume`, { multipart: { title: resumeTitle, file: { name: "测试 resume.pdf", mimeType: "application/pdf", buffer: pdf } } });
+  expect(legacyUpload.ok()).toBe(true);
   const resume = await prisma.resume.findFirstOrThrow({ where: { title: resumeTitle, profile: { userId: owner.id } }, include: { File: true } });
   expect(resume.File.filePath.startsWith(paths.resumes + path.sep)).toBe(true);
   expect(await fs.readFile(resume.File.filePath)).toEqual(pdf);
   const download = await page.request.get(`${origin}/api/profile/resume?resumeId=${resume.id}`);
   expect(download.ok()).toBe(true);
   expect(await download.body()).toEqual(pdf);
-  record("Unicode PDF attachment uploaded through the retained document UI, local storage and byte-identical download; retired AI import absent");
-  await page.goto(`${origin}/dashboard/myjobs`);
-  await page.getByRole("row", { name: jobTitle }).first().getByRole("button", { name: "Edit Job" }).click();
-  await page.getByRole("combobox", { name: "Select Resume", exact: true }).click();
-  await page.getByRole("option", { name: resumeTitle, exact: true }).click();
-  await page.getByTestId("save-job-btn").click();
-  await expect(page.getByTestId("save-job-btn")).toBeHidden();
-  expect((await prisma.job.findUniqueOrThrow({where:{id:job.id}})).resumeId).toBe(resume.id);
-  record("An uploaded CV can be linked to a job without the retired Resume Builder");
+  record("Legacy Unicode PDF compatibility upload and byte-identical download");
+  const documents = await page.request.put(`${origin}/api/jobs/${job.id}/documents`, { multipart: { CV: { name: "测试 CV.pdf", mimeType: "application/pdf", buffer: pdf } } });
+  expect(documents.ok()).toBe(true);
+  expect(await prisma.jobAttachment.count({ where: { jobId: job.id } })).toBe(1);
+  record("A job accepts an independent CV without a global resume selection");
 
 
   // Seed only this test account's structured resume to exercise the existing PDF UI.

@@ -14,10 +14,13 @@ it("formally upgrades a 44-migration database without changing account or attach
     fs.mkdirSync(path.join(schemaDir, "migrations"), { recursive: true });
     const schema = fs.readFileSync("prisma/schema.prisma", "utf8")
       .replace(/^\s*username\s+String\?\s+@unique.*\r?\n/m, "")
-      .replace(/^(\s*email\s+)String\?(\s+@unique)/m, "$1String$2");
+      .replace(/^(\s*email\s+)String\?(\s+@unique)/m, "$1String$2")
+      .replace(/\nmodel JobAttachment \{[\s\S]*?\n\}\n/, "")
+      .replace(/^\s*JobAttachment\s+JobAttachment\?.*\r?\n/m, "")
+      .replace(/^\s*Documents\s+JobAttachment\[\].*\r?\n/m, "");
     fs.writeFileSync(path.join(schemaDir, "schema.prisma"), schema);
     for (const name of fs.readdirSync("prisma/migrations")) {
-      if (name === "20261031110000_username_authentication") continue;
+      if (/^\d/.test(name) && name >= "20261031110000_username_authentication") continue;
       fs.cpSync(path.join("prisma/migrations", name), path.join(schemaDir, "migrations", name), { recursive: true });
     }
     execFileSync(process.execPath, [path.resolve("node_modules/prisma/build/index.js"), "migrate", "deploy", "--schema", path.join(schemaDir, "schema.prisma")], {

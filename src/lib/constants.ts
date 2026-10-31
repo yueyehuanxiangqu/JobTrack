@@ -195,7 +195,7 @@ export const SIDEBAR_LINKS = [
     {
         icon: UserRound,
         route: "/dashboard/profile",
-        label: "Profile",
+        label: "Legacy Files",
     },
     {
         icon: Sheet,

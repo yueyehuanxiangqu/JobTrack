@@ -1,33 +1,31 @@
 "use client";
 
-import { format } from "date-fns";
-import Link from "next/link";
-import { ExternalLink, FileText, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { CircularScore } from "@/components/CircularScore";
+import { Card,CardContent } from "@/components/ui/card";
+import { format } from "date-fns";
+import { ExternalLink,FileText,Sparkles } from "lucide-react";
+import Link from "next/link";
+
 import { StatusBadge } from "@/components/StatusBadge";
 import { DownloadFileButton } from "@/components/profile/DownloadFileButton";
-import { BADGE_COLORS, getJobStatusBadgeColor } from "@/lib/badge-colors";
-import { cn, formatUrl } from "@/lib/utils";
-import type { JobMatchData } from "@/models/ai.schemas";
+import { BADGE_COLORS,getJobStatusBadgeColor } from "@/lib/badge-colors";
+import { cn,formatUrl } from "@/lib/utils";
+
 import {
-  JobResponse,
-  JobStatus,
-  getJobTypeLabel,
-  getWorkplaceTypeLabel,
+JobResponse,
+JobStatus,
+getJobTypeLabel,
+getWorkplaceTypeLabel,
 } from "@/models/job.model";
 
 type JobSummaryCardProps = {
   job: JobResponse;
   currentStatus: JobStatus;
-  matchData: JobMatchData | null;
 };
 
 export function JobSummaryCard({
   job,
   currentStatus,
-  matchData,
 }: JobSummaryCardProps) {
   const expired =
     job.dueDate &&
@@ -59,10 +57,7 @@ export function JobSummaryCard({
                 ` · ${getWorkplaceTypeLabel(job.workplaceType)}`}
             </p>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Salary Range</p>
-            <p className="mt-1 font-medium">{job.salaryRange || "-"}</p>
-          </div>
+
           <div>
             <p className="text-sm text-muted-foreground">Source</p>
             <p className="mt-1 font-medium">{job.JobSource?.label ?? "-"}</p>
@@ -77,21 +72,7 @@ export function JobSummaryCard({
                   : "Not applied"}
             </p>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">AI Match</p>
-            {job.matchScore != null && matchData?.analyzed !== false ? (
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <CircularScore score={job.matchScore} size="sm" />
-                {matchData?.recommendation && (
-                  <Badge variant="outline" className="capitalize">
-                    {matchData.recommendation}
-                  </Badge>
-                )}
-              </div>
-            ) : (
-              <p className="mt-1 font-medium">Not matched</p>
-            )}
-          </div>
+
           <div>
             <p className="text-sm text-muted-foreground">Resume</p>
             <div className="mt-1 font-medium">

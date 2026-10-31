@@ -1,72 +1,71 @@
 "use client";
+import { addJob,updateJob } from "@/actions/job.actions";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogOverlay,
-  DialogTitle,
-  DialogFooter,
+Dialog,
+DialogContent,
+DialogDescription,
+DialogFooter,
+DialogHeader,
+DialogOverlay,
+DialogTitle,
 } from "@/components/ui/dialog";
-import { addJob, updateJob } from "@/actions/job.actions";
-import { Loader, PlusCircle } from "lucide-react";
-import { Button } from "../ui/button";
-import { useForm } from "react-hook-form";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useTransition,
-} from "react";
+import { toastActionResult,toastError } from "@/lib/toast";
 import { AddJobFormSchema } from "@/models/addJobForm.schema";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  Company,
-  JOB_TYPES,
-  JobLocation,
-  JobResponse,
-  JobSource,
-  JobStatus,
-  JobTitle,
-  Tag,
-  WORKPLACE_TYPES,
+Company,
+JOB_TYPES,
+JobLocation,
+JobResponse,
+JobSource,
+JobStatus,
+JobTitle,
+Tag,
+WORKPLACE_TYPES,
 } from "@/models/job.model";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { addDays } from "date-fns";
-import { z } from "zod";
-import { toastActionResult, toastError } from "@/lib/toast";
+import { Loader,PlusCircle } from "lucide-react";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import SelectFormCtrl from "../Select";
+useCallback,
+useEffect,
+useRef,
+useState,
+useTransition,
+} from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { DatePicker } from "../DatePicker";
-import { SALARY_RANGES } from "@/lib/data/salaryRangeData";
+import SelectFormCtrl from "../Select";
+import { Button } from "../ui/button";
+import {
+Form,
+FormControl,
+FormField,
+FormItem,
+FormLabel,
+FormMessage,
+} from "../ui/form";
+import { RadioGroup,RadioGroupItem } from "../ui/radio-group";
+
+import { getCoverLetterList } from "@/actions/coverLetter.actions";
+import { getResumeList } from "@/actions/profile.actions";
+import { APP_CONSTANTS,APPLIED_STATUS_VALUES } from "@/lib/constants";
+import {
+buildIncompleteResumeHint,
+hasMinResumeSections,
+} from "@/lib/resumeSections";
+import { CoverLetter,Resume } from "@/models/profile.model";
+import {
+getFromLocalStorage,
+saveToLocalStorage,
+} from "@/utils/localstorage.utils";
+import { redirect,useRouter,useSearchParams } from "next/navigation";
+import { Combobox } from "../ComboBox";
+import { IncompleteResumeHint } from "../IncompleteResumeHint";
+import CreateResume from "../profile/CreateResume";
 import TiptapEditor from "../TiptapEditor";
 import { Input } from "../ui/input";
-import { redirect, useRouter, useSearchParams } from "next/navigation";
-import { Combobox } from "../ComboBox";
 import { NotesCollapsibleSection } from "./NotesCollapsibleSection";
-import { CoverLetter, Resume } from "@/models/profile.model";
-import CreateResume from "../profile/CreateResume";
-import { getResumeList } from "@/actions/profile.actions";
-import { getCoverLetterList } from "@/actions/coverLetter.actions";
-import { TagInput } from "./TagInput";
-import { IncompleteResumeHint } from "../IncompleteResumeHint";
-import {
-  buildIncompleteResumeHint,
-  hasMinResumeSections,
-} from "@/lib/resumeSections";
-import { APP_CONSTANTS, APPLIED_STATUS_VALUES } from "@/lib/constants";
-import {
-  getFromLocalStorage,
-  saveToLocalStorage,
-} from "@/utils/localstorage.utils";
 
 type AddJobProps = {
   jobStatuses: JobStatus[];
@@ -557,25 +556,8 @@ export function AddJob({
                   />
                 </div>
 
-                {/* Salary Range */}
                 <div>
-                  <FormField
-                    control={form.control}
-                    name="salaryRange"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Salary Range</FormLabel>
-                        <Combobox
-                          options={SALARY_RANGES}
-                          field={field}
-                          creatable
-                          freeText
-                          label="Salary Range"
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
                 </div>
 
                 {/* Resume */}
@@ -633,25 +615,8 @@ export function AddJob({
                   />
                 </div>
 
-                {/* Add Skill Tags */}
                 <div>
-                  <FormField
-                    control={form.control}
-                    name="tags"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Add Skill</FormLabel>
-                        <FormControl>
-                          <TagInput
-                            availableTags={availableTags}
-                            selectedTagIds={field.value ?? []}
-                            onChange={(ids) => field.onChange(ids)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
                 </div>
 
                 {/* Job Description */}

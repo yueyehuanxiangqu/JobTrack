@@ -1,13 +1,13 @@
 // @vitest-environment node
-import fs from "fs";
-import path from "path";
-import os from "os";
-import db from "@/lib/db";
-import { PrismaClient } from "@prisma/client";
-import { APP_CONSTANTS, CONTACT_ROLES, JOB_STAGES } from "@/lib/constants";
 import { buildBackupZip } from "@/lib/backup/export";
 import { importBackup } from "@/lib/backup/import";
-import { listSnapshots, readSnapshot } from "@/lib/backup/snapshot";
+import { listSnapshots,readSnapshot } from "@/lib/backup/snapshot";
+import { APP_CONSTANTS,CONTACT_ROLES,JOB_STAGES } from "@/lib/constants";
+import db from "@/lib/db";
+import { PrismaClient } from "@prisma/client";
+import fs from "fs";
+import os from "os";
+import path from "path";
 import { seedAccount } from "./helpers/backupTestDb";
 
 // Async so the helper can be pulled in with a dynamic import — `require` is
@@ -314,8 +314,8 @@ describe("backup round trip", () => {
     expect(run.errorMessage).toBe("interrupted");
 
     const automation = await prisma.automation.findFirstOrThrow({ where: { userId } });
-    expect(automation.status).toBe("active");
-    expect(automation.nextRunAt!.getTime()).toBeGreaterThan(Date.now());
+    expect(automation.status).toBe("paused");
+    expect(automation.nextRunAt).toBeNull();
 
     // The wipe set is honoured in both directions.
     expect(await prisma.apiKey.count({ where: { userId } })).toBe(1);
@@ -585,18 +585,4 @@ describe("backup round trip", () => {
     ).toBe(false);
   }, 120_000);
 
-  it("refuses before any write when the target has an active run", async () => {
-    const automation = await prisma.automation.findFirstOrThrow({ where: { userId } });
-    await prisma.automationRun.create({
-      data: { automationId: automation.id, status: "running" },
-    });
-
-    const { buffer } = await buildBackupZip(userId, "owner@example.com");
-    const jobsBefore = await prisma.job.count({ where: { userId } });
-
-    await expect(
-      importBackup(buffer, userId, "owner@example.com", true),
-    ).rejects.toThrow(/wait/i);
-    expect(await prisma.job.count({ where: { userId } })).toBe(jobsBefore);
-  }, 120_000);
 });

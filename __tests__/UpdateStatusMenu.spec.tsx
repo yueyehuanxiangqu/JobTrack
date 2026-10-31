@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { UpdateStatusMenu } from "@/components/myjobs/job-details/timeline/UpdateStatusMenu";
+import { render,screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 const stage = (statusValue: string, label: string) =>
   ({
@@ -50,7 +50,7 @@ describe("UpdateStatusMenu", () => {
 
     expect(screen.getByRole("menuitem", { name: /Add Stage/ })).not.toHaveAttribute("aria-disabled", "true");
     expect(screen.getByRole("menuitem", { name: /Add Interviewers/ })).not.toHaveAttribute("aria-disabled", "true");
-    expect(screen.getByRole("menuitem", { name: /Add to Prep List/ })).not.toHaveAttribute("aria-disabled", "true");
+
   });
 
   // Disabled with a visible reason, not hidden: a menu whose items come and
@@ -60,7 +60,7 @@ describe("UpdateStatusMenu", () => {
     await open();
 
     expect(screen.getByRole("menuitem", { name: /Add Interviewers/ })).toHaveAttribute("aria-disabled", "true");
-    expect(screen.getByRole("menuitem", { name: /Add to Prep List/ })).toHaveAttribute("aria-disabled", "true");
+
     expect(screen.getAllByText(/Applied is not an interview stage/).length).toBeGreaterThan(0);
   });
 

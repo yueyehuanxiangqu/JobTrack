@@ -1,22 +1,20 @@
 import {
-  addJob,
-  createLocation,
-  createJobSource,
-  deleteJobById,
-  getJobDetails,
-  getJobsList,
-  getJobFilterCounts,
-  getJobSourceList,
-  getStatusList,
-  saveJobMatchResult,
-  updateJob,
-  updateJobStatus,
+addJob,
+createJobSource,
+createLocation,
+deleteJobById,
+getJobDetails,
+getJobFilterCounts,
+getJobsList,
+getJobSourceList,
+getStatusList,
+updateJob,
+updateJobStatus
 } from "@/actions/job.actions";
-import { getMockJobDetails, getMockJobsList } from "@/lib/mock.utils";
 import { EMPTY_JOB_FACETS } from "@/lib/jobs/jobFacets";
-import { JobResponse } from "@/models/job.model";
-import { getCurrentUser } from "@/utils/user.utils";
 import { resolveStageTypeForStatusId } from "@/lib/jobs/resolve";
+import { getMockJobDetails,getMockJobsList } from "@/lib/mock.utils";
+import { getCurrentUser } from "@/utils/user.utils";
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
@@ -1043,7 +1041,6 @@ describe("jobActions", () => {
     });
   });
 
-
   describe("getJobDetails", () => {
     it("should throw error when jobId is not provided", async () => {
       await expect(getJobDetails("")).resolves.toStrictEqual({
@@ -1774,57 +1771,5 @@ describe("jobActions", () => {
       });
     });
   });
-  describe("saveJobMatchResult", () => {
-    it("should return error when user is not authenticated", async () => {
-      (getCurrentUser as any).mockResolvedValue(null);
 
-      const result = await saveJobMatchResult(
-        "job-id",
-        85,
-        '{"summary":"test"}',
-      );
-
-      expect(result).toStrictEqual({
-        success: false,
-        message: "Not authenticated",
-      });
-      expect(prisma.job.update).not.toHaveBeenCalled();
-    });
-
-    it("should save match score and data successfully", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.job.update as any).mockResolvedValue({});
-
-      const matchData = JSON.stringify({
-        matchScore: 85,
-        summary: "Good match",
-        resumeId: "resume-1",
-        resumeTitle: "My Resume",
-        matchedAt: "2026-03-29T00:00:00.000Z",
-      });
-
-      const result = await saveJobMatchResult("job-id", 85, matchData);
-
-      expect(result).toStrictEqual({ success: true });
-      expect(prisma.job.update).toHaveBeenCalledTimes(1);
-      expect(prisma.job.update).toHaveBeenCalledWith({
-        where: { id: "job-id", userId: mockUser.id },
-        data: { matchScore: 85, matchData },
-      });
-    });
-
-    it("should handle database errors", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.job.update as any).mockRejectedValue(
-        new Error("Record not found"),
-      );
-
-      const result = await saveJobMatchResult("job-id", 75, "{}");
-
-      expect(result).toStrictEqual({
-        success: false,
-        message: "Record not found",
-      });
-    });
-  });
 });

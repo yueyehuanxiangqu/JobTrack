@@ -1,44 +1,41 @@
 "use client";
-import Link from "next/link";
-import {
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Circle,
-  ExternalLink,
-  MapPin,
-  MoreVertical,
-  Pencil,
-  Phone,
-  Video,
-} from "lucide-react";
-import { StatusBadge } from "../StatusBadge";
-import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { TableCell, TableRow } from "../ui/table";
-import {
-  durationLabel,
-  formatIconKind,
-  formatText,
-  interviewerSummary,
-  outcomeLabel,
-  outcomeColor,
-  prepSummary,
-  whenParts,
-} from "./interviewDisplay";
 import { setStageOutcome } from "@/actions/jobStage.actions";
 import { STAGE_OUTCOMES } from "@/lib/constants";
 import { toastActionResult } from "@/lib/toast";
 import type { InterviewRow as InterviewRowType } from "@/models/interview.model";
+import {
+ChevronDown,
+ChevronRight,
+ExternalLink,
+MapPin,
+MoreVertical,
+Pencil,
+Phone,
+Video
+} from "lucide-react";
+import Link from "next/link";
+import { StatusBadge } from "../StatusBadge";
+import { Button } from "../ui/button";
+import {
+DropdownMenu,
+DropdownMenuContent,
+DropdownMenuItem,
+DropdownMenuLabel,
+DropdownMenuSub,
+DropdownMenuSubContent,
+DropdownMenuSubTrigger,
+DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { TableCell,TableRow } from "../ui/table";
+import {
+durationLabel,
+formatIconKind,
+formatText,
+interviewerSummary,
+outcomeColor,
+outcomeLabel,
+whenParts
+} from "./interviewDisplay";
 
 const FORMAT_ICONS = { video: Video, phone: Phone, location: MapPin };
 
@@ -124,9 +121,7 @@ function InterviewRow({
         <TableCell className="hidden lg:table-cell">
           {interviewerSummary(interview.interviewers)}
         </TableCell>
-        <TableCell className="hidden sm:table-cell">
-          {prepSummary(interview.prepQuestions)}
-        </TableCell>
+
         <TableCell>
           <StatusBadge
             label={outcome}
@@ -186,96 +181,7 @@ function InterviewRow({
       </TableRow>
       {expanded && (
         <TableRow>
-          <TableCell colSpan={9} className="bg-muted/40">
-            <div className="grid gap-6 text-sm sm:grid-cols-2">
-              <div className="space-y-4">
-                <div>
-                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Interviewers ({interview.interviewers.length})
-                  </div>
-                  {interview.interviewers.length === 0 ? (
-                    <p className="mt-1 text-muted-foreground">
-                      Nobody linked yet — link interviewers on the job&apos;s
-                      Timeline tab.
-                    </p>
-                  ) : (
-                    <ul className="mt-2 space-y-2">
-                      {interview.interviewers.map((link) => (
-                        <li key={link.id}>
-                          <div className="font-medium">
-                            {link.Contact.name}
-                            {link.Contact.title && (
-                              <span className="font-normal text-muted-foreground">
-                                {" · "}
-                                {link.Contact.title}
-                              </span>
-                            )}
-                          </div>
-                          {link.Contact.email && (
-                            <a
-                              href={`mailto:${link.Contact.email}`}
-                              className="text-primary underline-offset-4 hover:underline"
-                            >
-                              {link.Contact.email}
-                            </a>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                {interview.notes && (
-                  <div>
-                    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Notes
-                    </div>
-                    <p className="mt-1 whitespace-pre-wrap text-muted-foreground">
-                      {interview.notes}
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="flex items-baseline gap-3">
-                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Prep questions ({prepSummary(interview.prepQuestions)})
-                  </div>
-                  {interview.prepQuestions.length > 0 && (
-                    <Link
-                      href={`/dashboard/questions?stage=${interview.id}`}
-                      className="whitespace-nowrap text-xs text-primary underline-offset-4 hover:underline"
-                    >
-                      View answers
-                    </Link>
-                  )}
-                </div>
-                {interview.prepQuestions.length === 0 ? (
-                  <p className="mt-1 text-muted-foreground">
-                    No prep list yet — build one on the job&apos;s Timeline tab.
-                  </p>
-                ) : (
-                  <ul className="mt-2 space-y-2">
-                    {interview.prepQuestions.map((link) => (
-                      <li key={link.id} className="flex items-start gap-2">
-                        {link.asked ? (
-                          <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600" />
-                        ) : (
-                          <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        )}
-                        <span
-                          className={
-                            link.asked ? "text-muted-foreground" : undefined
-                          }
-                        >
-                          {link.Question.question}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          </TableCell>
+
         </TableRow>
       )}
     </>

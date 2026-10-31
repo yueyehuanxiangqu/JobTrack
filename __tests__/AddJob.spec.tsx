@@ -1,15 +1,15 @@
+import { addJob,updateJob } from "@/actions/job.actions";
 import { AddJob } from "@/components/myjobs/AddJob";
+import { APP_CONSTANTS } from "@/lib/constants";
 import { JOB_SOURCES } from "@/lib/data/jobSourcesData";
 import { JOB_STATUSES } from "@/lib/data/jobStatusesData";
-import { getMockJobDetails, getMockList } from "@/lib/mock.utils";
-import { screen, render, waitFor } from "@testing-library/react";
-import { getCurrentUser } from "@/utils/user.utils";
-import userEvent from "@testing-library/user-event";
-import { format } from "date-fns";
-import { addJob, updateJob } from "@/actions/job.actions";
+import { getMockList } from "@/lib/mock.utils";
 import { toastActionResult } from "@/lib/toast";
 import type { JobResponse } from "@/models/job.model";
-import { APP_CONSTANTS } from "@/lib/constants";
+import { getCurrentUser } from "@/utils/user.utils";
+import { render,screen,waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { format } from "date-fns";
 vi.mock("@/utils/user.utils", () => ({
   getCurrentUser: vi.fn(),
 }));
@@ -22,6 +22,8 @@ vi.mock("@/actions/job.actions", () => ({
 vi.mock("@/actions/profile.actions", () => ({
   getResumeList: vi.fn().mockResolvedValue({ success: true, data: [] }),
 }));
+
+vi.mock("@/actions/coverLetter.actions", () => ({ getCoverLetterList: vi.fn().mockResolvedValue({success:true,data:[]}) }));
 
 vi.mock("@/actions/note.actions", () => ({
   getNotesByJobId: vi.fn().mockResolvedValue({ success: true, data: [] }),
@@ -186,27 +188,7 @@ describe("AddJob Component", () => {
     expect(options.length).toBeGreaterThan(0);
     expect(options[0].textContent).toBe("Indeed");
   });
-  it("should load and show the salary range suggestions", async () => {
-    const salaryRangeCombobox = screen.getByLabelText("Salary Range");
-    await user.click(salaryRangeCombobox);
-    const options = screen.getAllByRole("option");
-    expect(options.length).toBeGreaterThan(0);
-    expect(options[0].textContent).toBe("Under 50,000");
-    expect(options.at(-1)!.textContent).toBe("300,000+");
-  });
 
-  it("should accept a typed salary that is not in the suggestions", async () => {
-    const salaryRangeCombobox = screen.getByLabelText("Salary Range");
-    await user.click(salaryRangeCombobox);
-    const input = screen.getByPlaceholderText("Create or Search Salary Range");
-    await user.type(input, "$185k - $210k{Enter}");
-
-    await waitFor(() =>
-      expect(screen.getByLabelText("Salary Range")).toHaveTextContent(
-        "$185k - $210k",
-      ),
-    );
-  });
   const pickStatus = async (label: string) => {
     await user.click(screen.getByLabelText("Status"));
     await user.click(screen.getByRole("option", { name: label }));
@@ -463,17 +445,7 @@ describe("AddJob Component - Edit Mode", () => {
     expect(screen.getByLabelText("Job URL")).toHaveValue(
       "https://example.com/job",
     );
-    expect(screen.getByLabelText("Salary Range")).toHaveTextContent(
-      "100,000 - 110,000",
-    );
-  });
 
-  it("pre-fills a free-text salary that matches no suggestion", async () => {
-    await renderEditMode({ salaryRange: "$190k – $220k" } as Partial<JobResponse>);
-
-    expect(screen.getByLabelText("Salary Range")).toHaveTextContent(
-      "$190k – $220k",
-    );
   });
 
   it("leaves workplace type unselected when editing a job with no workplaceType", async () => {
@@ -630,3 +602,5 @@ describe("AddJob Component - Status Order", () => {
     );
   });
 });
+
+describe("simplified job form",()=>{ it("does not offer salary or skill inputs",()=>{ render(<AddJob companies={[]} jobTitles={[]} locations={[]} jobSources={[]} jobStatuses={[]} tags={[]} resetEditJob={()=>{}} initialOpen />); expect(screen.queryByText("Salary Range")).toBeNull(); expect(screen.queryByText("Add Skill")).toBeNull(); }); });

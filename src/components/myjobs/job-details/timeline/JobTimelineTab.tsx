@@ -1,10 +1,10 @@
 "use client";
+import type { JobStage,JobStageTypeRef } from "@/models/jobStage.model";
 import { CalendarClock } from "lucide-react";
-import type { JobStage, JobStageTypeRef } from "@/models/jobStage.model";
 import { JobTabEmptyState } from "../JobTabEmptyState";
-import { StageHistoryList } from "./StageHistoryList";
 import { StageDetailPanel } from "./StageDetailPanel";
 import { terminalStagesFor } from "./stageDisplay";
+import { StageHistoryList } from "./StageHistoryList";
 
 type JobTimelineTabProps = {
   stages: JobStage[];
@@ -15,7 +15,6 @@ type JobTimelineTabProps = {
   onAddStage: () => void;
   onEditStage: (stage: JobStage) => void;
   onLinkInterviewers: () => void;
-  onAddPrepQuestions: () => void;
   onChanged: () => void;
 };
 
@@ -28,7 +27,6 @@ export function JobTimelineTab({
   onAddStage,
   onEditStage,
   onLinkInterviewers,
-  onAddPrepQuestions,
   onChanged,
 }: JobTimelineTabProps) {
   // A job restored from a pre-feature backup is permanently stageless, so
@@ -68,7 +66,7 @@ export function JobTimelineTab({
             isCurrent={selected.id === currentStageId}
             onEdit={() => onEditStage(selected)}
             onLinkInterviewers={onLinkInterviewers}
-            onAddPrepQuestions={onAddPrepQuestions}
+
             onChanged={onChanged}
           />
         )}

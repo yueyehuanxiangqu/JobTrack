@@ -1,22 +1,21 @@
 "use client";
-import { useEffect, useState, useTransition } from "react";
-import { CalendarDays, Pencil, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { deleteJobStage } from "@/actions/jobStage.actions";
 import { DeleteAlertDialog } from "@/components/DeleteAlertDialog";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Button } from "@/components/ui/button";
+import { Tabs,TabsContent,TabsList,TabsTrigger } from "@/components/ui/tabs";
 import { toastActionResult } from "@/lib/toast";
-import { deleteJobStage } from "@/actions/jobStage.actions";
+import { cn } from "@/lib/utils";
 import type { JobStage } from "@/models/jobStage.model";
+import { CalendarDays,Pencil,Trash2 } from "lucide-react";
+import { useEffect,useState,useTransition } from "react";
 import {
-  askedTally,
-  formatStageDateTime,
-  isInterviewStage,
+askedTally,
+formatStageDateTime,
+isInterviewStage,
 } from "./stageDisplay";
-import { StageOverviewTab } from "./StageOverviewTab";
 import { StageInterviewersTab } from "./StageInterviewersTab";
-import { StagePrepList } from "./StagePrepList";
+import { StageOverviewTab } from "./StageOverviewTab";
 
 // Underline tabs rather than the app's filled pills: this row sits inside the
 // job's own pill tab bar, and two nested pill bars read as competing controls.
@@ -28,7 +27,6 @@ type StageDetailPanelProps = {
   isCurrent: boolean;
   onEdit: () => void;
   onLinkInterviewers: () => void;
-  onAddPrepQuestions: () => void;
   onChanged: () => void;
 };
 
@@ -37,7 +35,6 @@ export function StageDetailPanel({
   isCurrent,
   onEdit,
   onLinkInterviewers,
-  onAddPrepQuestions,
   onChanged,
 }: StageDetailPanelProps) {
   const [, startTransition] = useTransition();
@@ -91,10 +88,10 @@ export function StageDetailPanel({
             </ul>
             <p className="mt-2">
               {interviewerCount > 0 && prepCount > 0
-                ? "Nothing is removed from the job's Contacts tab or your question bank."
+                ? "Nothing is removed from the job's Contacts tab or archived question records."
                 : interviewerCount > 0
                   ? "Nothing is removed from the job's Contacts tab."
-                  : "Nothing is removed from your question bank."}
+                  : "Nothing is removed from archived question records."}
             </p>
           </>
         )}
@@ -171,14 +168,7 @@ export function StageDetailPanel({
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="prep" className={TAB_TRIGGER}>
-              Prep List
-              {total > 0 && (
-                <span className="ml-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                  {asked} of {total}
-                </span>
-              )}
-            </TabsTrigger>
+
           </TabsList>
           <TabsContent value="overview" className="mt-4">
             <StageOverviewTab stage={stage} onChanged={onChanged} />
@@ -190,13 +180,7 @@ export function StageDetailPanel({
               onChanged={onChanged}
             />
           </TabsContent>
-          <TabsContent value="prep" className="mt-4">
-            <StagePrepList
-              stage={stage}
-              onAddPrepQuestions={onAddPrepQuestions}
-              onChanged={onChanged}
-            />
-          </TabsContent>
+
         </Tabs>
       ) : (
         <>

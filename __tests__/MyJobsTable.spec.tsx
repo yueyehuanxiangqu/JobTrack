@@ -1,7 +1,7 @@
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import MyJobsTable from "@/components/myjobs/MyJobsTable";
-import type { JobResponse, JobStatus } from "@/models/job.model";
+import type { JobResponse,JobStatus } from "@/models/job.model";
+import { render,screen,within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -105,45 +105,6 @@ describe("MyJobsTable", () => {
     expect(screen.queryByText("Expired")).not.toBeInTheDocument();
     const statusButton = screen.getByRole("button", { name: /Change status/ });
     expect(within(statusButton).getByText("Applied")).toBeInTheDocument();
-  });
-
-  it("renders a match score when present, and a Match button otherwise", () => {
-    const { rerender } = renderTable([makeJob({ matchScore: 87 })]);
-    expect(screen.getByText("87%")).toBeInTheDocument();
-
-    rerender(
-      <MyJobsTable
-        jobs={[makeJob({ matchScore: null })]}
-        jobStatuses={mockStatuses}
-        deleteJob={vi.fn()}
-        editJob={vi.fn()}
-        onChangeJobStatus={vi.fn()}
-        onAddNote={vi.fn()}
-        sort={null}
-        onSort={vi.fn()}
-      />,
-    );
-    expect(screen.getByRole("link", { name: /match/i })).toHaveAttribute(
-      "href",
-      "/dashboard/myjobs/job-1?tab=match&match=1",
-    );
-  });
-
-  it("disables the Match button while the assistant is busy", () => {
-    chat.busy = true;
-    try {
-      renderTable([makeJob({ matchScore: null })]);
-      expect(
-        screen.queryByRole("link", { name: /match/i }),
-      ).not.toBeInTheDocument();
-      // The sortable "Match" column header is also a button named /match/i now.
-      const matchButtons = screen.getAllByRole("button", { name: /match/i });
-      expect(matchButtons.some((b) => (b as HTMLButtonElement).disabled)).toBe(
-        true,
-      );
-    } finally {
-      chat.busy = false;
-    }
   });
 
   it("shows a notes count badge only when the job has notes", () => {

@@ -3,20 +3,11 @@
 // the long-standing "@/actions/company.actions" import path keeps working.
 
 export {
-  getCompanyList,
-  getAllCompanies,
-  getCompanyById,
-  getCompanyDetails,
+getAllCompanies,
+getCompanyById,
+getCompanyDetails,getCompanyList
 } from "./company/queries";
 
 export {
-  addCompany,
-  updateCompany,
-  deleteCompanyById,
+addCompany,deleteCompanyById,updateCompany
 } from "./company/mutations";
-
-export {
-  watchBoardCompany,
-  setCompanyWatched,
-  getWatchedBoards,
-} from "./company/watch";

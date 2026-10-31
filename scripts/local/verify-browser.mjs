@@ -105,8 +105,8 @@ try {
   await expect(page).toHaveURL(`${origin}/dashboard`, { timeout: 30_000 });
   record("Register account and authenticate through browser UI");
   await expect(page.getByText("Activity Calendar", { exact: true })).toBeVisible();
-  await expect(page.locator(".daily-goals-calendar").last()).toBeVisible();
-  record("Dashboard and both calendars load");
+  await expect(page.getByText("Daily Goals", { exact: true })).toHaveCount(0);
+  record("Dashboard and the real-data Activity Calendar load; Daily Goals absent");
 
   await page.goto(`${origin}/dashboard/myjobs`);
   await page.getByRole("button", { name: /^(New |Add )?Job$/ }).click();
@@ -222,12 +222,17 @@ try {
   await page.goto(`${origin}/dashboard`);
   await expect(page.getByText("Activity Calendar", { exact: true })).toBeVisible();
   await page.screenshot({ path: path.join(artifacts, "dashboard.png"), fullPage: true });
-  for (const route of ["interviews", "tasks", "activities", "profile", "automations", "settings"]) {
+  for (const route of ["interviews", "tasks", "activities", "profile", "settings"]) {
     const response = await page.goto(`${origin}/dashboard/${route}`);
     expect(response.status()).toBe(200);
     await expect(page.getByRole("heading", { name: /application error/i })).toHaveCount(0);
   }
-  record("Preserved core, Automations and Settings pages render");
+  record("Preserved core and Settings pages render");
+  for (const route of ["/dashboard/automations", "/dashboard/questions", "/dashboard/notifications", "/api/ai/chat", "/api/mcp"]) {
+    const response = await page.request.get(`${origin}${route}`);
+    expect(response.status(), route).toBe(404);
+  }
+  record("Retired pages and AI/MCP endpoints are unavailable");
   await page.goto(`${origin}/dashboard/myjobs`);
   await page.getByRole("row", { name: jobTitle }).first().getByRole("button", { name: "Delete Job" }).click();
   await page.getByRole("button", { name: "Delete", exact: true }).click();

@@ -1,33 +1,33 @@
 "use client";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
-import { Pencil, StickyNote, Trash } from "lucide-react";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
-import { format } from "date-fns";
-import { useState } from "react";
-import {
-  JobResponse,
-  JobSortField,
-  JobStatus,
-  getJobTypeLabel,
-  getWorkplaceTypeLabel,
+JobResponse,
+JobSortField,
+JobStatus,
+getJobTypeLabel,
+getWorkplaceTypeLabel,
 } from "@/models/job.model";
 import type { SortState } from "@/models/sort.model";
-import { SortableTableHead } from "../SortableTableHead";
+import { format } from "date-fns";
+import { Pencil,StickyNote,Trash } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { DeleteAlertDialog } from "../DeleteAlertDialog";
-import { CircularScore } from "@/components/CircularScore";
-import { JobStatusBadgeMenu } from "./JobStatusBadgeMenu";
+import { SortableTableHead } from "../SortableTableHead";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import {
+Table,
+TableBody,
+TableCell,
+TableHead,
+TableHeader,
+TableRow,
+} from "../ui/table";
+
 import { TooltipProvider } from "../ui/tooltip";
 import { JobActionsMenu } from "./JobActionsMenu";
-import { MatchJobButton } from "./MatchJobButton";
+import { JobStatusBadgeMenu } from "./JobStatusBadgeMenu";
+
 import { CompanyLogo } from "./CompanyLogo";
 
 type MyJobsTableProps = {
@@ -90,14 +90,7 @@ function MyJobsTable({
               Location
             </SortableTableHead>
             <TableHead>Status</TableHead>
-            <SortableTableHead
-              field="matchScore"
-              sort={sort}
-              onSort={onSort}
-              className="hidden md:table-cell text-center"
-            >
-              Match
-            </SortableTableHead>
+
             <SortableTableHead
               field="source"
               sort={sort}
@@ -183,18 +176,7 @@ function MyJobsTable({
                     className="w-[110px] whitespace-nowrap justify-center"
                   />
                 </TableCell>
-                <TableCell className="hidden md:table-cell text-center">
-                  {job.matchScore != null ? (
-                    <CircularScore
-                      score={job.matchScore}
-                      size="sm"
-                      animate={false}
-                      className="mx-auto"
-                    />
-                  ) : (
-                    <MatchJobButton jobId={job.id} />
-                  )}
-                </TableCell>
+
                 <TableCell className="hidden md:table-cell">
                   {job.JobSource?.label}
                 </TableCell>

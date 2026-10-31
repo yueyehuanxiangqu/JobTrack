@@ -1,8 +1,7 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
-import { Card, CardContent } from "@/components/ui/card";
-import { BoardCell } from "@/components/admin/BoardCell";
+import { Card,CardContent } from "@/components/ui/card";
+
 import { formatUrl } from "@/lib/utils";
 import type { Company } from "@/models/job.model";
 import { hostnameOf } from "./hostname";
@@ -48,25 +47,7 @@ export function CompanySummaryCard({
     <Card data-testid="company-summary">
       <CardContent className="pt-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Fact label="Watchlist">
-            {company.watched ? (
-              <>
-                Watched
-                {company.watchedAt && (
-                  <span className="block text-sm font-normal text-muted-foreground">
-                    {formatDistanceToNow(new Date(company.watchedAt), {
-                      addSuffix: true,
-                    })}
-                  </span>
-                )}
-              </>
-            ) : (
-              "Not watched"
-            )}
-          </Fact>
-          <Fact label="Board">
-            <BoardCell company={company} />
-          </Fact>
+
           <Fact label="Industry">{company.industry || "—"}</Fact>
           <Fact label="Size">{company.size || "—"}</Fact>
           <Fact label="Website">

@@ -1,13 +1,12 @@
-import CompanyDetails from "@/components/admin/CompanyDetails";
-import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import {
-  deleteCompanyById,
-  setCompanyWatched,
-  getAllCompanies,
+deleteCompanyById,
+getAllCompanies
 } from "@/actions/company.actions";
-import { deleteContactById, getContactById } from "@/actions/contact.actions";
+import { deleteContactById,getContactById } from "@/actions/contact.actions";
+import CompanyDetails from "@/components/admin/CompanyDetails";
 import { toastError } from "@/lib/toast";
+import { render,screen,waitFor,within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 const router = { push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), back: vi.fn() };
 let searchParams = new URLSearchParams();
@@ -122,22 +121,6 @@ describe("CompanyDetails – header", () => {
     expect(router.back).toHaveBeenCalled();
   });
 
-  it("watches the company and refreshes the page", async () => {
-    (setCompanyWatched as any).mockResolvedValue({ success: true });
-    render(<CompanyDetails details={makeDetails()} />);
-
-    await user.click(screen.getByRole("button", { name: /^watch$/i }));
-
-    expect(setCompanyWatched).toHaveBeenCalledWith("co1", true);
-    await waitFor(() => expect(router.refresh).toHaveBeenCalled());
-  });
-
-  it("offers Unwatch for a watched company", () => {
-    render(<CompanyDetails details={makeDetails({ watched: true })} />);
-
-    expect(screen.getByRole("button", { name: /unwatch/i })).toBeInTheDocument();
-  });
-
   it("opens the edit dialog", async () => {
     render(<CompanyDetails details={makeDetails()} />);
 
@@ -182,20 +165,6 @@ describe("CompanyDetails – header", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("builds the job board link from the board coordinates", async () => {
-    render(
-      <CompanyDetails
-        details={makeDetails({ atsProvider: "greenhouse", atsToken: "stripe" })}
-      />,
-    );
-
-    await user.click(screen.getByRole("button", { name: /more links/i }));
-
-    expect(
-      screen.getByRole("menuitem", { name: /open job board/i }).getAttribute("href"),
-    ).toMatch(/\/stripe$/);
-  });
-
   it("hides the links menu when there is nothing to open", () => {
     render(<CompanyDetails details={makeDetails()} />);
 
@@ -209,29 +178,6 @@ describe("CompanyDetails – summary card", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     searchParams = new URLSearchParams();
-  });
-
-  it("shows the watch state", () => {
-    render(
-      <CompanyDetails
-        details={makeDetails({ watched: true, watchedAt: new Date() })}
-      />,
-    );
-
-    expect(fact("Watchlist")).toHaveTextContent(/^Watched/);
-  });
-
-  it("shows Not watched and em dashes for missing attributes", () => {
-    render(<CompanyDetails details={makeDetails()} />);
-
-    expect(fact("Watchlist")).toHaveTextContent("Not watched");
-    expect(fact("Board")).toHaveTextContent("—");
-    expect(fact("Industry")).toHaveTextContent("—");
-    expect(fact("Website")).toHaveTextContent("—");
-    expect(fact("Careers page")).toHaveTextContent("—");
-    expect(fact("Size")).toHaveTextContent("—");
-    expect(fact("LinkedIn")).toHaveTextContent("—");
-    expect(screen.queryByTestId("company-notes")).not.toBeInTheDocument();
   });
 
   it("shows size, LinkedIn host and notes when set", () => {
@@ -324,7 +270,7 @@ describe("CompanyDetails – delete", () => {
 
     await waitFor(() => expect(deleteCompanyById).toHaveBeenCalledWith("co1"));
     expect(router.push).toHaveBeenCalledWith(
-      "/dashboard/admin?tab=companies&scope=watchlist",
+      "/dashboard/admin?tab=companies",
     );
   });
 
@@ -383,14 +329,13 @@ describe("CompanyDetails – Jobs tab", () => {
     ).toHaveAttribute("href", "/dashboard/myjobs/j1");
   });
 
-  it("shows status, location, source and the match score", () => {
+  it("shows status, location and source", () => {
     render(<CompanyDetails details={makeDetails({ jobs: [job()] })} />);
 
     const row = screen.getByRole("row", { name: /backend engineer/i });
     expect(within(row).getByText("Applied")).toBeInTheDocument();
     expect(within(row).getByText("Remote")).toBeInTheDocument();
     expect(within(row).getByText("LinkedIn")).toBeInTheDocument();
-    expect(within(row).getByTestId("circular-score")).toHaveTextContent("82%");
   });
 
   it("shows Not applied and a dash for an unapplied, unmatched job", () => {

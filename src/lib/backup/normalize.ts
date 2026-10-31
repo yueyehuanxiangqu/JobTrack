@@ -1,8 +1,7 @@
-import path from "path";
+import { sniffFileType } from "@/lib/ai/import/extract-text";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { storagePaths } from "@/lib/storagePaths";
-import { sniffFileType } from "@/lib/ai/import/extract-text";
-import { calculateNextRunAt } from "@/lib/scraper/schedule";
+import path from "path";
 
 const NON_TERMINAL_RUN_STATUSES = new Set(["running", "cancelling"]);
 
@@ -66,11 +65,9 @@ export function normalizeAutomationRun<
   };
 }
 
-// Imported automations arrive with a nextRunAt in the past, so every one of
-// them would fire on the next hourly tick. Recompute forward instead.
+// Retired automations are archival data and must never resume after restore.
 export function normalizeAutomation<
   T extends { status: string; scheduleHour: number; nextRunAt: Date | null },
 >(row: T): T {
-  if (row.status !== "active") return { ...row, nextRunAt: null };
-  return { ...row, nextRunAt: calculateNextRunAt(row.scheduleHour) };
+  return { ...row, status: "paused", nextRunAt: null };
 }

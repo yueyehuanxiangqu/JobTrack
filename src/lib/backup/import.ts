@@ -1,29 +1,29 @@
+import { CONTACT_ROLES,JOB_STAGES } from "@/lib/constants";
+import db from "@/lib/db";
+import { isResumeFilePath } from "@/lib/resumeFiles";
+import { storagePaths } from "@/lib/storagePaths";
+import { log } from "@/lib/telemetry";
 import fs from "fs/promises";
 import type JSZip from "jszip";
-import db from "@/lib/db";
-import { APP_CONSTANTS, CONTACT_ROLES, JOB_STAGES } from "@/lib/constants";
-import { storagePaths } from "@/lib/storagePaths";
-import { IdMap, buildCreateData } from "./idmap";
-import { BackupError, openBackupZip, readManifest } from "./manifest";
+import { IdMap,buildCreateData } from "./idmap";
+import { BackupError,openBackupZip,readManifest } from "./manifest";
 import {
-  checkImportedFile,
-  importedFilePath,
-  normalizeAutomation,
-  normalizeAutomationRun,
-  safeEntryName,
+checkImportedFile,
+importedFilePath,
+normalizeAutomation,
+normalizeAutomationRun,
+safeEntryName,
 } from "./normalize";
 import {
-  DELETE_ORDER,
-  EMPTINESS_MODELS,
-  INSERT_ORDER,
-  LOOKUP_MODELS,
-  MODEL_SPECS,
-  type BackupModel,
+DELETE_ORDER,
+EMPTINESS_MODELS,
+INSERT_ORDER,
+LOOKUP_MODELS,
+MODEL_SPECS,
+type BackupModel,
 } from "./ordering";
+import { BackupDataSchema,type BackupData,type BackupManifest } from "./schema";
 import { writeSnapshot } from "./snapshot";
-import { log } from "@/lib/telemetry";
-import { isResumeFilePath } from "@/lib/resumeFiles";
-import { BackupDataSchema, type BackupData, type BackupManifest } from "./schema";
 
 export interface PreflightResult {
   manifest: BackupManifest;
@@ -98,24 +98,6 @@ async function readData(zip: JSZip): Promise<BackupData> {
     );
   }
   return parsed.data;
-}
-
-// The scheduler holds a live handle to an in-flight run and a partial unique
-// index enforces one per automation, so deleting it mid-flight is not a
-// contention problem the "database busy" retry covers.
-async function assertNoActiveRun(userId: string): Promise<void> {
-  const active = await db.automationRun.findFirst({
-    where: {
-      status: { in: ["running", "cancelling"] },
-      automation: { userId },
-    },
-    select: { id: true },
-  });
-  if (active) {
-    throw new BackupError(
-      "An automation run is in progress. Wait for it to finish, then import again.",
-    );
-  }
 }
 
 // Resolved against the target's global JobStatus table, creating any the target
@@ -234,8 +216,6 @@ export async function importBackup(
       "This account already holds data. Confirm that you want it replaced before importing.",
     );
   }
-
-  await assertNoActiveRun(userId);
 
   // The safety net, and the last thing that happens before this function is
   // able to destroy anything. The transaction below protects against a crash;
@@ -448,12 +428,6 @@ export async function importBackup(
       });
     });
   }
-
-  // Nothing else would: syncSchedulerState runs at boot and in the automation
-  // actions, and an import goes through neither. Imported dynamically so
-  // node-cron and the whole scraper graph stay out of this module's imports.
-  const { syncSchedulerState } = await import("@/lib/scheduler");
-  await syncSchedulerState();
 
   return { counts, filesWritten: writtenPaths.length, snapshotPath };
 }

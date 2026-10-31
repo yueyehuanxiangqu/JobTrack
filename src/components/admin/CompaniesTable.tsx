@@ -1,38 +1,17 @@
 "use client";
-import { Button } from "../ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
-import { Company } from "@/models/job.model";
-import {
-  Briefcase,
-  Building2,
-  Eye,
-  EyeOff,
-  MoreVertical,
-  Pencil,
-  Trash,
-} from "lucide-react";
-import { useState } from "react";
-import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { deleteCompanyById, setCompanyWatched } from "@/actions/company.actions";
-import { toastSuccess, toastError } from "@/lib/toast";
-import { DeleteAlertDialog } from "../DeleteAlertDialog";
+import { deleteCompanyById,} from "@/actions/company.actions";
+import { toastError,toastSuccess } from "@/lib/toast";
 import { AlertDialog } from "@/models/alertDialog.model";
-import { BoardCell } from "./BoardCell";
+import { Company } from "@/models/job.model";
+import { useState } from "react";
+import { DeleteAlertDialog } from "../DeleteAlertDialog";
+import {
+Table,
+TableBody,
+TableHead,
+TableHeader,
+TableRow
+} from "../ui/table";
 
 type CompaniesTableProps = {
   companies: Company[];
@@ -73,22 +52,7 @@ function CompaniesTable({
   };
 
   const detailsHref = (id: string) =>
-    `/dashboard/admin/companies/${id}${scope === "watchlist" ? "?scope=watchlist" : ""}`;
-
-  const toggleWatch = async (company: Company) => {
-    const next = !company.watched;
-    const res = await setCompanyWatched(company.id, next);
-    if (res.success) {
-      toastSuccess(
-        next
-          ? `${company.label} added to your watchlist`
-          : `${company.label} removed from your watchlist. It stays in your Library.`,
-      );
-      reloadCompanies();
-    } else {
-      toastError(res.message);
-    }
-  };
+    `/dashboard/admin/companies/${id}${""}`;
 
   const deleteCompany = async (companyId: string | undefined) => {
     if (companyId) {
@@ -111,13 +75,7 @@ function CompaniesTable({
               <span className="sr-only">Company Logo</span>
             </TableHead>
             <TableHead>Company Name</TableHead>
-            {scope === "watchlist" ? (
-              <>
-                <TableHead>Board</TableHead>
-                <TableHead>Jobs</TableHead>
-                <TableHead>Watched</TableHead>
-              </>
-            ) : (
+            {(
               <>
                 <TableHead className="hidden sm:table-cell">Value</TableHead>
                 <TableHead>Total Jobs</TableHead>
@@ -133,152 +91,7 @@ function CompaniesTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {companies.map((company: Company) => {
-            return (
-              <TableRow key={company.id}>
-                <TableCell className="hidden sm:table-cell">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    alt="Company logo"
-                    className="w-8 h-8 rounded-md object-cover"
-                    src={company.logoUrl || "/images/jobsync-logo.svg"}
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = "/images/jobsync-logo.svg";
-                    }}
-                  />
-                </TableCell>
-                <TableCell className="font-medium">
-                  <span className="flex items-center gap-1.5">
-                    <Link
-                      href={detailsHref(company.id)}
-                      className="hover:underline underline-offset-4"
-                    >
-                      {company.label}
-                    </Link>
-                    {company.watched && (
-                      <span
-                        title="On your watchlist"
-                        className="text-emerald-600 dark:text-emerald-400"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                      </span>
-                    )}
-                    {scope !== "watchlist" && company.atsToken && (
-                      <BoardCell company={company} />
-                    )}
-                  </span>
-                </TableCell>
-                {scope === "watchlist" ? (
-                  <>
-                    <TableCell>
-                      <BoardCell company={company} />
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {company._count?.jobsTotal ?? 0}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {company.watchedAt
-                        ? formatDistanceToNow(new Date(company.watchedAt), {
-                            addSuffix: true,
-                          })
-                        : "—"}
-                    </TableCell>
-                  </>
-                ) : (
-                  <>
-                    <TableCell className="font-medium hidden sm:table-cell">
-                      {company.value}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {company._count?.jobsTotal ? (
-                        <Link
-                          href={`/dashboard/myjobs?company=${encodeURIComponent(company.value)}`}
-                          className="text-primary underline-offset-4 hover:underline"
-                        >
-                          {company._count.jobsTotal}
-                        </Link>
-                      ) : (
-                        (company._count?.jobsTotal ?? 0)
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {company._count?.jobsApplied ? (
-                        <Link
-                          href={`/dashboard/myjobs?company=${encodeURIComponent(company.value)}&applied=true`}
-                          className="text-primary underline-offset-4 hover:underline"
-                        >
-                          {company._count.jobsApplied}
-                        </Link>
-                      ) : (
-                        (company._count?.jobsApplied ?? 0)
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {company._count?.jobsRejected ?? 0}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {company._count?.contacts ?? 0}
-                    </TableCell>
-                  </>
-                )}
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem className="cursor-pointer" asChild>
-                        <Link href={detailsHref(company.id)}>
-                          <Building2 className="mr-2 h-4 w-4" />
-                          View details
-                        </Link>
-                      </DropdownMenuItem>
-                      {company._count?.jobsApplied ? (
-                        <DropdownMenuItem className="cursor-pointer" asChild>
-                          <Link
-                            href={`/dashboard/myjobs?company=${encodeURIComponent(company.value)}&applied=true`}
-                          >
-                            <Briefcase className="mr-2 h-4 w-4" />
-                            View Jobs
-                          </Link>
-                        </DropdownMenuItem>
-                      ) : null}
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => editCompany(company.id)}
-                      >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit Company
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="cursor-pointer"
-                        onClick={() => toggleWatch(company)}
-                      >
-                        {company.watched ? (
-                          <EyeOff className="mr-2 h-4 w-4" />
-                        ) : (
-                          <Eye className="mr-2 h-4 w-4" />
-                        )}
-                        {company.watched ? "Unwatch" : "Watch"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600 cursor-pointer"
-                        onClick={() => onDeleteCompany(company)}
-                      >
-                        <Trash className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+
         </TableBody>
       </Table>
       <DeleteAlertDialog

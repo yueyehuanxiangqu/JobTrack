@@ -1,21 +1,18 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+Card,
+CardDescription,
+CardFooter,
+CardHeader,
+CardTitle,
 } from "@/components/ui/card";
 import {
-  BookOpen,
-  BriefcaseBusiness,
-  CalendarClock,
-  SquareCheckBig,
-  Zap,
+BriefcaseBusiness,
+CalendarClock,
+SquareCheckBig
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import AddContactShortcut from "./AddContactShortcut";
 
 export default function JobsAppliedCard() {
   const router = useRouter();
@@ -24,7 +21,7 @@ export default function JobsAppliedCard() {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg text-green-600">Dashboard</CardTitle>
         <CardDescription className="max-w-lg text-balance leading-relaxed">
-          Create new jobs, automations, tasks, activities, questions, and contacts.
+          Record job applications, organize tasks, and track your activities.
         </CardDescription>
       </CardHeader>
       <CardFooter className="mt-auto grid grid-cols-2 gap-2">
@@ -36,16 +33,7 @@ export default function JobsAppliedCard() {
           <BriefcaseBusiness className="h-3.5 w-3.5 mr-1 shrink-0" />
           <span className="min-w-0 truncate">Add Job</span>
         </Button>
-        <Button
-          variant="outline"
-          className="justify-start min-w-0"
-          onClick={() =>
-            router.push("/dashboard/automations?add-automation=true")
-          }
-        >
-          <Zap className="h-3.5 w-3.5 mr-1 shrink-0" />
-          <span className="min-w-0 truncate">Add Automation</span>
-        </Button>
+
         <Button
           variant="outline"
           className="justify-start min-w-0"
@@ -54,16 +42,7 @@ export default function JobsAppliedCard() {
           <SquareCheckBig className="h-3.5 w-3.5 mr-1 shrink-0" />
           <span className="min-w-0 truncate">Add Task</span>
         </Button>
-        <Button
-          variant="outline"
-          className="justify-start min-w-0"
-          onClick={() =>
-            router.push("/dashboard/questions?add-question=true")
-          }
-        >
-          <BookOpen className="h-3.5 w-3.5 mr-1 shrink-0" />
-          <span className="min-w-0 truncate">Add Question</span>
-        </Button>
+
         <Button
           variant="outline"
           className="justify-start min-w-0"
@@ -74,7 +53,7 @@ export default function JobsAppliedCard() {
           <CalendarClock className="h-3.5 w-3.5 mr-1 shrink-0" />
           <span className="min-w-0 truncate">Add Activity</span>
         </Button>
-        <AddContactShortcut />
+
       </CardFooter>
     </Card>
   );

@@ -1,6 +1,6 @@
-import { screen, render, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import AdminTabsContainer from "@/components/admin/AdminTabsContainer";
+import { render,screen,waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 const mockPush = vi.fn();
 
@@ -73,7 +73,7 @@ describe("AdminTabsContainer", () => {
     expect(
       screen.getByRole("tab", { name: "Activity Types" })
     ).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Contacts" })).toBeInTheDocument();
+
     expect(screen.getByRole("tab", { name: "Roles" })).toBeInTheDocument();
   });
 

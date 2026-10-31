@@ -1,21 +1,20 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { getJobsList } from "@/actions/job.actions";
+import { APP_CONSTANTS } from "@/lib/constants";
+import { hasJobFacets } from "@/lib/jobs/jobFacets";
 import { toastError } from "@/lib/toast";
 import {
-  JobFacets,
-  JobResponse,
-  JobSortField,
-  JobsViewMode,
+JobFacets,
+JobResponse,
+JobSortField,
+JobsViewMode,
 } from "@/models/job.model";
-import { hasJobFacets } from "@/lib/jobs/jobFacets";
 import type { SortState } from "@/models/sort.model";
-import { APP_CONSTANTS } from "@/lib/constants";
 import {
-  getFromLocalStorage,
-  saveToLocalStorage,
+getFromLocalStorage,
+saveToLocalStorage,
 } from "@/utils/localstorage.utils";
-import { useAgentChat } from "@/components/agent/AgentChatProvider";
+import { useCallback,useEffect,useRef,useState } from "react";
 
 // Owns the job list itself: pagination, search, view mode, infinite scroll,
 // and the reload triggered when the agent chat writes job data.
@@ -36,7 +35,7 @@ export function useJobsList({
   facets: JobFacets;
   sort: SortState<JobSortField> | null;
 }) {
-  const { jobWrites } = useAgentChat();
+
   const [jobs, setJobs] = useState<JobResponse[]>([]);
   const [viewMode, setViewMode] = useState<JobsViewMode>("table");
   const [page, setPage] = useState(1);
@@ -123,15 +122,6 @@ export function useJobsList({
     // would fire a second, undebounced request per keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadJobs]);
-
-  // The agent saves server-side, so only this counter tells us a row appeared
-  // or a match score landed. Deps are the counter alone: reloadJobs changes
-  // with every filter and keystroke, and the effects above already cover those.
-  useEffect(() => {
-    if (jobWrites === 0) return;
-    void reloadJobs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobWrites]);
 
   useEffect(() => {
     if (searchTerm !== "") {

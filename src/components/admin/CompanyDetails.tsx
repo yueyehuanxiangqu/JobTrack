@@ -1,24 +1,23 @@
 "use client";
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { DeleteAlertDialog } from "../DeleteAlertDialog";
-import AddCompany from "./AddCompany";
 import {
-  deleteCompanyById,
-  setCompanyWatched,
+deleteCompanyById,
 } from "@/actions/company.actions";
-import { toastError, toastSuccess } from "@/lib/toast";
+import { useTabQueryParam } from "@/hooks/useTabQueryParam";
+import { toastError,toastSuccess } from "@/lib/toast";
 import { AlertDialog } from "@/models/alertDialog.model";
 import type { CompanyDetails as CompanyDetailsData } from "@/models/companyDetails.model";
 import type { Company } from "@/models/job.model";
-import { CompanyDetailsHeader } from "./company-details/CompanyDetailsHeader";
-import { CompanySummaryCard } from "./company-details/CompanySummaryCard";
+import { useRouter,useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { DeleteAlertDialog } from "../DeleteAlertDialog";
 import { Badge } from "../ui/badge";
 import { Card } from "../ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { useTabQueryParam } from "@/hooks/useTabQueryParam";
-import { CompanyJobsTab } from "./company-details/CompanyJobsTab";
+import { Tabs,TabsContent,TabsList,TabsTrigger } from "../ui/tabs";
+import AddCompany from "./AddCompany";
 import { CompanyContactsTab } from "./company-details/CompanyContactsTab";
+import { CompanyDetailsHeader } from "./company-details/CompanyDetailsHeader";
+import { CompanyJobsTab } from "./company-details/CompanyJobsTab";
+import { CompanySummaryCard } from "./company-details/CompanySummaryCard";
 
 const LIBRARY_COMPANIES = "/dashboard/admin?tab=companies";
 const COMPANY_DETAIL_TABS = ["jobs", "contacts"] as const;
@@ -39,10 +38,7 @@ function blockedDescription(total: number, dismissed: number) {
 function CompanyDetails({ details }: CompanyDetailsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const backHref =
-    searchParams.get("scope") === "watchlist"
-      ? `${LIBRARY_COMPANIES}&scope=watchlist`
-      : LIBRARY_COMPANIES;
+  const backHref = LIBRARY_COMPANIES;
   const goBack = () => router.back();
   const [activeTab, handleTabChange] = useTabQueryParam(
     COMPANY_DETAIL_TABS,
@@ -59,21 +55,6 @@ function CompanyDetails({ details }: CompanyDetailsProps) {
   const contactsCount = new Set(
     [...currentContacts, ...formerContacts].map((contact) => contact.id),
   ).size;
-
-  const toggleWatch = async () => {
-    const next = !details.watched;
-    const res = await setCompanyWatched(details.id, next);
-    if (res.success) {
-      toastSuccess(
-        next
-          ? `${details.label} added to your watchlist`
-          : `${details.label} removed from your watchlist. It stays in your Library.`,
-      );
-      router.refresh();
-    } else {
-      toastError(res.message);
-    }
-  };
 
   // AddCompany refills its form only when editCompany changes identity, so
   // a fresh copy per open discards an abandoned edit
@@ -114,7 +95,7 @@ function CompanyDetails({ details }: CompanyDetailsProps) {
         <CompanyDetailsHeader
           company={details}
           onBack={goBack}
-          onToggleWatch={toggleWatch}
+
           onEdit={openEdit}
           onDelete={onDelete}
         />

@@ -1,12 +1,12 @@
 "use server";
 import prisma from "@/lib/db";
+import { resolveStageTypeForStatusId } from "@/lib/jobs/resolve";
 import { handleError } from "@/lib/utils";
 import { JobStatus } from "@/models/job.model";
 import { revalidatePath } from "next/cache";
+import { jobFieldsForStage } from "../jobStage/shared";
 import { requireUser } from "../shared";
 import { appendStatusStage } from "./shared";
-import { jobFieldsForStage } from "../jobStage/shared";
-import { resolveStageTypeForStatusId } from "@/lib/jobs/resolve";
 
 export const updateJobStatus = async (
   jobId: string,
@@ -45,26 +45,6 @@ export const updateJobStatus = async (
     return { job, success: true };
   } catch (error) {
     const msg = "Failed to update job status.";
-    return handleError(error, msg);
-  }
-};
-
-export const saveJobMatchResult = async (
-  jobId: string,
-  matchScore: number,
-  matchData: string,
-): Promise<any | undefined> => {
-  try {
-    const user = await requireUser();
-
-    await prisma.job.update({
-      where: { id: jobId, userId: user.id },
-      data: { matchScore, matchData },
-    });
-
-    return { success: true };
-  } catch (error) {
-    const msg = "Failed to save match result.";
     return handleError(error, msg);
   }
 };

@@ -1,11 +1,11 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { StageDetailPanel } from "@/components/myjobs/job-details/timeline/StageDetailPanel";
 import {
-  deleteJobStage,
-  setPrepQuestionAsked,
-  setStageNotes,
+deleteJobStage,
+
+setStageNotes,
 } from "@/actions/jobStage.actions";
+import { StageDetailPanel } from "@/components/myjobs/job-details/timeline/StageDetailPanel";
+import { render,screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 vi.mock("@/actions/jobStage.actions", () => ({
   setPrepQuestionAsked: vi.fn().mockResolvedValue({ success: true }),
@@ -74,7 +74,7 @@ describe("StageDetailPanel", () => {
 
   it("shows the stage name, the current-stage marker and the scheduled line", () => {
     render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     expect(screen.getByRole("heading", { name: "Final / Onsite Interview" })).toBeInTheDocument();
@@ -86,7 +86,7 @@ describe("StageDetailPanel", () => {
   // on screen without a click; interviewers and questions are one tab away.
   it("opens on Overview with location, format, duration and outcome", () => {
     render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute("data-state", "active");
@@ -99,7 +99,7 @@ describe("StageDetailPanel", () => {
 
   it("shows the linked interviewers on the Interviewer tab", async () => {
     render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     await userEvent.click(screen.getByRole("tab", { name: /^Interviewer/ }));
@@ -112,21 +112,10 @@ describe("StageDetailPanel", () => {
 
   // The tally rides on the trigger, so the prep progress is readable from the
   // Overview tab without opening the list.
-  it("carries the asked tally on the Prep List tab trigger", async () => {
-    render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
-    );
-
-    expect(screen.getByRole("tab", { name: /Prep List 1 of 2/ })).toBeInTheDocument();
-
-    await userEvent.click(screen.getByRole("tab", { name: /Prep List/ }));
-
-    expect(screen.getByText("System Design")).toBeInTheDocument();
-  });
 
   it("drops the tab row on a non-interview stage and shows the overview alone", () => {
     render(
-      <StageDetailPanel stage={nonInterviewStage} isCurrent={false} onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={nonInterviewStage} isCurrent={false} onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     expect(screen.queryByRole("tablist")).toBeNull();
@@ -140,7 +129,7 @@ describe("StageDetailPanel", () => {
   // so a legacy row carrying them must not surface them here either.
   it("hides location, format and duration on a non-interview stage", () => {
     render(
-      <StageDetailPanel stage={nonInterviewStage} isCurrent={false} onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={nonInterviewStage} isCurrent={false} onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     expect(screen.queryByText("LOCATION")).toBeNull();
@@ -154,35 +143,22 @@ describe("StageDetailPanel", () => {
   // reset by hand or an interview tab survives onto a stage that has none.
   it("returns to Overview when another stage is selected", async () => {
     const { rerender } = render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     await userEvent.click(screen.getByRole("tab", { name: /^Interviewer/ }));
     rerender(
-      <StageDetailPanel stage={{ ...interviewStage, id: "st9" }} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={{ ...interviewStage, id: "st9" }} isCurrent onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     expect(screen.getByRole("tab", { name: "Overview" })).toHaveAttribute("data-state", "active");
-  });
-
-  it("marks a question asked inline, with no dialog and no save step", async () => {
-    render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
-    );
-
-    await userEvent.click(screen.getByRole("tab", { name: /Prep List/ }));
-    await userEvent.click(
-      screen.getByRole("checkbox", { name: /Tell me about a conflict with a teammate/ }),
-    );
-
-    expect(setPrepQuestionAsked).toHaveBeenCalledWith("p2", true);
   });
 
   // The artboard's inline notes editor. Save appears only once the text has
   // actually changed, so the resting panel is not cluttered with dead buttons.
   it("edits notes in place, showing Save only once the text changes", async () => {
     render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     expect(screen.queryByRole("button", { name: "Save Changes" })).toBeNull();
@@ -198,7 +174,7 @@ describe("StageDetailPanel", () => {
 
   it("deletes the stage once the alert is confirmed", async () => {
     render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     await userEvent.click(
@@ -211,7 +187,7 @@ describe("StageDetailPanel", () => {
 
   it("does not delete when the alert is dismissed", async () => {
     render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     await userEvent.click(
@@ -226,7 +202,7 @@ describe("StageDetailPanel", () => {
   // the alert has to say so rather than use the generic warning.
   it("warns that the status follows when the current stage is deleted", async () => {
     render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     await userEvent.click(
@@ -238,7 +214,7 @@ describe("StageDetailPanel", () => {
 
   it("uses the generic warning for a stage that is not current", async () => {
     render(
-      <StageDetailPanel stage={nonInterviewStage} isCurrent={false} onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={nonInterviewStage} isCurrent={false} onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     await userEvent.click(screen.getByRole("button", { name: "Delete Applied" }));
@@ -248,7 +224,7 @@ describe("StageDetailPanel", () => {
 
   it("reverts the draft on Cancel without calling the action", async () => {
     render(
-      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop} onAddPrepQuestions={noop} onChanged={noop} />,
+      <StageDetailPanel stage={interviewStage} isCurrent onEdit={noop} onLinkInterviewers={noop}  onChanged={noop} />,
     );
 
     await userEvent.type(screen.getByLabelText("NOTES"), " scratch");

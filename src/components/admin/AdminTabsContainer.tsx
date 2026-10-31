@@ -2,14 +2,14 @@
 import ActivityTypesContainer from "@/components/admin/ActivityTypesContainer";
 import CompaniesContainer from "@/components/admin/CompaniesContainer";
 import ContactRolesContainer from "@/components/admin/ContactRolesContainer";
-import ContactsContainer from "@/components/admin/ContactsContainer";
+
 import JobLocationsContainer from "@/components/admin/JobLocationsContainer";
 import JobSourcesContainer from "@/components/admin/JobSourcesContainer";
 import JobStagesContainer from "@/components/admin/JobStagesContainer";
 import JobTitlesContainer from "@/components/admin/JobTitlesContainer";
-import TagsContainer from "@/components/admin/TagsContainer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { Tabs,TabsContent,TabsList,TabsTrigger } from "@/components/ui/tabs";
+import { usePathname,useRouter,useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
 function AdminTabsContainer() {
@@ -40,9 +40,9 @@ function AdminTabsContainer() {
         <TabsTrigger value="job-titles">Job Titles</TabsTrigger>
         <TabsTrigger value="locations">Locations</TabsTrigger>
         <TabsTrigger value="sources">Sources</TabsTrigger>
-        <TabsTrigger value="skills">Skills</TabsTrigger>
+
         <TabsTrigger value="activity-types">Activity Types</TabsTrigger>
-        <TabsTrigger value="contacts">Contacts</TabsTrigger>
+
         <TabsTrigger value="roles">Roles</TabsTrigger>
         <TabsTrigger value="stages">Stages</TabsTrigger>
       </TabsList>
@@ -58,15 +58,11 @@ function AdminTabsContainer() {
       <TabsContent value="sources">
         <JobSourcesContainer />
       </TabsContent>
-      <TabsContent value="skills">
-        <TagsContainer />
-      </TabsContent>
+
       <TabsContent value="activity-types">
         <ActivityTypesContainer />
       </TabsContent>
-      <TabsContent value="contacts">
-        <ContactsContainer />
-      </TabsContent>
+
       <TabsContent value="roles">
         <ContactRolesContainer />
       </TabsContent>

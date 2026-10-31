@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
 import { JobCard } from "@/components/myjobs/JobCard";
-import type { JobResponse, JobStatus } from "@/models/job.model";
+import type { JobResponse,JobStatus } from "@/models/job.model";
+import { render,screen } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -74,18 +74,6 @@ describe("JobCard", () => {
   it("shows Applied for an applied job with no date", () => {
     renderCard(makeJob({ appliedDate: null as unknown as Date, applied: true }));
     expect(screen.queryByText("Not applied")).not.toBeInTheDocument();
-  });
-
-  it("renders the match score, or a Match button when there is none", () => {
-    const { unmount } = renderCard(makeJob({ matchScore: 87 }));
-    expect(screen.getByText("87%")).toBeInTheDocument();
-    unmount();
-
-    renderCard(makeJob({ matchScore: null }));
-    expect(screen.getByRole("link", { name: /match/i })).toHaveAttribute(
-      "href",
-      "/dashboard/myjobs/job-1?tab=match&match=1",
-    );
   });
 
   it("shows a Dismissed badge for dismissed discovered jobs", () => {

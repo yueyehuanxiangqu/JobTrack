@@ -1,11 +1,11 @@
 "use server";
-import prisma from "@/lib/db";
-import { handleError } from "@/lib/utils";
 import { APP_CONSTANTS } from "@/lib/constants";
+import prisma from "@/lib/db";
 import { resumeDetailInclude } from "@/lib/jobs/resumeDetailInclude";
-import { requireUser, resumeListSelect } from "./shared";
-import { createResume } from "./resumeUpload";
+import { handleError } from "@/lib/utils";
 import { deleteFile } from "./files";
+import { createResume } from "./resumeUpload";
+import { requireUser,resumeListSelect } from "./shared";
 
 export const getResumeList = async (
   page: number = 1,
@@ -88,25 +88,6 @@ export const getResumeById = async (
     return { data: resume, success: true };
   } catch (error) {
     const msg = "Failed to get resume.";
-    return handleError(error, msg);
-  }
-};
-
-export const saveResumeReviewResult = async (
-  resumeId: string,
-  reviewData: string,
-): Promise<any | undefined> => {
-  try {
-    const user = await requireUser();
-
-    await prisma.resume.update({
-      where: { id: resumeId, profile: { userId: user.id } },
-      data: { reviewData },
-    });
-
-    return { success: true };
-  } catch (error) {
-    const msg = "Failed to save review result.";
     return handleError(error, msg);
   }
 };

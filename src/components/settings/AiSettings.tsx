@@ -1,35 +1,34 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { getUserSettings,updateAiSettings } from "@/actions/userSettings.actions";
 import {
-  AiModel,
-  AiProvider,
-  defaultModel,
-  OpenaiModel,
-  DeepseekModel,
-  GeminiModel,
-} from "@/models/ai.model";
-import {
-  PROVIDER_REGISTRY,
-  AI_PROVIDERS,
+AI_PROVIDERS,
+PROVIDER_REGISTRY,
 } from "@/lib/ai/provider-registry";
+import { toastError,toastSuccess } from "@/lib/toast";
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Label } from "../ui/label";
-import { Button } from "../ui/button";
-import { toastSuccess, toastError } from "@/lib/toast";
-import { XCircle, Loader2, RefreshCw } from "lucide-react";
+AiModel,
+AiProvider,
+DeepseekModel,
+defaultModel,
+GeminiModel,
+OpenaiModel,
+} from "@/models/ai.model";
 import { checkOllamaConnection } from "@/utils/ai.utils";
-import { getUserSettings, updateAiSettings } from "@/actions/userSettings.actions";
-import { useAgentChat } from "@/components/agent/AgentChatProvider";
+import { Loader2,RefreshCw,XCircle } from "lucide-react";
+import { useCallback,useEffect,useState } from "react";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
+import {
+Select,
+SelectContent,
+SelectGroup,
+SelectItem,
+SelectTrigger,
+SelectValue,
+} from "../ui/select";
 
 function AiSettings() {
-  const { isOpen: isAgentChatOpen, refreshPreflight } = useAgentChat();
+
   const [selectedModel, setSelectedModel] = useState<AiModel>(defaultModel);
   const [fetchedModels, setFetchedModels] = useState<string[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
@@ -38,7 +37,6 @@ function AiSettings() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [fetchError, setFetchError] = useState<string>("");
   const [connectionError, setConnectionError] = useState<string>("");
-
 
   const setSelectedProvider = (provider: AiProvider) => {
     setSelectedModel({ provider, model: undefined });
@@ -186,7 +184,7 @@ function AiSettings() {
       });
       if (result.success) {
         toastSuccess("AI Settings saved successfully.", "Saved!");
-        if (isAgentChatOpen) void refreshPreflight();
+
       } else {
         toastError(result.message || "Failed to save AI settings.");
       }

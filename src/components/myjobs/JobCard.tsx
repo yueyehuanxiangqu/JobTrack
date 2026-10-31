@@ -1,27 +1,26 @@
 "use client";
-import {
-  Calendar,
-  DollarSign,
-  MapPin,
-  Pencil,
-  PlusCircle,
-  StickyNote,
-  Trash,
-} from "lucide-react";
 import { format } from "date-fns";
+import {
+Calendar,
+MapPin,
+Pencil,
+PlusCircle,
+StickyNote,
+Trash
+} from "lucide-react";
 import Link from "next/link";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { CircularScore } from "@/components/CircularScore";
+
 import {
-  JobResponse,
-  JobStatus,
-  getJobTypeLabel,
-  getWorkplaceTypeLabel,
+JobResponse,
+JobStatus,
+getJobTypeLabel,
+getWorkplaceTypeLabel,
 } from "@/models/job.model";
-import { JobStatusBadge } from "./JobStatusBadge";
 import { JobActionsMenu } from "./JobActionsMenu";
-import { MatchJobButton } from "./MatchJobButton";
+import { JobStatusBadge } from "./JobStatusBadge";
+
 import { CompanyLogo } from "./CompanyLogo";
 
 type JobCardProps = {
@@ -81,11 +80,7 @@ export function JobCard({
             </p>
           )}
         </div>
-        {job.matchScore != null ? (
-          <CircularScore score={job.matchScore} size="sm" animate={false} />
-        ) : (
-          <MatchJobButton jobId={job.id} />
-        )}
+
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -109,12 +104,7 @@ export function JobCard({
             <span className="truncate">{job.JobSource.label}</span>
           </span>
         )}
-        {job.salaryRange && (
-          <span className="flex min-w-0 items-center gap-1">
-            <DollarSign className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{job.salaryRange}</span>
-          </span>
-        )}
+
       </div>
 
       <div className="mt-auto flex items-center justify-between gap-2 border-t pt-3">

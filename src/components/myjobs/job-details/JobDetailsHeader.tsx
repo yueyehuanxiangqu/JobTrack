@@ -1,41 +1,35 @@
 "use client";
 
-import {
-  ArrowLeft,
-  FileText,
-  MoreVertical,
-  Pencil,
-  Sparkles,
-  StickyNote,
-  Trash,
-  Trash2,
-} from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+DropdownMenu,
+DropdownMenuContent,
+DropdownMenuGroup,
+DropdownMenuItem,
+DropdownMenuLabel,
+DropdownMenuSeparator,
+DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  JobResponse,
-  getJobTypeLabel,
-  getWorkplaceTypeLabel,
+JobResponse,
+getJobTypeLabel,
+getWorkplaceTypeLabel,
 } from "@/models/job.model";
+import {
+ArrowLeft,
+MoreVertical,
+Pencil,
+StickyNote,
+Trash,
+Trash2
+} from "lucide-react";
+import Link from "next/link";
 import { CompanyLogo } from "../CompanyLogo";
 
 type JobDetailsHeaderProps = {
   job: JobResponse;
   updateStatusMenu?: React.ReactNode;
-  coverLetterBlockedReason?: string;
-  chatBusy: boolean;
   onBack: () => void;
-  onMatch: () => void;
-  onCoverLetter: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onAddNote: () => void;
@@ -44,11 +38,7 @@ type JobDetailsHeaderProps = {
 export function JobDetailsHeader({
   job,
   updateStatusMenu,
-  coverLetterBlockedReason,
-  chatBusy,
   onBack,
-  onMatch,
-  onCoverLetter,
   onEdit,
   onDelete,
   onAddNote,
@@ -89,31 +79,7 @@ export function JobDetailsHeader({
       </div>
       <div className="flex flex-wrap justify-end gap-2">
         {updateStatusMenu}
-        <Button
-          variant="outline"
-          className="cursor-pointer"
-          disabled={chatBusy}
-          title={chatBusy ? "The assistant is busy" : undefined}
-          onClick={onMatch}
-        >
-          <Sparkles className="h-4 w-4 sm:mr-2" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            AI Match
-          </span>
-        </Button>
-        <Button
-          variant="outline"
-          className="cursor-pointer"
-          data-testid="generate-cover-letter-btn"
-          disabled={!!coverLetterBlockedReason}
-          title={coverLetterBlockedReason}
-          onClick={onCoverLetter}
-        >
-          <FileText className="h-4 w-4 sm:mr-2" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            {job.coverLetterId ? "Regenerate Letter" : "Cover Letter"}
-          </span>
-        </Button>
+
         <Button
           title="Edit"
           variant="outline"

@@ -1,5 +1,4 @@
 import { AiProvider } from "./ai.model";
-import type { GoalTargetsByMonth } from "./dailyGoals.model";
 
 export interface AiSettings {
   provider: AiProvider;
@@ -10,14 +9,10 @@ export interface DisplaySettings {
   theme: "light" | "dark" | "system";
 }
 
-export interface GoalSettings {
-  targets: GoalTargetsByMonth;
-}
-
 export interface UserSettingsData {
   ai: AiSettings;
   display: DisplaySettings;
-  goals?: GoalSettings;
+
 }
 
 export interface UserSettings {

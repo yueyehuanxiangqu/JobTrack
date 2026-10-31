@@ -1,11 +1,11 @@
 "use server";
+import { APP_CONSTANTS } from "@/lib/constants";
 import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
-import { APP_CONSTANTS } from "@/lib/constants";
-import { requireUser } from "../shared";
-import { getReferenceEntityList } from "../referenceList";
 import { CONTACT_LIST_INCLUDE } from "../contact/shared";
 import { hideUnanalyzedScore } from "../job/shared";
+import { getReferenceEntityList } from "../referenceList";
+import { requireUser } from "../shared";
 
 export const getCompanyList = async (
   page: number = 1,
@@ -16,8 +16,6 @@ export const getCompanyList = async (
 ): Promise<any | undefined> => {
   try {
     const user = await requireUser();
-
-    const watchlist = scope === "watchlist";
 
     return await getReferenceEntityList({
       model: prisma.company,
@@ -40,12 +38,7 @@ export const getCompanyList = async (
       ],
       // A watched row sits at applied-count 0, so the default sort would bury
       // whatever was just watched; most-recent-first is what the scope is for.
-      ...(watchlist
-        ? {
-            extraWhere: { watched: true },
-            orderBy: [{ watchedAt: "desc" }, { label: "asc" }],
-          }
-        : {}),
+      ...{},
       searchFields: ["label", "atsToken"],
       page,
       limit,

@@ -1,33 +1,28 @@
 "use client";
 
-import {
-  ArrowLeft,
-  ExternalLink,
-  Eye,
-  EyeOff,
-  MoreVertical,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { CompanyLogo } from "@/components/myjobs/CompanyLogo";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
+DropdownMenu,
+DropdownMenuContent,
+DropdownMenuItem,
+DropdownMenuLabel,
+DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CompanyLogo } from "@/components/myjobs/CompanyLogo";
-import { companyBoardUrl } from "@/lib/atsBoardUrl";
 import { formatUrl } from "@/lib/utils";
 import type { Company } from "@/models/job.model";
-import type { LeverHost } from "@/models/automation.model";
+import {
+ArrowLeft,
+ExternalLink,
+MoreVertical,
+Pencil,
+Trash2
+} from "lucide-react";
 import { hostnameOf } from "./hostname";
 
 type CompanyDetailsHeaderProps = {
   company: Company;
   onBack: () => void;
-  onToggleWatch: () => void;
   onEdit: () => void;
   onDelete: () => void;
 };
@@ -35,7 +30,6 @@ type CompanyDetailsHeaderProps = {
 export function CompanyDetailsHeader({
   company,
   onBack,
-  onToggleWatch,
   onEdit,
   onDelete,
 }: CompanyDetailsHeaderProps) {
@@ -43,18 +37,10 @@ export function CompanyDetailsHeader({
     .filter(Boolean)
     .join(" · ");
 
-  const boardUrl =
-    company.atsProvider && company.atsToken
-      ? companyBoardUrl(company.atsProvider, {
-          token: company.atsToken,
-          host: (company.atsHost as LeverHost) ?? undefined,
-        })
-      : null;
   const links = [
     { label: "Open website", href: company.websiteUrl ? formatUrl(company.websiteUrl) : null },
     { label: "Open careers page", href: company.careersUrl ? formatUrl(company.careersUrl) : null },
     { label: "Open LinkedIn", href: company.linkedinUrl ? formatUrl(company.linkedinUrl) : null },
-    { label: "Open job board", href: boardUrl },
   ].filter((link): link is { label: string; href: string } => !!link.href);
 
   return (
@@ -79,16 +65,7 @@ export function CompanyDetailsHeader({
         </div>
       </div>
       <div className="flex flex-wrap justify-end gap-2">
-        <Button variant="outline" className="cursor-pointer" onClick={onToggleWatch}>
-          {company.watched ? (
-            <EyeOff className="h-4 w-4 sm:mr-2" />
-          ) : (
-            <Eye className="h-4 w-4 sm:mr-2" />
-          )}
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            {company.watched ? "Unwatch" : "Watch"}
-          </span>
-        </Button>
+
         <Button variant="outline" className="cursor-pointer" onClick={onEdit}>
           <Pencil className="h-4 w-4 sm:mr-2" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

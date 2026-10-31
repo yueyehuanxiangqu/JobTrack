@@ -1,12 +1,12 @@
-import path from "path";
 import {
-  safeEntryName,
-  importedFilePath,
-  checkImportedFile,
-  normalizeAutomationRun,
-  normalizeAutomation,
+checkImportedFile,
+importedFilePath,
+normalizeAutomation,
+normalizeAutomationRun,
+safeEntryName,
 } from "@/lib/backup/normalize";
 import { APP_CONSTANTS } from "@/lib/constants";
+import path from "path";
 
 describe("safeEntryName", () => {
   it("reduces a traversal path to its basename", () => {
@@ -125,32 +125,8 @@ describe("normalizeAutomationRun", () => {
 });
 
 describe("normalizeAutomation", () => {
-  it("moves a past nextRunAt forward without deactivating the automation", () => {
-    const row = normalizeAutomation({
-      status: "active",
-      scheduleHour: 9,
-      nextRunAt: new Date("2020-01-01T09:00:00"),
-    });
-    expect(row.status).toBe("active");
-    expect(row.nextRunAt!.getTime()).toBeGreaterThan(Date.now());
-    expect(row.nextRunAt!.getHours()).toBe(9);
-  });
-
-  it("recomputes even when nextRunAt is null", () => {
-    const row = normalizeAutomation({
-      status: "active",
-      scheduleHour: 14,
-      nextRunAt: null as Date | null,
-    });
-    expect(row.nextRunAt!.getHours()).toBe(14);
-  });
-
-  it("leaves a paused automation without a next run", () => {
-    const row = normalizeAutomation({
-      status: "paused",
-      scheduleHour: 9,
-      nextRunAt: new Date("2020-01-01T09:00:00"),
-    });
-    expect(row.nextRunAt).toBeNull();
-  });
+ it.each(["active", "paused", "running"])("restores %s automations as paused archival data", status => {
+  const row = normalizeAutomation({ status, scheduleHour: 9, nextRunAt: new Date("2020-01-01") });
+  expect(row.status).toBe("paused"); expect(row.nextRunAt).toBeNull();
+ });
 });

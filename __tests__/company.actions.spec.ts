@@ -281,20 +281,7 @@ describe("Company Actions", () => {
       });
     });
 
-    it("filters and sorts by watch state in the watchlist scope", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.company.findMany as any).mockResolvedValue([]);
-      (prisma.company.count as any).mockResolvedValue(0);
 
-      await getCompanyList(1, 10, undefined, undefined, "watchlist");
-
-      expect(prisma.company.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { createdBy: mockUser.id, watched: true },
-          orderBy: [{ watchedAt: "desc" }, { label: "asc" }],
-        })
-      );
-    });
 
     it("should not apply a label filter when search is empty", async () => {
       (getCurrentUser as any).mockResolvedValue(mockUser);

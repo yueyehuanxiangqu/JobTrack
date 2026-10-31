@@ -1,17 +1,17 @@
 "use client";
 
-import Link from "next/link";
+import {
+Table,
+TableBody,
+TableCell,
+TableHead,
+TableHeader,
+TableRow,
+} from "@/components/ui/table";
 import { format } from "date-fns";
 import { Briefcase } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { CircularScore } from "@/components/CircularScore";
+import Link from "next/link";
+
 import { StatusBadge } from "@/components/StatusBadge";
 import { JobTabEmptyState } from "@/components/myjobs/job-details/JobTabEmptyState";
 import { getJobStatusBadgeColor } from "@/lib/badge-colors";
@@ -41,7 +41,7 @@ export function CompanyJobsTab({ jobs }: CompanyJobsTabProps) {
           <TableHead>Status</TableHead>
           <TableHead className="hidden md:table-cell">Location</TableHead>
           <TableHead className="hidden md:table-cell">Applied</TableHead>
-          <TableHead>Match</TableHead>
+
           <TableHead className="hidden md:table-cell">Source</TableHead>
         </TableRow>
       </TableHeader>
@@ -72,13 +72,7 @@ export function CompanyJobsTab({ jobs }: CompanyJobsTabProps) {
                   ? "Applied"
                   : "Not applied"}
             </TableCell>
-            <TableCell>
-              {job.matchScore != null ? (
-                <CircularScore score={job.matchScore} size="sm" />
-              ) : (
-                "—"
-              )}
-            </TableCell>
+
             <TableCell className="hidden md:table-cell">
               {job.JobSource?.label ?? "—"}
             </TableCell>

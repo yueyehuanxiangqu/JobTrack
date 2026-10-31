@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import InterviewsContainer from "@/components/interviews/InterviewsContainer";
 import { getInterviewList } from "@/actions/interview.actions";
+import InterviewsContainer from "@/components/interviews/InterviewsContainer";
+import { render,screen,waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 vi.mock("@/actions/interview.actions", () => ({
   getInterviewList: vi.fn(),
@@ -97,11 +97,11 @@ describe("InterviewsContainer", () => {
       name: /Expand Senior Full Stack Developer/,
     });
     await userEvent.click(first!);
-    expect(await screen.findByText(/Prep questions/)).toBeInTheDocument();
+    expect(await screen.findByText(/Interviewers/)).toBeInTheDocument();
 
     await userEvent.click(second!);
     await waitFor(() =>
-      expect(screen.getAllByText(/Prep questions/)).toHaveLength(1),
+      expect(screen.getAllByText(/Interviewers/)).toHaveLength(1),
     );
   });
 

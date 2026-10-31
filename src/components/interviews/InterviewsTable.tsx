@@ -1,13 +1,13 @@
 "use client";
+import type { InterviewRow as InterviewRowType } from "@/models/interview.model";
 import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
+Table,
+TableBody,
+TableHead,
+TableHeader,
+TableRow,
 } from "../ui/table";
 import InterviewRow from "./InterviewRow";
-import type { InterviewRow as InterviewRowType } from "@/models/interview.model";
 
 type InterviewsTableProps = {
   interviews: InterviewRowType[];
@@ -36,7 +36,7 @@ function InterviewsTable({
           <TableHead>Round</TableHead>
           <TableHead className="hidden md:table-cell">Format</TableHead>
           <TableHead className="hidden lg:table-cell">Interviewers</TableHead>
-          <TableHead className="hidden sm:table-cell">Prep</TableHead>
+
           <TableHead>Outcome</TableHead>
           <TableHead>
             <span className="sr-only">Actions</span>

@@ -1,18 +1,16 @@
+import { Briefcase,PanelLeft } from "lucide-react";
 import Link from "next/link";
-import { PanelLeft, Briefcase } from "lucide-react";
 
-import { Button } from "./ui/button";
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetTitle,
-  SheetTrigger,
+Sheet,
+SheetClose,
+SheetContent,
+SheetTitle,
+SheetTrigger,
 } from "@/components/ui/sheet";
 import { SIDEBAR_LINKS } from "@/lib/constants";
 import SidebarToggle from "./SidebarToggle";
-import { AgentChatTrigger } from "./AgentChatTrigger";
-import { NotificationBell } from "./notifications/NotificationBell";
+import { Button } from "./ui/button";
 
 async function Header() {
   return (
@@ -70,8 +68,6 @@ async function Header() {
         /> */}
       </div>
 
-      <NotificationBell />
-      <AgentChatTrigger />
     </header>
   );
 }

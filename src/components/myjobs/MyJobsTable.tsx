@@ -61,7 +61,7 @@ function MyJobsTable({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <Table>
+      <Table className="min-w-[56rem]">
         <TableHeader>
           <TableRow>
             <TableHead className="hidden w-[100px] sm:table-cell">
@@ -71,7 +71,7 @@ function MyJobsTable({
               field="appliedDate"
               sort={sort}
               onSort={onSort}
-              className="hidden md:table-cell"
+              className="table-cell"
             >
               Applied
             </SortableTableHead>
@@ -85,7 +85,7 @@ function MyJobsTable({
               field="location"
               sort={sort}
               onSort={onSort}
-              className="hidden md:table-cell"
+              className="table-cell"
             >
               Location
             </SortableTableHead>
@@ -95,7 +95,7 @@ function MyJobsTable({
               field="source"
               sort={sort}
               onSort={onSort}
-              className="hidden md:table-cell"
+              className="table-cell"
             >
               Source
             </SortableTableHead>
@@ -108,13 +108,13 @@ function MyJobsTable({
           {jobs.map((job: JobResponse) => {
             return (
               <TableRow key={job.id}>
-                <TableCell className="hidden sm:table-cell">
+                <TableCell className="table-cell">
                   <CompanyLogo
                     logoUrl={job.Company?.logoUrl}
                     className="h-8 w-8 min-w-8"
                   />
                 </TableCell>
-                <TableCell className="hidden md:table-cell w-[120px] whitespace-nowrap">
+                <TableCell className="table-cell w-[120px] whitespace-nowrap">
                   {job.appliedDate
                     ? format(job.appliedDate, "PP")
                     : "Not Applied"}
@@ -165,7 +165,7 @@ function MyJobsTable({
                     <span className="block truncate">{job.Company?.label}</span>
                   )}
                 </TableCell>
-                <TableCell className="hidden md:table-cell whitespace-nowrap max-w-[120px]">
+                <TableCell className="table-cell whitespace-nowrap max-w-[120px]">
                   <span className="block truncate">{job.Location?.label}</span>
                 </TableCell>
                 <TableCell>
@@ -177,7 +177,7 @@ function MyJobsTable({
                   />
                 </TableCell>
 
-                <TableCell className="hidden md:table-cell">
+                <TableCell className="table-cell">
                   {job.JobSource?.label}
                 </TableCell>
                 <TableCell>

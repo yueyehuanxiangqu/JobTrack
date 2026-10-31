@@ -11,20 +11,23 @@ SheetTrigger,
 import { SIDEBAR_LINKS } from "@/lib/constants";
 import SidebarToggle from "./SidebarToggle";
 import { Button } from "./ui/button";
+import { ProfileDropdown } from "./ProfileDropdown";
+import type { CurrentUser } from "@/models/user.model";
+import { TooltipProvider } from "./ui/tooltip";
 
-async function Header() {
+async function Header({ user, signOutAction }: { user?: CurrentUser; signOutAction?: () => void } = {}) {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+    <header className="sticky top-0 z-30 flex min-h-14 min-w-0 items-center gap-3 border-b bg-background px-4 lg:static lg:h-auto lg:border-0 lg:bg-transparent lg:px-6">
       <Sheet>
         <SheetTrigger asChild>
-          <Button size="icon" variant="outline" className="sm:hidden">
+          <Button size="icon" variant="outline" className="shrink-0 lg:hidden">
             <PanelLeft className="h-5 w-5" />
             <span className="sr-only">Toggle Menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="sm:max-w-xs">
+        <SheetContent side="left" className="w-[calc(100vw-2rem)] max-w-xs overflow-y-auto">
           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-          <nav className="grid gap-6 text-lg font-medium">
+          <nav className="grid min-w-0 gap-4 text-lg font-medium">
             <SheetClose asChild>
               <Link
                 href="/dashboard"
@@ -52,10 +55,11 @@ async function Header() {
               );
             })}
           </nav>
+          {user && signOutAction && <TooltipProvider><div className="mt-6 border-t pt-3"><ProfileDropdown user={user} expanded signOutAction={signOutAction} /></div></TooltipProvider>}
         </SheetContent>
       </Sheet>
       <SidebarToggle />
-      <h1 className="font-semibold">
+      <h1 className="min-w-0 break-words font-semibold">
         JobSync<span className="hidden sm:inline"> - Job Search Assistant</span>
       </h1>
       <div className="relative ml-auto flex-1 md:grow-0">

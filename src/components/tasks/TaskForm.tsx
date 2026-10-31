@@ -155,7 +155,7 @@ export function TaskForm({
           <Form {...form}>
             <form
               onSubmit={onSaveClick}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4"
+              className="grid min-w-0 grid-cols-1 md:grid-cols-2 gap-4 sm:p-2"
             >
               {/* Title */}
               <div className="md:col-span-2">

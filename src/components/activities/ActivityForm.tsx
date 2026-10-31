@@ -156,7 +156,7 @@ const ActivityFormComponent = ({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4"
+        className="grid min-w-0 grid-cols-1 md:grid-cols-2 gap-4 sm:p-2"
       >
         {/* ACTIVITY NAME */}
         <div>
@@ -172,13 +172,17 @@ const ActivityFormComponent = ({
                     placeholder="Ex: Job Search, Learning skill, etc"
                   />
                 </FormControl>
-                <FormMessage>
-                  {errors.activityName && (
-                    <span className="text-red-500">
-                      {errors.activityName?.message}
-                    </span>
-                  )}
-                </FormMessage>
+                {/* onTouched validation must not move the next control between
+                    pointer down and pointer up when this field loses focus. */}
+                <div className="min-h-10 sm:min-h-5">
+                  <FormMessage>
+                    {errors.activityName && (
+                      <span className="text-red-500">
+                        {errors.activityName?.message}
+                      </span>
+                    )}
+                  </FormMessage>
+                </div>
               </FormItem>
             )}
           />

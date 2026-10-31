@@ -27,7 +27,7 @@ function SelectFormCtrl({ label, options, field }: SelectProps) {
         <FormControl>
           <SelectTrigger
             aria-label={`Select ${label}`}
-            className="w-[200px] [&_[data-incomplete-hint]]:pointer-events-none"
+            className="w-full min-w-0 [&_[data-incomplete-hint]]:pointer-events-none"
           >
             <SelectValue placeholder={`Select ${label}`} />
           </SelectTrigger>

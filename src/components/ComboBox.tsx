@@ -144,7 +144,7 @@ export function Combobox({
             role="combobox"
             className={cn(
               "justify-between",
-              fullWidth ? "w-full" : "md:w-[240px] lg:w-[280px]",
+              fullWidth ? "w-full min-w-0" : "w-full min-w-0",
               !field.value && "text-muted-foreground"
             )}
           >

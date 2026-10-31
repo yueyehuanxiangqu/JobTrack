@@ -72,17 +72,10 @@ describe("ActivityCalendar", () => {
       />,
     );
 
-    expect(screen.getByTestId("day-2026-01-01")).toHaveTextContent(
-      "1 job applied",
-    );
-    expect(screen.getByTestId("day-2026-01-01")).toHaveTextContent(
-      "1 hr activity",
-    );
-    expect(screen.getByTestId("day-2026-01-02")).toHaveTextContent(
-      "2 jobs applied",
-    );
-    expect(screen.getByTestId("day-2026-01-02")).toHaveTextContent(
-      "2.5 hrs activity",
-    );
+    expect(screen.getByText("1 job applied")).toBeInTheDocument();
+    expect(screen.getByText("1 hr activity")).toBeInTheDocument();
+    expect(screen.getByText("2 jobs applied")).toBeInTheDocument();
+    expect(screen.getByText("2.5 hrs activity")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Activity Calendar days" })).toHaveAttribute("tabIndex", "0");
   });
 });

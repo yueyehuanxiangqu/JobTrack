@@ -62,8 +62,8 @@ export function JobDetailsHeader({
           className="h-10 w-10 min-w-10"
         />
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold">{job.JobTitle?.label}</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold [overflow-wrap:anywhere]">{job.JobTitle?.label}</h1>
+          <p className="text-muted-foreground [overflow-wrap:anywhere]">
             {job.Company?.label && (
               <Link
                 href={`/dashboard/admin/companies/${job.Company.id}`}

@@ -48,7 +48,7 @@ export default function AuthCard({ mode }: AuthCardProps) {
       </div>
 
       {/* Form card */}
-      <div className="rounded-xl border bg-card p-6 shadow-xs">
+      <div className="min-w-0 rounded-xl border bg-card p-4 sm:p-6 shadow-xs">
         {mode === "signin" ? (
           <>
             <div className="mb-5">

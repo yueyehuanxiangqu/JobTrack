@@ -240,7 +240,7 @@ function AiSettings() {
           <SelectTrigger
             id="ai-provider"
             aria-label="Select AI provider"
-            className="w-[180px]"
+            className="w-full min-w-0 sm:max-w-xs"
           >
             <SelectValue placeholder="Select AI Service Provider" />
           </SelectTrigger>
@@ -271,7 +271,7 @@ function AiSettings() {
             <SelectTrigger
               id="ai-model"
               aria-label="Select Model"
-              className="w-[180px]"
+              className="w-full min-w-0 sm:max-w-xs"
             >
               {/* a flex row here must nest inside SelectValue's span, which the
                   trigger's [&>span]:line-clamp-1 outranks */}

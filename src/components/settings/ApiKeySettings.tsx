@@ -188,7 +188,7 @@ function ApiKeySettings() {
             Manage your API keys for AI providers and external services.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span>Loading keys...</span>
         </div>
@@ -215,7 +215,7 @@ function ApiKeySettings() {
           return (
             <Card key={provider.id}>
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
+                <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                   <div>
                     <CardTitle className="text-base">{provider.name}</CardTitle>
                     <CardDescription className="text-sm">
@@ -241,7 +241,7 @@ function ApiKeySettings() {
               </CardHeader>
               {provider.id === "ollama" && (
                 <div className="px-6 pb-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
                     {ollamaChecking ? (
                       <div className="flex items-center gap-1 text-muted-foreground text-sm">
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -35,7 +35,7 @@ export function JobSummaryCard({
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-4 [&>*]:min-w-0 [overflow-wrap:anywhere]">
           <div>
             <p className="text-sm text-muted-foreground">Status</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -122,7 +122,7 @@ export function JobSummaryCard({
                 href={formatUrl(job.jobUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm hover:underline"
+                className="inline-flex min-w-0 max-w-full items-center gap-1.5 text-sm hover:underline [overflow-wrap:anywhere]"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
                 {job.jobUrl}

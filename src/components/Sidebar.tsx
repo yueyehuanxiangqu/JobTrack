@@ -26,7 +26,7 @@ function Sidebar({ user, signOutAction }: SidebarProps) {
       <aside
         id={APP_CONSTANTS.SIDEBAR_DOM_ID}
         className={cn(
-          "fixed inset-y-0 left-0 z-10 hidden flex-col border-r bg-background transition-[width] duration-200 ease-in-out sm:flex",
+          "fixed inset-y-0 left-0 z-10 hidden flex-col border-r bg-background transition-[width] duration-200 ease-in-out lg:flex",
           expanded
             ? APP_CONSTANTS.SIDEBAR_WIDTH.expanded.rail
             : APP_CONSTANTS.SIDEBAR_WIDTH.collapsed.rail,

@@ -26,7 +26,7 @@ function SidebarToggle() {
             aria-expanded={expanded}
             aria-controls={APP_CONSTANTS.SIDEBAR_DOM_ID}
             aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
-            className="hidden sm:inline-flex"
+            className="hidden lg:inline-flex"
           >
             <PanelLeft className="h-5 w-5" />
           </Button>

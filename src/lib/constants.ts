@@ -32,8 +32,8 @@ export const APP_CONSTANTS = {
     GITHUB_REPO: "yueyehuanxiangqu/JobTrack",
     UPDATE_CHECK_REVALIDATE_SECONDS: 86400,
     SIDEBAR_WIDTH: {
-        expanded: { rail: "w-56", contentOffset: "sm:pl-56" },
-        collapsed: { rail: "w-14", contentOffset: "sm:pl-14", px: 56 },
+        expanded: { rail: "w-56", contentOffset: "lg:pl-56" },
+        collapsed: { rail: "w-14", contentOffset: "lg:pl-14", px: 56 },
     },
     AI_VERIFY_TIMEOUT_MS: 10000,
     AI_OLLAMA_LIST_TIMEOUT_MS: 5000,

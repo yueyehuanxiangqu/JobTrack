@@ -245,10 +245,10 @@ function TasksTable({
           task.status === "complete" && "line-through",
         )}
       >
-        <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex min-w-0 max-w-[20rem] items-center gap-1.5">
           <button
             onClick={() => editTask(task.id)}
-            className="text-left hover:underline cursor-pointer"
+            className="min-w-0 max-w-full text-left hover:underline cursor-pointer [overflow-wrap:anywhere]"
             aria-label={`Edit ${task.title}`}
           >
             {task.title}
@@ -272,14 +272,14 @@ function TasksTable({
       <TableCell className="py-1 px-2">
         {task.activityType?.label || "—"}
       </TableCell>
-      <TableCell className="hidden md:table-cell py-1 px-2">
+      <TableCell className="table-cell py-1 px-2">
         <StatusBadge
           label={TASK_STATUSES[task.status]}
           color={TASK_STATUS_BADGE_COLORS[task.status]}
           className="w-[110px] whitespace-nowrap justify-center"
         />
       </TableCell>
-      <TableCell className="hidden md:table-cell py-1 px-2">
+      <TableCell className="table-cell py-1 px-2">
         {(() => {
           const level = getPriorityLevel(task.priority);
           const config = priorityConfig[level];
@@ -297,7 +297,7 @@ function TasksTable({
           );
         })()}
       </TableCell>
-      <TableCell className="hidden md:table-cell py-1 px-2 text-center">
+      <TableCell className="table-cell py-1 px-2 text-center">
         {task.percentComplete}%
       </TableCell>
       <TableCell className="py-1 px-1">
@@ -366,7 +366,7 @@ function TasksTable({
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>
-      <TableCell className="hidden sm:table-cell py-1 px-1">
+      <TableCell className="table-cell py-1 px-1">
         <Button
           title="Start Activity"
           aria-haspopup="true"
@@ -374,7 +374,7 @@ function TasksTable({
           variant="ghost"
           onClick={() => onStartActivity(task.id)}
           data-testid="task-start-activity-btn"
-          className="opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-300"
+          className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 group-hover:pointer-events-auto transition-opacity duration-300"
         >
           <span>
             <CirclePlay className="text-green-600" />
@@ -392,17 +392,17 @@ function TasksTable({
         </TableHead>
         <TableHead className="h-9 px-2">Title</TableHead>
         <TableHead className="h-9 px-2">Activity Type</TableHead>
-        <TableHead className="hidden md:table-cell h-9 px-2">Status</TableHead>
-        <TableHead className="hidden md:table-cell h-9 px-2 text-center">
+        <TableHead className="table-cell h-9 px-2">Status</TableHead>
+        <TableHead className="table-cell h-9 px-2 text-center">
           Priority
         </TableHead>
-        <TableHead className="hidden md:table-cell h-9 px-2 text-center">
+        <TableHead className="table-cell h-9 px-2 text-center">
           % Complete
         </TableHead>
         <TableHead className="h-9 px-1">
           <span className="sr-only">Actions</span>
         </TableHead>
-        <TableHead className="hidden sm:table-cell h-9 px-1">
+        <TableHead className="table-cell h-9 px-1">
           <span className="sr-only">Start Activity</span>
         </TableHead>
       </TableRow>
@@ -416,7 +416,7 @@ function TasksTable({
           <h3 className="text-sm font-semibold mb-2 px-2 py-1">
             {label} ({groupTasks.length})
           </h3>
-          <Table>
+          <Table className="min-w-[48rem]">
             {renderTableHeader()}
             <TableBody>{groupTasks.map(renderTaskRow)}</TableBody>
           </Table>
@@ -482,7 +482,7 @@ function TasksTable({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <Table>
+      <Table className="min-w-[48rem]">
         {renderTableHeader()}
         <TableBody>{tasks.map(renderTaskRow)}</TableBody>
       </Table>

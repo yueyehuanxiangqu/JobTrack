@@ -35,7 +35,7 @@ export function InterviewFilters({
         value={stageTypeId ?? ALL}
         onValueChange={(v) => onRoundChange(v === ALL ? undefined : v)}
       >
-        <SelectTrigger aria-label="Filter by round" className="h-8 w-[180px]">
+        <SelectTrigger aria-label="Filter by round" className="min-h-8 w-full min-w-0 sm:w-[180px] max-w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -51,7 +51,7 @@ export function InterviewFilters({
         value={companyId ?? ALL}
         onValueChange={(v) => onCompanyChange(v === ALL ? undefined : v)}
       >
-        <SelectTrigger aria-label="Filter by company" className="h-8 w-[180px]">
+        <SelectTrigger aria-label="Filter by company" className="min-h-8 w-full min-w-0 sm:w-[180px] max-w-full">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

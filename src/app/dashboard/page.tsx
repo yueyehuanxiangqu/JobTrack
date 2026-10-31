@@ -46,9 +46,9 @@ export default async function Dashboard() {
   const activityCalendarDataKeys = Object.keys(activityCalendarData);
   return (
     <>
-      <div className="grid gap-4 @3xl/main:col-span-2">
+      <div className="grid min-w-0 grid-cols-1 gap-4 @3xl/main:col-span-3">
         <div className="@container grid grid-cols-1 auto-rows-max items-start gap-2 md:gap-2">
-          <div className="grid gap-2 @lg:grid-cols-4">
+          <div className="grid min-w-0 gap-4 @3xl/main:grid-cols-2">
             <JobsApplied />
             <JobsActivityCard
               data={[
@@ -81,9 +81,6 @@ export default async function Dashboard() {
             dataByYear={activityCalendarData}
           />
         </div>
-      </div>
-      <div className="flex flex-col gap-2">
-
       </div>
       <div className="w-full col-span-3">
         <RecentCardToggle jobs={recentJobs} activities={recentActivities} />

@@ -27,7 +27,7 @@ export default function SettingsSidebar({
   onSectionChange,
 }: SettingsSidebarProps) {
   return (
-    <nav className="flex flex-col gap-1 w-10 sm:w-48 shrink-0">
+    <nav className="flex w-full flex-wrap gap-1 lg:w-48 lg:shrink-0 lg:flex-col">
       {SETTINGS_SECTIONS.map((section) => {
         const Icon = section.icon;
         const isActive = activeSection === section.id;
@@ -38,7 +38,7 @@ export default function SettingsSidebar({
             title={section.label}
             aria-label={section.label}
             className={cn(
-              "justify-center sm:justify-start gap-2 rounded-none border-l-2 px-0 sm:px-4",
+              "min-w-0 justify-start gap-2 rounded-none border-l-2 px-3",
               isActive
                 ? "border-l-primary bg-muted font-medium"
                 : "border-l-transparent hover:border-l-muted-foreground/25",
@@ -46,7 +46,7 @@ export default function SettingsSidebar({
             onClick={() => onSectionChange(section.id)}
           >
             <Icon className="h-4 w-4" />
-            <span className="hidden sm:inline">{section.label}</span>
+            <span className="min-w-0">{section.label}</span>
           </Button>
         );
       })}

@@ -137,7 +137,7 @@ export function LinkInterviewersDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] max-h-[720px] overflow-hidden">
+      <DialogContent className="sm:max-w-[520px] max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add and Link Interviewers</DialogTitle>
           <DialogDescription>{stageHeading(stage)}</DialogDescription>

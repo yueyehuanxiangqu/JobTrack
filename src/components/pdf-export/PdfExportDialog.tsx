@@ -60,14 +60,14 @@ export function PdfExportDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* A fixed height, not a max: the pane fits pages to its own height, so
           a content-driven one would feed back on itself. */}
-      <DialogContent className="flex h-[90vh] flex-col sm:max-w-5xl">
-        <DialogHeader>
+      <DialogContent className="flex h-[calc(100dvh-2rem)] flex-col sm:max-w-5xl">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-4 md:flex-row">
-          <div className="order-2 h-[45vh] min-h-0 md:order-1 md:h-auto md:min-w-0 md:flex-1">
+        <div className="flex min-w-0 shrink-0 flex-col gap-4 md:min-h-0 md:flex-1 md:shrink md:flex-row">
+          <div className="order-2 h-[45dvh] min-h-48 min-w-0 md:order-1 md:h-auto md:min-h-0 md:flex-1">
             <PdfPreviewPane
               blob={blob}
               isGenerating={isGenerating || !!isPending}
@@ -79,12 +79,12 @@ export function PdfExportDialog({
               className="h-full"
             />
           </div>
-          <div className="order-1 min-h-0 shrink-0 overflow-y-auto md:order-2 md:w-[34%]">
+          <div className="order-1 min-w-0 shrink-0 md:order-2 md:min-h-0 md:w-[34%] md:overflow-y-auto">
             {settingsPanel}
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0">
           <Button
             type="button"
             variant="outline"

@@ -229,3 +229,12 @@
 
 @layer components {
 }
+
+/* Allow intrinsic text/control widths to shrink; overflow is local to tables,
+   charts and code blocks rather than clipped at the document boundary. */
+@layer base {
+  fieldset { min-inline-size: 0; }
+  input, textarea, select { min-inline-size: 0; max-inline-size: 100%; }
+  .tiptap { min-inline-size: 0; overflow-wrap: anywhere; }
+  .tiptap pre { max-inline-size: 100%; overflow-x: auto; white-space: pre; }
+}

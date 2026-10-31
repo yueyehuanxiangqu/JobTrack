@@ -43,10 +43,10 @@ export default async function RootLayout({
               <div className="flex min-h-screen w-full flex-col bg-muted/40">
                 <Sidebar user={user} signOutAction={signOutAction} />
                 <SidebarInset>
-                  <Header />
+                  <Header user={user} signOutAction={signOutAction} />
                   <GlobalActivityBanner />
-                  <main className="@container/main flex-1 p-4 sm:px-4 sm:py-0">
-                    <div className="items-start gap-4 md:gap-4 @3xl/main:grid @3xl/main:grid-cols-3">
+                  <main className="@container/main min-w-0 flex-1 p-4 lg:py-0">
+                    <div className="min-w-0 items-start gap-4 @3xl/main:grid @3xl/main:grid-cols-3 [&>*]:min-w-0">
                       {children}
                     </div>
                   </main>

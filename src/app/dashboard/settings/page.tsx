@@ -13,11 +13,11 @@ function Settings() {
   const [activeSection, setActiveSection] = useState<SettingsSection>("ai-provider");
 
   return (
-    <div className="flex flex-col col-span-3">
+    <div className="flex min-w-0 flex-col col-span-3">
       <h3 className="text-2xl font-semibold leading-none tracking-tight mb-4">
         Settings
       </h3>
-      <div className="flex gap-3 sm:gap-6">
+      <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:gap-6">
         <SettingsSidebar
           activeSection={activeSection}
           onSectionChange={setActiveSection}

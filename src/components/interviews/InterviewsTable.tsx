@@ -25,7 +25,7 @@ function InterviewsTable({
   onChanged,
 }: InterviewsTableProps) {
   return (
-    <Table>
+    <Table className="min-w-[52rem]">
       <TableHeader>
         <TableRow>
           <TableHead className="w-8">
@@ -34,7 +34,7 @@ function InterviewsTable({
           <TableHead>When</TableHead>
           <TableHead>Job</TableHead>
           <TableHead>Round</TableHead>
-          <TableHead className="hidden md:table-cell">Format</TableHead>
+          <TableHead className="table-cell">Format</TableHead>
           <TableHead className="hidden lg:table-cell">Interviewers</TableHead>
 
           <TableHead>Outcome</TableHead>

@@ -290,7 +290,7 @@ export function AddJob({
       )}
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!isPending) setDialogOpen(open); }}>
         <DialogOverlay>
-          <DialogContent className="h-full xl:h-[85vh] lg:h-[95vh] lg:max-w-screen-lg lg:max-h-screen overflow-y-scroll">
+          <DialogContent className="max-h-[calc(100dvh-2rem)] lg:max-w-screen-lg overflow-y-auto">
             <DialogHeader>
               <DialogTitle data-testid="add-job-dialog-title">
                 {pageTitle}
@@ -300,7 +300,7 @@ export function AddJob({
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4"
+                className="grid min-w-0 grid-cols-1 gap-4 sm:p-2 md:grid-cols-2"
               >
                 <fieldset className="contents" disabled={isPending || !!savedJobId} inert={isPending || !!savedJobId}>
                 {/* Job Title */}

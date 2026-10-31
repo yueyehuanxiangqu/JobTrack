@@ -62,20 +62,20 @@ function ActivitiesTable({
   };
   return (
     <>
-      <Table>
+      <Table className="min-w-[48rem]">
         <TableHeader>
           <TableRow>
-            <TableHead className="hidden md:table-cell">Date</TableHead>
+            <TableHead className="table-cell">Date</TableHead>
             <TableHead>Activity</TableHead>
             <TableHead className="whitespace-nowrap">
               Project
               <br />
               (Activity Type)
             </TableHead>
-            <TableHead className="hidden md:table-cell whitespace-nowrap">
+            <TableHead className="table-cell whitespace-nowrap">
               Start Time
             </TableHead>
-            <TableHead className="hidden md:table-cell whitespace-nowrap">
+            <TableHead className="table-cell whitespace-nowrap">
               End Time
             </TableHead>
             <TableHead>Duration</TableHead>
@@ -91,7 +91,7 @@ function ActivitiesTable({
                 key={activity.id}
                 className="cursor-pointer group relative"
               >
-                <TableCell className="hidden md:table-cell w-[120px]">
+                <TableCell className="table-cell w-[120px]">
                   {activity.startTime
                     ? format(activity.startTime, "PP")
                     : "N/A"}
@@ -102,10 +102,10 @@ function ActivitiesTable({
                 <TableCell className="font-medium">
                   {(activity.activityType as ActivityType)?.label}
                 </TableCell>
-                <TableCell className="hidden md:table-cell whitespace-nowrap">
+                <TableCell className="table-cell whitespace-nowrap">
                   {format(activity.startTime, "p")}
                 </TableCell>
-                <TableCell className="hidden md:table-cell whitespace-nowrap">
+                <TableCell className="table-cell whitespace-nowrap">
                   {format(activity.endTime!, "p")}
                 </TableCell>
                 <TableCell>

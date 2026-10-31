@@ -121,7 +121,7 @@ export function TimePicker({ field, fullWidth }: TimePickerProps) {
     <div
       className={cn(
         "flex",
-        fullWidth ? "w-full" : "md:w-[240px] lg:w-[280px]",
+        fullWidth ? "w-full min-w-0" : "w-full min-w-0",
       )}
     >
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal>
@@ -132,7 +132,7 @@ export function TimePicker({ field, fullWidth }: TimePickerProps) {
               onBlur={field.onBlur}
               variant={"outline"}
               className={cn(
-                "flex-1 justify-start rounded-r-none text-left font-normal",
+                "min-w-0 flex-1 justify-start rounded-r-none text-left font-normal",
                 !field.value && "text-muted-foreground"
               )}
             >

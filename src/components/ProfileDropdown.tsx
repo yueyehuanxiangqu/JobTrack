@@ -115,7 +115,7 @@ export function ProfileDropdown({
             <form action={signOutAction}>
               <button type="submit" className="flex w-full items-center">
                 <PowerIcon className="w-5 mr-2" />
-                <div className="hidden md:block">Logout</div>
+                <span>Logout</span>
               </button>
             </form>
           </DropdownMenuItem>

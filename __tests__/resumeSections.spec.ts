@@ -2,6 +2,7 @@ import {
   buildIncompleteResumeHint,
   buildInsufficientSectionsMessage,
   hasMinResumeSections,
+  isSelectableResume,
 } from "@/lib/resumeSections";
 import { APP_CONSTANTS } from "@/lib/constants";
 
@@ -57,12 +58,14 @@ describe("buildInsufficientSectionsMessage", () => {
 });
 
 describe("buildIncompleteResumeHint", () => {
-  it("states the minimum and that an attachment does not count", () => {
+  it("explains file-backed and legacy structured choices", () => {
     const hint = buildIncompleteResumeHint();
 
     expect(hint).toContain(
       String(APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION),
     );
-    expect(hint).toContain("attached file does not count");
+    expect(hint).toContain("Upload a CV file");
   });
 });
+
+it("allows an uploaded CV without structured sections",()=>{expect(isSelectableResume({ FileId: "f1", _count:{ResumeSections:0} })).toBe(true); expect(isSelectableResume({ sectionCount:0 })).toBe(false);});

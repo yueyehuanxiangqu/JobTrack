@@ -7,6 +7,7 @@ export const ManifestSchema = z.object({
   appVersion: z.string(),
   exportedAt: z.string(),
   sourceEmail: z.string(),
+  sourceUsername: z.string().optional(),
   counts: z.record(z.string(), z.number()),
 });
 

@@ -25,8 +25,9 @@ export function snapshotDir(userId: string): string {
 export async function writeSnapshot(
   userId: string,
   email: string,
+  username?: string | null,
 ): Promise<string> {
-  const { buffer } = await buildBackupZip(userId, email);
+  const { buffer } = await buildBackupZip(userId, email, username);
   const dir = snapshotDir(userId);
   await fs.mkdir(dir, { recursive: true });
 

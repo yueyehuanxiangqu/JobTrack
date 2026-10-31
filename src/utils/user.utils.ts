@@ -11,13 +11,14 @@ export const getCurrentUser = async () => {
   // as "no data" rather than "not signed in".
   const exists = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true },
+    select: { id: true, name: true, email: true, username: true },
   });
   if (!exists) return null;
   const user: CurrentUser = {
     id: session.user.id,
-    name: session.user.name ?? "",
-    email: session.user.email ?? "",
+    name: exists.name,
+    email: exists.email ?? "",
+    username: exists.username,
   };
   return user;
 };

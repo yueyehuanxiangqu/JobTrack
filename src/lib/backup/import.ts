@@ -54,6 +54,7 @@ export async function preflightBackup(
   bytes: Buffer,
   userId: string,
   userEmail: string,
+  username?: string | null,
 ): Promise<PreflightResult> {
   const zip = await openBackupZip(bytes);
   const manifest = await readManifest(zip);
@@ -67,7 +68,10 @@ export async function preflightBackup(
 
   return {
     manifest,
-    emailMatches: manifest.sourceEmail === userEmail,
+    // Keep the legacy response key and email manifest field for old backups.
+    emailMatches: manifest.sourceUsername && username
+      ? manifest.sourceUsername.toLowerCase() === username.toLowerCase()
+      : Boolean(manifest.sourceEmail && userEmail && manifest.sourceEmail === userEmail),
     targetIsEmpty,
     targetCounts,
   };
@@ -189,6 +193,7 @@ export async function importBackup(
   userId: string,
   userEmail: string,
   confirmWipe: boolean,
+  username?: string | null,
 ): Promise<ImportResult> {
   // A JWT session outlives the database it was minted against: a container
   // with a fresh dev.db still accepts the old cookie, and every scoped read
@@ -223,7 +228,7 @@ export async function importBackup(
   // an empty target because there is nothing to snapshot.
   let snapshotPath: string | null = null;
   if (!targetIsEmpty) {
-    snapshotPath = await writeSnapshot(userId, userEmail);
+    snapshotPath = await writeSnapshot(userId, userEmail, username);
   }
 
   const statusByValue = await resolveJobStatuses(data);

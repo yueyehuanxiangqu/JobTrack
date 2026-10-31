@@ -281,7 +281,6 @@ function JobDetails({
         onOpenChange={setDeleteAlertOpen}
         onDelete={onDeleteJob}
       />
-      {/* CLEAR CHAT BEFORE AN AI ACTION CONFIRM */}
 
     </>
   );

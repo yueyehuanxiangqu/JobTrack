@@ -256,7 +256,7 @@ describe("CompanyDetails – delete", () => {
     await user.click(screen.getByRole("button", { name: /^delete$/i }));
 
     expect(await screen.findByText("Associated jobs exist!")).toBeInTheDocument();
-    expect(screen.getByText(/3 of them were dismissed by automations/)).toBeInTheDocument();
+    expect(screen.getByText(/3 of them were previously dismissed/)).toBeInTheDocument();
   });
 
   it("deletes a company with no jobs and returns to the Library", async () => {

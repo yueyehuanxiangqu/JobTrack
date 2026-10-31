@@ -93,7 +93,7 @@ describe("Default Resume Actions", () => {
       expect(result).toEqual({ success: true });
       expect(prisma.resume.findFirst).toHaveBeenCalledWith({
         where: { id: "resume-1", profile: { userId: mockUser.id } },
-        select: { _count: { select: { ResumeSections: true } } },
+        select: { FileId: true, _count: { select: { ResumeSections: true } } },
       });
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: mockUser.id },

@@ -52,7 +52,7 @@ import { getResumeList } from "@/actions/profile.actions";
 import { APP_CONSTANTS,APPLIED_STATUS_VALUES } from "@/lib/constants";
 import {
 buildIncompleteResumeHint,
-hasMinResumeSections,
+isSelectableResume,
 } from "@/lib/resumeSections";
 import { CoverLetter,Resume } from "@/models/profile.model";
 import {
@@ -216,7 +216,7 @@ export function AddJob({
 
   function onSubmit(data: z.infer<typeof AddJobFormSchema>) {
     const selected = resumes.find((r) => r.id === data.resume);
-    if (selected && !hasMinResumeSections(selected._count?.ResumeSections)) {
+    if (selected && !isSelectableResume(selected)) {
       toastError(buildIncompleteResumeHint());
       return;
     }
@@ -571,7 +571,7 @@ export function AddJob({
                         <SelectFormCtrl
                           label="Resume"
                           options={resumes?.map((r) =>
-                            hasMinResumeSections(r._count?.ResumeSections)
+                            isSelectableResume(r)
                               ? r
                               : {
                                   ...r,

@@ -17,6 +17,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { SignupFormSchema } from "@/models/signupForm.schema";
 import Loading from "../Loading";
+import { USERNAME_HINT } from "@/models/auth.schema";
 import { Eye, EyeOff } from "lucide-react";
 
 function SignupForm() {
@@ -26,8 +27,7 @@ function SignupForm() {
     resolver: zodResolver(SignupFormSchema),
     mode: "onChange",
     defaultValues: {
-      name: "",
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -40,12 +40,12 @@ function SignupForm() {
     startTransition(async () => {
       setError("");
       const result = await signup(data);
-      if (result.error) {
+      if ("error" in result) {
         setError(result.error);
         return;
       }
       const formData = new FormData();
-      formData.set("email", data.email);
+      formData.set("username", data.username);
       formData.set("password", data.password);
       const authError = await authenticate("", formData);
       if (authError) {
@@ -60,36 +60,23 @@ function SignupForm() {
     <Form {...form}>
       <form method="POST" onSubmit={form.handleSubmit(onSubmit)}>
         <div className="grid gap-4">
+
           <div className="grid gap-2">
             <FormField
               control={form.control}
-              name="name"
+              name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="grid gap-2">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Username</FormLabel>
                   <FormControl>
                     <Input
-                      type="email"
-                      autoComplete="email"
-                      placeholder="id@example.com"
+                      type="text"
+                      autoComplete="username"
+                      placeholder="Your username"
                       {...field}
                     />
                   </FormControl>
+                  <p className="text-xs text-muted-foreground">{USERNAME_HINT}</p>
                   <FormMessage />
                 </FormItem>
               )}

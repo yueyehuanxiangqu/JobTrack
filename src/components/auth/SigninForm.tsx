@@ -17,6 +17,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { SigninFormSchema } from "@/models/signinForm.schema";
 import Loading from "../Loading";
+import Link from "next/link";
+import { USERNAME_HINT } from "@/models/auth.schema";
 import { Eye, EyeOff } from "lucide-react";
 
 function SigninForm() {
@@ -26,7 +28,7 @@ function SigninForm() {
     resolver: zodResolver(SigninFormSchema),
     mode: "onChange",
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -39,7 +41,7 @@ function SigninForm() {
     startTransition(async () => {
       setError("");
       const formData = new FormData();
-      formData.set("email", data.email);
+      formData.set("username", data.username);
       formData.set("password", data.password);
       const errorResponse = await authenticate("", formData);
       if (errorResponse) {
@@ -62,20 +64,21 @@ function SigninForm() {
             <div className="grid gap-2">
               <FormField
                 control={form.control}
-                name="email"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel htmlFor="email">Email</FormLabel>
+                    <FormLabel htmlFor="username">Username</FormLabel>
                     <FormControl>
                       <Input
-                        id="email"
-                        type="email"
-                        autoComplete="email"
-                        placeholder="id@example.com"
+                        id="username"
+                        type="text"
+                        autoComplete="username"
+                        placeholder="Your username"
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <p className="text-xs text-muted-foreground">{USERNAME_HINT}</p>
+                  <FormMessage />
                   </FormItem>
                 )}
               />
@@ -139,6 +142,7 @@ function SigninForm() {
           </div>
         </form>
       </Form>
+      <Link className="mt-4 block text-sm text-primary underline-offset-4 hover:underline" href="/migrate-account">Have an existing email account? Set your username</Link>
     </>
   );
 }

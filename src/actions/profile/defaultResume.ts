@@ -4,6 +4,7 @@ import { handleError } from "@/lib/utils";
 import {
   buildInsufficientSectionsMessage,
   hasMinResumeSections,
+  isSelectableResume,
 } from "@/lib/resumeSections";
 import { getCurrentUser } from "@/utils/user.utils";
 import { requireUser } from "./shared";
@@ -27,12 +28,12 @@ export const setDefaultResume = async (
     // Verify ownership before pointing the user at this resume.
     const owned = await prisma.resume.findFirst({
       where: { id: resumeId, profile: { userId: user.id } },
-      select: { _count: { select: { ResumeSections: true } } },
+      select: { FileId: true, _count: { select: { ResumeSections: true } } },
     });
     if (!owned) {
       throw new Error("Resume not found");
     }
-    if (!hasMinResumeSections(owned._count.ResumeSections)) {
+    if (!isSelectableResume(owned)) {
       return {
         success: false,
         message: buildInsufficientSectionsMessage(

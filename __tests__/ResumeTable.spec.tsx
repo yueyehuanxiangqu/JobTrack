@@ -30,14 +30,14 @@ const renderTable = (documents: any[]) =>
   );
 
 describe("ResumeTable incomplete marker", () => {
-  it("marks a resume below the section minimum, including attachment-only", () => {
+  it("accepts an attachment-only resume without builder content", () => {
     renderTable([
       { ...base, id: "r1", title: "Draft", sectionCount: 0, FileId: "f1" },
     ]);
 
     expect(
-      screen.getByRole("img", { name: buildIncompleteResumeHint() }),
-    ).toBeInTheDocument();
+      screen.queryByRole("img", { name: buildIncompleteResumeHint() }),
+    ).not.toBeInTheDocument();
   });
 
   it("does not mark a complete resume", () => {

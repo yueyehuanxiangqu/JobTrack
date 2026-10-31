@@ -111,6 +111,7 @@ try {
   const cancel = await _electron.launch({ executablePath, env: { ...env, JOBSYNC_HOME: cancelHome } });
   current = { application: cancel };
   const startupWindow = await cancel.firstWindow();
+  await startupWindow.waitForURL(/^file:/);
   assert(startupWindow.url().startsWith("file:"), "Expected the startup window before the main page");
   const cancelPids = await cancel.evaluate(({ app }) => app.getAppMetrics().map((item) => item.pid));
   const cancelState = await readJson(path.join(cancelHome, "config/instance.json"));

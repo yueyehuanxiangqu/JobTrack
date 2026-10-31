@@ -4,7 +4,7 @@ import {
   hasMinResumeSections,
 } from "@/lib/resumeSections";
 
-export { hasMinResumeSections };
+export { hasMinResumeSections, isSelectableResume } from "@/lib/resumeSections";
 
 export const warnInsufficientResumeSections = (
   action: string,

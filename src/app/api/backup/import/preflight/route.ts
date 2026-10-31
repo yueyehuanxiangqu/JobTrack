@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
       bytes,
       session.user.id,
       session.user.email ?? "",
+      session.user.username,
     );
     return NextResponse.json(result, { status: 200 });
   } catch (error) {

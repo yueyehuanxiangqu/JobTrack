@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
       session.user.id,
       session.user.email ?? "",
       confirmWipe,
+      session.user.username,
     );
     return NextResponse.json(result, { status: 200 });
   } catch (error) {

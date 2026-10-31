@@ -39,6 +39,7 @@ import { StatusBadge } from "../StatusBadge";
 import { DOCUMENT_TYPE_BADGE_COLORS } from "@/lib/badge-colors";
 import {
   hasMinResumeSections,
+  isSelectableResume,
   warnInsufficientResumeSections,
 } from "@/utils/resumeSections.utils";
 
@@ -96,8 +97,8 @@ function DocumentTable({
 
   const onSetDefault = (doc: ProfileDocument) => {
     if (!doc.id) return;
-    if (!hasMinResumeSections(doc.sectionCount)) {
-      warnInsufficientResumeSections("setting this resume as default");
+    if (!isSelectableResume(doc)) {
+      toastError("Upload a CV file or choose an existing structured resume.");
       return;
     }
     // Confirm whenever a different resume already holds the default. Decided by
@@ -174,7 +175,7 @@ function DocumentTable({
                       {doc.FileId ? (
                         <Paperclip className="h-3.5 w-3.5 ml-1" />
                       ) : null}
-                      {!hasMinResumeSections(doc.sectionCount) ? (
+                      {!isSelectableResume(doc) ? (
                         <IncompleteResumeHint />
                       ) : null}
                       {doc.isDefault ? (

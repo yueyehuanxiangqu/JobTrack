@@ -23,7 +23,7 @@ beforeEach(() => {
   (useAppVersion as any).mockReturnValue({ updateAvailable: false });
 });
 
-const testUser = { id: "1", name: "Test User", email: "test@example.com" };
+const testUser = { id: "1", name: "Test User", email: "test@example.com", username: "test.user" };
 
 const renderSidebar = () =>
   render(
@@ -130,11 +130,11 @@ describe("Sidebar", () => {
     );
   });
 
-  it("shows the user's email and a settings link via the account menu", async () => {
+  it("shows the user's username and a settings link via the account menu", async () => {
     const user = userEvent.setup();
     renderSidebar();
 
-    expect(screen.getByText(testUser.email)).toBeInTheDocument();
+    expect(screen.getByText(testUser.username)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "User menu" }));
 

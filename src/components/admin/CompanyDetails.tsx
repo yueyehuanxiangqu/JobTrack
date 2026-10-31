@@ -30,7 +30,7 @@ function blockedDescription(total: number, dismissed: number) {
   const jobs = `This company has ${total} associated job${total === 1 ? "" : "s"} (applied or not).`;
   const hidden =
     dismissed > 0
-      ? ` ${dismissed} of them ${dismissed === 1 ? "was" : "were"} dismissed by automations; pick Dismissed (discovered) on the Jobs page to see them.`
+      ? ` ${dismissed} of them ${dismissed === 1 ? "was" : "were"} previously dismissed; include dismissed records on the Jobs page to see them.`
       : "";
   return `${jobs}${hidden} Remove or reassign them before deleting this company.`;
 }

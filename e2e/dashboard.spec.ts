@@ -172,7 +172,7 @@ test.describe("Dashboard page", () => {
     ).toBeVisible();
   });
 
-  test("should navigate to create a new job, task, question, and automation from dashboard quick actions", async ({
+  test("should navigate to retained job, task and activity quick actions", async ({
     page,
   }) => {
     await page.getByRole("button", { name: "Add Job", exact: true }).click();
@@ -189,25 +189,12 @@ test.describe("Dashboard page", () => {
     await expect(page.getByTestId("task-form-dialog-title")).not.toBeVisible();
 
     await navigateToDashboard(page);
-    await page
-      .getByRole("button", { name: "Add Question", exact: true })
-      .click();
-    await expect(page).toHaveURL(/\/dashboard\/questions/);
-    await expect(page.getByTestId("question-form-dialog-title")).toBeVisible();
-    await page.getByRole("button", { name: "Cancel" }).click();
-    await expect(
-      page.getByTestId("question-form-dialog-title"),
-    ).not.toBeVisible();
-
-    await navigateToDashboard(page);
-    await page
-      .getByRole("button", { name: "Add Automation", exact: true })
-      .click();
-    await expect(page).toHaveURL(/\/dashboard\/automations/);
-    const wizard = page.getByRole("dialog");
-    await expect(wizard.getByText("Step 1 of 6")).toBeVisible();
-    await wizard.getByRole("button", { name: "Close" }).click();
-    await expect(wizard).not.toBeVisible();
+    await page.getByRole("button", { name: "Add Activity", exact: true }).click();
+    await expect(page).toHaveURL(/\/dashboard\/activities/);
+    await expect(page.getByText("Add New Activity", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Add Question", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Add Automation", exact: true })).toHaveCount(0);
   });
 
   test("should toggle the recent, weekly, jobs and activities cards", async ({

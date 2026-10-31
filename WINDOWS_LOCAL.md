@@ -4,9 +4,10 @@ For the installable Electron application, see [Windows desktop](WINDOWS_DESKTOP.
 The CMD workflow documented here remains supported. Desktop and native modes share
 the same database/configuration root and should be used one at a time.
 
-The native runtime preserves JobSync's existing UI, account system, calendars,
-jobs and interview timeline, resumes, tasks, activities, AI Assistant, Automations,
-MCP, CSV export, PDF export and ZIP backup/restore. It does not require Docker,
+The native runtime retains Dashboard, Activity Calendar, jobs and interview
+timeline, document files, tasks, activities, CSV/PDF export and ZIP backup/restore.
+Retired assistant, automation and MCP runtime features have been removed in
+Phase 3. It does not require Docker,
 WSL, a Windows service, or an external database. The original Dockerfile and
 Compose configuration remain available and use their original storage defaults.
 
@@ -18,7 +19,9 @@ Compose configuration remain available and use their original storage defaults.
    started from a different working directory or a path containing spaces/Unicode.
 3. Allow the first installation, Prisma generation, existing migrations and production
    build to finish. First setup needs internet access and can take several minutes.
-4. The default browser opens http://127.0.0.1:3737. Create your local account.
+4. The default browser opens http://127.0.0.1:3737. Create your local account with
+   a username and password. Existing email accounts use the
+   [one-time username setup](USERNAME_MIGRATION.md); their original data stays linked.
 
 Use a local writable checkout, not a network share or a read-only installation
 directory. Keep this checkout in place while the app is running.

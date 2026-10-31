@@ -20,7 +20,7 @@ No GitHub Release is available yet. To try the desktop app:
 
 1. On Windows 11 x64, follow the [Windows desktop guide](WINDOWS_DESKTOP.md#build-from-source) to build the installer.
 2. Run the generated installer, then open **JobSync** from the desktop or Start menu shortcut.
-3. Create a local account and start recording your applications.
+3. Create a local account with a username and password. Existing email accounts can use the [one-time username setup](USERNAME_MIGRATION.md).
 
 The installed app includes its runtime; daily use does not require Docker, a separate Node.js installation, or an external browser. Data is stored under `%LOCALAPPDATA%\JobSync\`.
 

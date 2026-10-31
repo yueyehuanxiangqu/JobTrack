@@ -29,7 +29,7 @@ export const APP_CONSTANTS = {
     RESUME_EXPORT_SETTINGS_STORAGE_KEY: "resume-export-settings",
     COVER_LETTER_EXPORT_SETTINGS_STORAGE_KEY: "cover-letter-export-settings",
     SIDEBAR_DOM_ID: "app-sidebar",
-    GITHUB_REPO: "Gsync/jobsync",
+    GITHUB_REPO: "yueyehuanxiangqu/JobTrack",
     UPDATE_CHECK_REVALIDATE_SECONDS: 86400,
     SIDEBAR_WIDTH: {
         expanded: { rail: "w-56", contentOffset: "sm:pl-56" },

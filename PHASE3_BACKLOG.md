@@ -1,26 +1,23 @@
-# Recorded product direction — not implemented in Phase 2
+# Product direction
 
-Keep Dashboard/statistics, the contribution-style Activity Calendar, Jobs/statuses,
-Interviews, Tasks, Activities, backup/restore and exports.
+Phase 3A removes the retired assistant, automation scheduler, Daily Goals and
+other nonessential screens. Shared provider/key infrastructure and archived data
+remain. See [cleanup boundaries](PHASE3_CLEANUP.md).
 
-Later, inspect dependencies before retiring Daily Goals, Automations/discovery,
-the AI chat/review/matching/cover-letter features, Questions, Company Watchlist,
-independent Contacts, structured Resume Builder, Add Skill, Salary Range and unused
-MCP entrypoints/background execution. Do not blindly drop shared database tables.
+Phase 3B implements username/password accounts and an explicit, password-verified
+transition for existing email accounts. See [account migration](USERNAME_MIGRATION.md)
+and [validation](PHASE3_VALIDATION.md).
 
-Planned changes:
+The following work is deferred and is **not implemented** by these changes:
 
-- Username/password registration and login without requiring email; preserve
-  secure password hashing, user isolation and compatibility with existing users.
-- Independent per-job CV and Cover Letter attachments: PDF/DOCX, upload, filename,
-  download, replace and delete; no requirement to select a global resume.
-- English, Simplified Chinese and Traditional Chinese; default English and a
-  persisted Settings language choice.
-- Responsive layouts from 800x600 to 1920x1080 and 80–200% zoom, without clipping,
-  overlapping controls, cramped forms or horizontal overflow.
-- Keep AI Autofill as the core AI feature: URL or pasted JD, configurable Provider,
-  Base URL, API Key and Model, structured draft extraction, unknowns blank, fallback
-  to pasted text, human review and explicit save. No automatic applications/search.
+- **Phase 3C:** independent CV and Cover Letter attachments per job, including
+  upload/download/replace/delete without selecting a global resume. The current
+  shared document library remains until that replacement is implemented.
+- **Phase 4:** English, Simplified Chinese and Traditional Chinese; persisted
+  language settings and responsive layout improvements for small windows/zoom.
+- **Phase 5:** user-initiated AI Autofill from a URL or pasted JD, with configurable
+  provider/key/model, structured draft extraction, unknown fields left blank and
+  explicit review/save. No automatic applications or scheduled searches.
 
-Preserve reusable provider/model/key infrastructure until this work is undertaken.
-None of these business changes is authorized as part of the Phase 2 implementation.
+Application branding, installer names and the existing LocalAppData location have
+not been changed. Keep the MIT License and upstream copyright notice.

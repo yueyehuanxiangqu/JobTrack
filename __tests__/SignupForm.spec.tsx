@@ -26,50 +26,35 @@ describe("SignupForm Component", () => {
   });
 
   it("renders the SignupForm component correctly", () => {
-    expect(screen.getByLabelText("Full Name")).toBeInTheDocument();
-    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Full Name")).toBeNull();
+    expect(screen.queryByLabelText("Email")).toBeNull();
+    expect(screen.getByLabelText("Username")).toBeInTheDocument();
     expect(screen.getByLabelText("Password")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /create an account/i }),
     ).toBeInTheDocument();
   });
 
-  it("should display invalid name error when name is too short", async () => {
-    fireEvent.change(screen.getByLabelText("Full Name"), {
-      target: { value: "A" },
+
+
+  it("should display invalid username error when username format is incorrect", async () => {
+
+    fireEvent.change(screen.getByLabelText("Username"), {
+      target: { value: "invalid username" },
     });
 
     fireEvent.click(screen.getByRole("button", { name: /create an account/i }));
 
     await waitFor(() => {
       expect(
-        screen.getByText("Name must be at least 2 characters."),
+        screen.getByText("Use letters, numbers, periods, underscores or hyphens; start with a letter or number."),
       ).toBeInTheDocument();
     });
   });
 
-  it("should display invalid email error when email format is incorrect", async () => {
-    fireEvent.change(screen.getByLabelText("Full Name"), {
-      target: { value: "John Doe" },
-    });
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "invalid-email" },
-    });
+  it("should display username minimum length error", async () => {
 
-    fireEvent.click(screen.getByRole("button", { name: /create an account/i }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("Please enter a valid email."),
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("should display email minimum length error", async () => {
-    fireEvent.change(screen.getByLabelText("Full Name"), {
-      target: { value: "John Doe" },
-    });
-    fireEvent.change(screen.getByLabelText("Email"), {
+    fireEvent.change(screen.getByLabelText("Username"), {
       target: { value: "a@" },
     });
 
@@ -77,17 +62,15 @@ describe("SignupForm Component", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Email must be at least 3 characters."),
+        screen.getByText("Username must be at least 3 characters."),
       ).toBeInTheDocument();
     });
   });
 
   it("should display password minimum length error", async () => {
-    fireEvent.change(screen.getByLabelText("Full Name"), {
-      target: { value: "John Doe" },
-    });
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "john@example.com" },
+
+    fireEvent.change(screen.getByLabelText("Username"), {
+      target: { value: "john.doe" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "short" },
@@ -103,14 +86,12 @@ describe("SignupForm Component", () => {
   });
 
   it("should display error message when signup fails", async () => {
-    const errorMessage = "An account with this email already exists.";
+    const errorMessage = "An account with this username already exists.";
     (signup as any).mockResolvedValueOnce({ error: errorMessage });
 
-    fireEvent.change(screen.getByLabelText("Full Name"), {
-      target: { value: "John Doe" },
-    });
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "john@example.com" },
+
+    fireEvent.change(screen.getByLabelText("Username"), {
+      target: { value: "john.doe" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "password123" },
@@ -122,8 +103,8 @@ describe("SignupForm Component", () => {
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
     expect(signup).toHaveBeenCalledWith({
-      name: "John Doe",
-      email: "john@example.com",
+
+      username: "john.doe",
       password: "password123",
     });
     expect(authenticate).not.toHaveBeenCalled();
@@ -134,11 +115,9 @@ describe("SignupForm Component", () => {
     (signup as any).mockResolvedValueOnce({ success: true });
     (authenticate as any).mockResolvedValueOnce(authError);
 
-    fireEvent.change(screen.getByLabelText("Full Name"), {
-      target: { value: "John Doe" },
-    });
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "john@example.com" },
+
+    fireEvent.change(screen.getByLabelText("Username"), {
+      target: { value: "john.doe" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "password123" },
@@ -150,8 +129,8 @@ describe("SignupForm Component", () => {
       expect(screen.getByText(authError)).toBeInTheDocument();
     });
     expect(signup).toHaveBeenCalledWith({
-      name: "John Doe",
-      email: "john@example.com",
+
+      username: "john.doe",
       password: "password123",
     });
     expect(authenticate).toHaveBeenCalledWith("", expect.any(FormData));
@@ -162,11 +141,9 @@ describe("SignupForm Component", () => {
     (signup as any).mockResolvedValueOnce({ success: true });
     (authenticate as any).mockResolvedValueOnce(null);
 
-    fireEvent.change(screen.getByLabelText("Full Name"), {
-      target: { value: "John Doe" },
-    });
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "john@example.com" },
+
+    fireEvent.change(screen.getByLabelText("Username"), {
+      target: { value: "john.doe" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "password123" },
@@ -176,8 +153,8 @@ describe("SignupForm Component", () => {
 
     await waitFor(() => {
       expect(signup).toHaveBeenCalledWith({
-        name: "John Doe",
-        email: "john@example.com",
+
+        username: "john.doe",
         password: "password123",
       });
       expect(authenticate).toHaveBeenCalledWith("", expect.any(FormData));

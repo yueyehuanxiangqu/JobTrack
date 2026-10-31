@@ -28,7 +28,7 @@ export function CompanyJobsTab({ jobs }: CompanyJobsTabProps) {
       <JobTabEmptyState
         icon={Briefcase}
         title="No jobs at this company yet"
-        description="Jobs you add or accept from an automation for this company show up here."
+        description="Jobs recorded for this company show up here."
       />
     );
   }

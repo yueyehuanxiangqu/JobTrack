@@ -26,12 +26,6 @@ test("an interview stage added on a job appears on the Interviews page", async (
   await expect(row).toBeVisible();
   await expect(row).toContainText("Final / Onsite Interview");
 
-  // Expanding shows the prep-question panel for the round.
-  await page
-    .getByRole("button", { name: new RegExp(`Expand ${jobTitle}`) })
-    .click();
-  await expect(page.getByText(/Prep questions/)).toBeVisible();
-
   // The round menu records an outcome, and the badge follows.
   await row.getByRole("button", { name: "Toggle menu" }).click();
   await page.getByRole("menuitem", { name: "Set outcome" }).click();

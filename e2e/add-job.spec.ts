@@ -100,34 +100,6 @@ test.describe("Add New Job", () => {
     );
   });
 
-  test("should persist a typed salary range after saving", async ({
-    page,
-    cleanup,
-  }) => {
-    const jobText = uniqueName("developer test title salary");
-    const salary = "$185k - $210k";
-    await createNewJob(page, jobText, cleanup, {
-      beforeSave: async (page) => {
-        await page.getByLabel("Salary Range").click();
-        const input = page.getByPlaceholder("Create or Search Salary Range");
-        await input.fill(salary);
-        // Same target as the shared selectOrCreate helper: CommandEmpty splits
-        // "Create: " and the typed text across two <p>s, so match the wrapper
-        // by text rather than by an option role it does not have.
-        await page.getByText(`Create: ${salary}`).click();
-        await expect(input).not.toBeVisible({ timeout: 15000 });
-      },
-    });
-    await expect(page.getByRole("row", { name: jobText }).first()).toBeVisible();
-
-    await page
-      .getByRole("row", { name: jobText })
-      .getByRole("button", { name: "Edit Job" })
-      .first()
-      .click();
-    await expect(page.getByLabel("Salary Range")).toContainText(salary);
-  });
-
   test("should persist selected workplace type after saving", async ({
     page,
     cleanup,
@@ -387,37 +359,5 @@ test.describe("Add New Job", () => {
     await expect(input).toBeVisible();
     await expect(page.getByTestId("add-job-dialog-title")).toBeVisible();
     await expect(page.getByText("Job title is required.")).not.toBeVisible();
-  });
-
-  test("should add and persist a skill tag on a job", async ({
-    page,
-    cleanup,
-  }) => {
-    const jobText = uniqueName("developer test title tag");
-    const tagText = uniqueName("skill tag");
-    cleanup.tag(tagText);
-
-    await createNewJob(page, jobText, cleanup, {
-      beforeSave: async (page) => {
-        await page
-          .getByRole("combobox", { name: "Search or add a skill..." })
-          .click();
-        await page.getByPlaceholder("Type a skill...").fill(tagText);
-        await page.getByText(`Create "${tagText}"`).click();
-        // Wait for the create server action to resolve and the field to
-        // update (the badge only renders once the tag id lands in form
-        // state) before letting createNewJob click Save.
-        await expect(page.getByText(tagText, { exact: true })).toBeVisible();
-      },
-    });
-    await expect(page.getByRole("row", { name: jobText }).first()).toBeVisible();
-
-    await page
-      .getByRole("row", { name: jobText })
-      .getByRole("button", { name: "Edit Job" })
-      .first()
-      .click();
-    await expect(page.getByTestId("add-job-dialog-title")).toBeVisible();
-    await expect(page.getByText(tagText, { exact: true })).toBeVisible();
   });
 });

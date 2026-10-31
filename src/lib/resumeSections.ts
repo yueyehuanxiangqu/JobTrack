@@ -5,6 +5,16 @@ export const hasMinResumeSections = (
 ): boolean =>
   (sectionCount ?? 0) >= APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION;
 
+// File-backed resumes do not require the retired structured builder. Legacy
+// structured resumes remain selectable and exportable without changing rows.
+export const isSelectableResume = (resume: {
+  FileId?: string | null;
+  File?: { filePath?: string } | null;
+  sectionCount?: number;
+  _count?: { ResumeSections?: number };
+}): boolean => Boolean(resume.FileId || resume.File?.filePath) ||
+  hasMinResumeSections(resume.sectionCount ?? resume._count?.ResumeSections);
+
 export const buildInsufficientSectionsMessage = (
   action: string,
   hint?: string,
@@ -16,4 +26,4 @@ export const buildInsufficientSectionsMessage = (
 };
 
 export const buildIncompleteResumeHint = (): string =>
-  `Add at least ${APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION} sections to use this resume when adding a job or in an automation. An attached file does not count.`;
+  `Upload a CV file, or choose a legacy structured resume with at least ${APP_CONSTANTS.MIN_RESUME_SECTIONS_FOR_SELECTION} sections.`;

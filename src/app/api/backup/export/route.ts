@@ -16,6 +16,7 @@ export async function GET() {
     const { buffer, fileName } = await buildBackupZip(
       session.user.id,
       session.user.email ?? "",
+      session.user.username,
     );
     return new NextResponse(new Uint8Array(buffer), {
       headers: {

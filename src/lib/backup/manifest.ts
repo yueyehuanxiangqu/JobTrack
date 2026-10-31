@@ -32,12 +32,14 @@ export function countRows(data: BackupData): Record<string, number> {
 export function buildManifest(
   data: BackupData,
   sourceEmail: string,
+  sourceUsername?: string | null,
 ): BackupManifest {
   return {
     formatVersion: BACKUP_FORMAT_VERSION,
     appVersion: pkg.version,
     exportedAt: new Date().toISOString(),
     sourceEmail,
+    ...(sourceUsername ? { sourceUsername } : {}),
     counts: countRows(data),
   };
 }

@@ -1,11 +1,11 @@
 "use client";
-import { Loader, Sparkles } from "lucide-react";
+import { Loader } from "lucide-react";
 import { Button } from "../ui/button";
 import { useForm } from "react-hook-form";
 import { CreateResumeFormSchema } from "@/models/createResumeForm.schema";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,14 +23,8 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
-import { Switch } from "../ui/switch";
 import { Resume } from "@/models/profile.model";
 import { toastSuccess, toastError } from "@/lib/toast";
-import { AiModel, AiProvider, defaultModel } from "@/models/ai.model";
-import { getUserSettings } from "@/actions/userSettings.actions";
-import { checkOllamaConnection } from "@/utils/ai.utils";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 type CreateResumeProps = {
   resumeDialogOpen: boolean;
@@ -54,11 +48,6 @@ function CreateResume({
   setNewResumeId,
 }: CreateResumeProps) {
   const [isPending, startTransition] = useTransition();
-  const [autoFill, setAutoFill] = useState(true);
-  const [aiAvailable, setAiAvailable] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<AiModel>(defaultModel);
-  const router = useRouter();
-
   const pageTitle = resumeToEdit ? "Edit Resume Title" : "Create Resume";
   const pageDescription = resumeToEdit
     ? "Update the title of this resume."
@@ -98,34 +87,6 @@ function CreateResume({
     }
   }, [watchedFile, resumeToEdit, setValue]);
 
-  // Check AI availability when dialog opens
-  useEffect(() => {
-    if (!resumeDialogOpen || resumeToEdit) return;
-    const check = async () => {
-      try {
-        const result = await getUserSettings();
-        if (result.success && result.data?.settings?.ai) {
-          const ai = result.data.settings.ai;
-          const model: AiModel = {
-            provider: ai.provider || defaultModel.provider,
-            model: ai.model,
-          };
-          setSelectedModel(model);
-
-          if (model.provider === AiProvider.OLLAMA) {
-            const result = await checkOllamaConnection(AiProvider.OLLAMA);
-            setAiAvailable(result.isConnected);
-          } else {
-            setAiAvailable(true);
-          }
-        }
-      } catch {
-        setAiAvailable(false);
-      }
-    };
-    check();
-  }, [resumeDialogOpen, resumeToEdit]);
-
   const closeDialog = () => setResumeDialogOpen(false);
 
   const onSubmit = (data: z.infer<typeof CreateResumeFormSchema>) => {
@@ -153,25 +114,6 @@ function CreateResume({
       const newResumeId: string | undefined =
         response.data?.id ?? response.data?.resumes?.[0]?.id;
 
-      // Auto-fill with AI: hand the chosen model to the editor and navigate
-      // immediately so the import streams in live there, rather than blocking
-      // this dialog until the stream completes.
-      if (
-        !resumeToEdit &&
-        autoFill &&
-        aiAvailable &&
-        data.file &&
-        newResumeId
-      ) {
-        sessionStorage.setItem(
-          `import-pending:${newResumeId}`,
-          JSON.stringify({ selectedModel }),
-        );
-        reset();
-        setResumeDialogOpen(false);
-        router.push(`/dashboard/profile/resume/${newResumeId}`);
-        return;
-      }
 
       reset();
       setResumeDialogOpen(false);
@@ -182,8 +124,6 @@ function CreateResume({
       toastSuccess(`Resume title has been ${resumeToEdit ? "updated" : "created"} successfully`);
     });
   };
-
-  const hasFile = !resumeToEdit && watchedFile instanceof File;
 
   return (
     <Dialog open={resumeDialogOpen} onOpenChange={setResumeDialogOpen}>
@@ -255,39 +195,6 @@ function CreateResume({
                 )}
               />
             </div>
-
-            {/* AUTO-FILL TOGGLE */}
-            {hasFile && (
-              <div className="md:col-span-2 flex items-center gap-3">
-                <Switch
-                  id="auto-fill"
-                  checked={autoFill && aiAvailable}
-                  disabled={!aiAvailable}
-                  onCheckedChange={setAutoFill}
-                />
-                <label
-                  htmlFor="auto-fill"
-                  className="text-sm cursor-pointer select-none"
-                >
-                  <span className="flex items-center gap-1">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Auto-fill with AI
-                  </span>
-                  {!aiAvailable && (
-                    <span className="text-muted-foreground text-xs block mt-0.5">
-                      AI unavailable —{" "}
-                      <Link
-                        href="/dashboard/settings"
-                        className="underline hover:text-foreground"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Configure AI under Settings
-                      </Link>
-                    </span>
-                  )}
-                </label>
-              </div>
-            )}
 
             <div className="md:col-span-2 mt-4">
               <DialogFooter>

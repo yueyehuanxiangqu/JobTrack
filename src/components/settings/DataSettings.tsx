@@ -25,6 +25,7 @@ interface PreflightResult {
     appVersion: string;
     exportedAt: string;
     sourceEmail: string;
+    sourceUsername?: string;
     counts: Record<string, number>;
   };
   emailMatches: boolean;
@@ -158,7 +159,7 @@ export default function DataSettings() {
           json.snapshotPath
             ? " Your previous data was saved as a snapshot you can restore below."
             : ""
-        } Re-enter your AI provider API keys, reissue MCP tokens, and reload the page.`,
+        } Reload the page to view the restored data. Your saved provider keys are unchanged.`,
         "Import complete",
       );
       setPreflight(null);
@@ -178,15 +179,15 @@ export default function DataSettings() {
         <CardHeader>
           <CardTitle className="text-lg font-medium">Export your data</CardTitle>
           <CardDescription>
-            Downloads one zip with every job, resume, task, activity and question on
-            this account, plus your uploaded resume files.
+            Downloads one ZIP with the current account&apos;s application records, documents,
+            tasks, activities and compatible archived data, plus uploaded resume files.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            The file contains <strong>no API keys</strong>, no MCP tokens and no
-            password, so it is safe to store anywhere. It does contain the
-            <strong> full text</strong> of every job description, note and resume.
+            The file contains <strong>no API keys</strong> or account credentials.
+            Keep it private: it includes the <strong>full text</strong> of job
+            descriptions, notes and resumes.
           </p>
           <Button asChild>
             <a href="/api/backup/export" download>
@@ -202,8 +203,7 @@ export default function DataSettings() {
           <CardTitle className="text-lg font-medium">Import a backup</CardTitle>
           <CardDescription>
             Replaces everything on this account with the contents of the backup.
-            Your API keys and MCP tokens are left alone; the agent chat history is
-            cleared.
+            Your account credentials and saved provider API keys are left in place.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -235,14 +235,14 @@ export default function DataSettings() {
                   JobSync {preflight.manifest.appVersion}
                 </p>
                 <p className="text-muted-foreground">
-                  Source account: {preflight.manifest.sourceEmail}
+                  Source account: {preflight.manifest.sourceUsername || preflight.manifest.sourceEmail || "Unknown account"}
                 </p>
               </div>
 
               {!preflight.emailMatches && (
                 <p className="rounded-sm bg-destructive/10 p-2 text-sm font-medium text-destructive">
                   This backup came from a different account
-                  ({preflight.manifest.sourceEmail}). Importing it will still wipe
+                  ({preflight.manifest.sourceUsername || preflight.manifest.sourceEmail || "Unknown account"}). Importing it will still wipe
                   the account you are signed in to.
                 </p>
               )}

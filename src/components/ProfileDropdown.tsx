@@ -3,7 +3,6 @@
 import { useAppVersion } from "@/hooks/useAppVersion";
 import {
 ArrowUpCircle,
-ExternalLink,
 Info,
 PowerIcon,
 Settings
@@ -38,7 +37,7 @@ export function ProfileDropdown({
   const [supportDialogOpen, setSupportDialogOpen] = useState(false);
   const version = useAppVersion();
 
-  const label = user?.email ?? "My Account";
+  const label = user?.username || user?.name || "My Account";
 
   return (
     <>
@@ -82,6 +81,11 @@ export function ProfileDropdown({
         <DropdownMenuContent side="right" align="end">
           <DropdownMenuLabel>{label}</DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {!user?.username && (
+            <DropdownMenuItem asChild>
+              <Link href="/migrate-account">Set your username</Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem asChild>
             <Link href="/dashboard/settings" className="cursor-pointer">
               <Settings className="w-5 mr-2" />
@@ -96,17 +100,7 @@ export function ProfileDropdown({
             <Info className="w-5 mr-2" />
             Support
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <a
-              href="https://github.com/Gsync/jobsync/wiki"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="cursor-pointer"
-            >
-              <ExternalLink className="w-5 mr-2" />
-              Wiki
-            </a>
-          </DropdownMenuItem>
+
           {version?.updateAvailable && (
             <DropdownMenuItem
               onClick={() => setSupportDialogOpen(true)}

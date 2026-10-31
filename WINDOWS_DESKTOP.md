@@ -1,8 +1,10 @@
 # JobSync Windows desktop
 
-This phase adds an Electron desktop shell to the existing Next.js application.
-It preserves all business screens, authentication, AI providers, automations,
-data models and migration history. MIT License and upstream copyright remain.
+The Electron desktop shell runs the local Next.js application. Dashboard,
+Activity Calendar, jobs, interviews, tasks, activities, document files and exports
+remain available. Phase 3 removes the retired assistant, automations and other
+nonessential screens; AI provider/key settings and historical data remain.
+MIT License and upstream copyright are unchanged.
 
 ## Install and use
 
@@ -12,6 +14,8 @@ data models and migration history. MIT License and upstream copyright remain.
 2. Open **JobSync**. A small startup window remains visible while the local
    database is checked/migrated. The main window appears after an authenticated
    health check and the first page has rendered.
+   Sign in with a username and password. Existing email accounts use the
+   [one-time username setup](USERNAME_MIGRATION.md), retaining their original data.
 3. Minimize to keep working in the background. Open the shortcut again to restore
    and focus the same window. There is no system tray or minimize-to-tray mode.
 4. Use **X** to exit. The app stops its owned service before completing exit.

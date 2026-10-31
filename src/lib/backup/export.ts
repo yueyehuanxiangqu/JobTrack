@@ -112,6 +112,7 @@ export async function collectBackupData(userId: string): Promise<BackupData> {
 export async function buildBackupZip(
   userId: string,
   sourceEmail: string,
+  sourceUsername?: string | null,
 ): Promise<{ buffer: Buffer; fileName: string }> {
   const data = await collectBackupData(userId);
 
@@ -132,7 +133,7 @@ export async function buildBackupZip(
     }
   }
 
-  const manifest = buildManifest(data, sourceEmail);
+  const manifest = buildManifest(data, sourceEmail, sourceUsername);
   zip.file("manifest.json", JSON.stringify(manifest, null, 2));
   zip.file("data.json", JSON.stringify(data));
 

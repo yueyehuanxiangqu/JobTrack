@@ -8,10 +8,13 @@ export function uniqueName(base: string): string {
 }
 
 export async function login(page: Page) {
-  await page.getByPlaceholder("id@example.com").click();
-  await page.getByPlaceholder("id@example.com").fill("admin@example.com");
-  await page.getByRole("textbox", { name: "Password" }).click();
-  await page.getByRole("textbox", { name: "Password" }).fill("password123");
+  const username = process.env.JOBTRACK_E2E_USERNAME;
+  const password = process.env.JOBTRACK_E2E_PASSWORD;
+  if (!username || !password) {
+    throw new Error("Set JOBTRACK_E2E_USERNAME and JOBTRACK_E2E_PASSWORD for an account in an isolated test database.");
+  }
+  await page.getByPlaceholder("Your username").fill(username);
+  await page.getByRole("textbox", { name: "Password" }).fill(password);
   await page.getByRole("button", { name: "Login" }).click();
 }
 
@@ -141,15 +144,11 @@ export type CleanupRegistry = {
   job: (id: string) => void;
   resume: (title: string) => void;
   task: (title: string) => void;
-  question: (text: string) => void;
   title: (name: string) => void;
   company: (name: string) => void;
   location: (name: string) => void;
   activityType: (name: string) => void;
   activity: (name: string) => void;
-  tag: (name: string) => void;
-  mcpToken: (name: string) => void;
-  automation: (name: string) => void;
   contact: (name: string) => void;
   contactRole: (name: string) => void;
   // Unused today (both timeline flows pick seeded stage types), but a test
@@ -173,15 +172,11 @@ export const test = base.extend<Fixtures>({
     const jobIds: string[] = [];
     const resumes: string[] = [];
     const tasks: string[] = [];
-    const questions: string[] = [];
     const titles: string[] = [];
     const companies: string[] = [];
     const locations: string[] = [];
     const activityTypes: string[] = [];
     const activities: string[] = [];
-    const tags: string[] = [];
-    const mcpTokens: string[] = [];
-    const automations: string[] = [];
     const contacts: string[] = [];
     const contactRoles: string[] = [];
     const jobStageTypes: string[] = [];
@@ -189,15 +184,11 @@ export const test = base.extend<Fixtures>({
       job: (id) => jobIds.push(id),
       resume: (title) => resumes.push(title),
       task: (title) => tasks.push(title),
-      question: (text) => questions.push(text),
       title: (name) => titles.push(name),
       company: (name) => companies.push(name),
       location: (name) => locations.push(name),
       activityType: (name) => activityTypes.push(name),
       activity: (name) => activities.push(name),
-      tag: (name) => tags.push(name),
-      mcpToken: (name) => mcpTokens.push(name),
-      automation: (name) => automations.push(name),
       contact: (name) => contacts.push(name),
       contactRole: (name) => contactRoles.push(name),
       jobStageType: (name) => jobStageTypes.push(name),
@@ -209,15 +200,11 @@ export const test = base.extend<Fixtures>({
         jobIds,
         resumes,
         tasks,
-        questions,
         titles,
         companies,
         locations,
         activityTypes,
         activities,
-        tags,
-        mcpTokens,
-        automations,
         contacts,
         contactRoles,
         jobStageTypes,

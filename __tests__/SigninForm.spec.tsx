@@ -25,27 +25,27 @@ describe("SigninForm Component", () => {
   });
 
   it("renders the SigninForm component correctly", () => {
-    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByLabelText("Username")).toBeInTheDocument();
     expect(screen.getByLabelText("Password")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
   });
 
-  it("should display invalid email error", async () => {
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "admin" },
+  it("should display invalid username error", async () => {
+    fireEvent.change(screen.getByLabelText("Username"), {
+      target: { value: "invalid username" },
     });
 
     fireEvent.click(screen.getByRole("button", { name: /login/i }));
 
     await waitFor(() => {
       expect(
-        screen.getByText("Please enter a valid email.")
+        screen.getByText("Use letters, numbers, periods, underscores or hyphens; start with a letter or number.")
       ).toBeInTheDocument();
     });
   });
 
   it("should display number of characters invalid error", async () => {
-    fireEvent.change(screen.getByLabelText("Email"), {
+    fireEvent.change(screen.getByLabelText("Username"), {
       target: { value: "ad" },
     });
 
@@ -53,7 +53,7 @@ describe("SigninForm Component", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Email must be at least 3 characters.")
+        screen.getByText("Username must be at least 3 characters.")
       ).toBeInTheDocument();
     });
     expect(authenticate).not.toHaveBeenCalled();
@@ -62,8 +62,8 @@ describe("SigninForm Component", () => {
   it("submits the form successfully", async () => {
     (authenticate as any).mockResolvedValueOnce(null);
 
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "admin@example.com" },
+    fireEvent.change(screen.getByLabelText("Username"), {
+      target: { value: "admin.local" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "password" },
@@ -81,8 +81,8 @@ describe("SigninForm Component", () => {
     const errorMessage = "Invalid credentials";
     (authenticate as any).mockResolvedValueOnce(errorMessage);
 
-    fireEvent.change(screen.getByLabelText("Email"), {
-      target: { value: "admin@example.com" },
+    fireEvent.change(screen.getByLabelText("Username"), {
+      target: { value: "admin.local" },
     });
     fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "wrongpassword" },

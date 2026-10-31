@@ -17,14 +17,12 @@ type CompaniesTableProps = {
   companies: Company[];
   reloadCompanies: () => void;
   editCompany: (id: string) => void;
-  scope?: "mine" | "watchlist";
 };
 
 function CompaniesTable({
   companies,
   reloadCompanies,
   editCompany,
-  scope = "mine",
 }: CompaniesTableProps) {
   const [alert, setAlert] = useState<AlertDialog>({
     openState: false,

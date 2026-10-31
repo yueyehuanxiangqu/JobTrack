@@ -19,7 +19,7 @@ MIT License and upstream copyright are unchanged.
 3. Minimize to keep working in the background. Open the shortcut again to restore
    and focus the same window. There is no system tray or minimize-to-tray mode.
 4. Use **X** to exit. The app stops its owned service before completing exit.
-   Daily use does not require either CMD launcher.
+   The former standalone-browser CMD wrappers have been removed.
 
 The installer is unsigned. Windows may identify its publisher as unknown or show
 a SmartScreen reputation prompt. Code signing is a future distribution step;
@@ -57,7 +57,7 @@ again. Keep `config/runtime.json` with full offline backups; the in-app ZIP back
 does not include credentials or encryption keys. See WINDOWS_LOCAL.md for backup
 boundaries and safe filesystem copying after stopping the app.
 
-The CMD and desktop modes use the same root and port. Close one before starting
+The optional npm CLI and desktop modes use the same root and port. Close one before starting
 the other. Electron refuses to adopt/kill a pre-existing service on port 3737.
 If another application occupies the port, an error identifies the conflict and
 no process belonging to that application is stopped.
@@ -136,7 +136,7 @@ The original vector logo supplies the 256px Windows icon.
 Packaging deliberately retains runtime dependency closures for reliable
 offline execution, so this distribution is larger than a browser-only frontend.
 Type declarations, source maps and dependency test/example directories are excluded;
-runtime code and dependency licenses remain. No business feature is removed.
+runtime code and dependency licenses remain. Packaging preserves the current app's functionality.
 
 Developer-only `node scripts/desktop/build.mjs --reuse-next` reuses a previously
 verified production web build while restaging and repackaging desktop changes.
@@ -144,9 +144,9 @@ Use the full build after web/configuration changes.
 
 ## Tests and future work
 
-See PHASE2_VALIDATION.md for actual results and limitations. Test helpers under
+See PHASE2_VALIDATION.md for historical desktop-shell results and limitations,
+and PHASE3_VALIDATION.md / PHASE3C_VALIDATION.md for current business changes. Test helpers under
 scripts/desktop refuse formal user-data directories. They can inspect installed
 Electron through Playwright without changing the application's renderer privileges.
 
-Phase 3 product directions are recorded in PHASE3_BACKLOG.md. They are not
-implemented by this desktop-only phase.
+Completed Phase 3 work and deferred later phases are recorded in PHASE3_BACKLOG.md.

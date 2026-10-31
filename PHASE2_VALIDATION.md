@@ -1,5 +1,9 @@
 # Phase 2 — Electron Windows desktop validation
 
+Historical report: Phase 3 later retired the root CMD wrappers and simplified
+business features. See WINDOWS_DESKTOP.md and the Phase 3 validation reports for
+current behavior. Results below describe the original Phase 2 installation.
+
 Date: 2026-10-30 (Europe/Amsterdam). Windows 11 x64, OS build 10.0.26200.
 Base: feat/windows-local-runtime, commit 2bb99d7, JobSync 1.1.22.
 Implementation branch: feat/electron-desktop. No push or publication was performed.

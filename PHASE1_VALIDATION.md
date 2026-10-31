@@ -1,5 +1,9 @@
 # Phase 1 validation — Windows native local runtime
 
+Historical report: the root CMD wrappers described below were retired after
+Phase 3. For current desktop use see WINDOWS_DESKTOP.md; optional development
+CLI commands are documented in WINDOWS_LOCAL.md. Results below describe Phase 1.
+
 Executed on Windows on 2026-10-30, with Node.js 24.22.1 and npm 11.19.1.
 Base: main, JobSync 1.1.22, commit 2bd2284879d2037883cbd21ee3283cf27138a671.
 Implementation branch: feat/windows-local-runtime. No GitHub push was performed.

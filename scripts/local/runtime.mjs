@@ -109,7 +109,7 @@ export async function waitReady(paths, state) {
     catch (error) { if (error.code === "ESRCH") throw new Error(`JobSync exited before becoming ready. See ${state.log}`); }
     await pause(500);
   }
-  throw new Error(`JobSync did not become ready within 120 seconds. See ${state.log}. Use the stop launcher before retrying.`);
+  throw new Error(`JobSync did not become ready within 120 seconds. See ${state.log}. Close the desktop app or run npm run local:stop for a CLI instance before retrying.`);
 }
 
 export async function assertPortFree() {
@@ -249,7 +249,7 @@ export async function launch(command = "start", { noBrowser = false, rebuild = f
     const env = runtimeEnv(paths, settings);
     console.log(`Local data: ${paths.data}\nTime zone: ${env.TZ}`);
     await initialize(paths, env, rebuild);
-    if (command === "setup") { console.log("Initialization complete. Double-click the start launcher."); return; }
+    if (command === "setup") { console.log("Initialization complete. Run npm run local:start for optional browser mode."); return; }
     const instanceId = randomUUID();
     const token = randomBytes(32).toString("hex");
     const logFile = path.join(paths.logs, `server-${new Date().toISOString().replace(/[:.]/g, "-")}.log`);

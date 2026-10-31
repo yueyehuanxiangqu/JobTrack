@@ -1,8 +1,10 @@
-# Windows 11 local runtime
+# Local runtime for development and diagnostics
 
 For the installable Electron application, see [Windows desktop](WINDOWS_DESKTOP.md).
-The CMD workflow documented here remains supported. Desktop and native modes share
-the same database/configuration root and should be used one at a time.
+Daily use is through the Electron application. The former root CMD wrappers have
+been retired. The shared Node runtime and optional npm CLI commands below remain
+available for development and diagnostics. Desktop and CLI modes share the same
+database/configuration root and should be used one at a time.
 
 The native runtime retains Dashboard, Activity Calendar, jobs and interview
 timeline, document files, tasks, activities, CSV/PDF export and ZIP backup/restore.
@@ -11,32 +13,30 @@ Phase 3. It does not require Docker,
 WSL, a Windows service, or an external database. The original Dockerfile and
 Compose configuration remain available and use their original storage defaults.
 
-## First launch
+## Optional browser-mode setup
 
 1. Install the official Windows **Node.js 24 LTS**, including npm. Node.js 22.12+
    LTS is also accepted. No global npm packages or administrator rights are needed.
-2. Double-click `启动 JobSync.cmd` in this checkout. The launcher works even when
-   started from a different working directory or a path containing spaces/Unicode.
+2. From the project directory, run `npm run local:setup`.
 3. Allow the first installation, Prisma generation, existing migrations and production
    build to finish. First setup needs internet access and can take several minutes.
-4. The default browser opens http://127.0.0.1:3737. Create your local account with
+4. Run `npm run local:start`. The browser opens http://127.0.0.1:3737. Create a local account with
    a username and password. Existing email accounts use the
    [one-time username setup](USERNAME_MIGRATION.md); their original data stays linked.
 
 Use a local writable checkout, not a network share or a read-only installation
 directory. Keep this checkout in place while the app is running.
 
-## Everyday use
+## Optional browser-mode control
 
-- Start: double-click `启动 JobSync.cmd`.
-- Stop: double-click `停止 JobSync.cmd`. It waits for requests and Next.js to close.
+- Start: `npm run local:start`.
+- Stop: `npm run local:stop`. It waits for requests and Next.js to close.
 - Closing the browser leaves the hidden Node.js process running. Windows shutdown
-  stops it; next time, use the start launcher again. There is no automatic login startup.
+  stops it; next time, run `npm run local:start` again. There is no automatic login startup.
 - Repeated starts reuse the authenticated existing instance and open the browser.
 - Another program on port 3737 is reported as a conflict and is never stopped.
-- Errors remain in the launcher window until a key is pressed. Successful launches
-  close their command window. Launcher output uses ASCII for compatibility with
-  different Windows console code pages; the filenames and UI support Unicode.
+- Commands report failures and log locations in the terminal. Output uses ASCII
+  for compatibility with Windows console code pages; file paths and UI support Unicode.
 
 The runtime binds to IPv4 loopback **127.0.0.1:3737** only. Open that exact address
 for consistent login cookies. The launcher sets the detected local IANA time zone
@@ -119,7 +119,7 @@ log and restart Windows if necessary. Do not delete data to resolve a port confl
 
 During shutdown, existing HTTP requests have up to 60 seconds to close. A grace
 timeout is logged as a failure; only the authenticated JobSync server itself exits.
-Finish long-running AI/automation operations before stopping. Normal SQLite
+Finish uploads and backup/restore operations before stopping. Normal SQLite
 transaction recovery still applies after crashes or power loss.
 
 ## Activity Calendar finding (unchanged)

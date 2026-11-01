@@ -1,339 +1,96 @@
 "use client";
-import { getUserSettings,updateAiSettings } from "@/actions/userSettings.actions";
-import {
-AI_PROVIDERS,
-PROVIDER_REGISTRY,
-} from "@/lib/ai/provider-registry";
-import { toastError,toastSuccess } from "@/lib/toast";
-import {
-AiModel,
-AiProvider,
-DeepseekModel,
-defaultModel,
-GeminiModel,
-OpenaiModel,
-} from "@/models/ai.model";
-import { checkOllamaConnection } from "@/utils/ai.utils";
-import { Loader2,RefreshCw,XCircle } from "lucide-react";
-import { useCallback,useEffect,useState } from "react";
+import { useEffect, useState } from "react";
+import { getUserSettings } from "@/actions/userSettings.actions";
+import { getUserApiKeys, saveApiKey, deleteApiKey } from "@/actions/apiKey.actions";
+import { saveAutofillConfiguration } from "@/actions/jobAutofill.actions";
+import { AI_PROVIDERS, PROVIDER_REGISTRY, type AiProviderId } from "@/lib/ai/provider-registry";
+import { autofillConfigSchema, type AutofillConfig } from "@/models/jobAutofill.schema";
+import type { ApiKeyClientResponse } from "@/models/apiKey.model";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import {
-Select,
-SelectContent,
-SelectGroup,
-SelectItem,
-SelectTrigger,
-SelectValue,
-} from "../ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
-function AiSettings() {
-
-  const [selectedModel, setSelectedModel] = useState<AiModel>(defaultModel);
-  const [fetchedModels, setFetchedModels] = useState<string[]>([]);
-  const [isLoadingModels, setIsLoadingModels] = useState(false);
-  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [fetchError, setFetchError] = useState<string>("");
-  const [connectionError, setConnectionError] = useState<string>("");
-
-  const setSelectedProvider = (provider: AiProvider) => {
-    setSelectedModel({ provider, model: undefined });
-    setFetchError("");
-    setConnectionError("");
-  };
-
-  const setSelectedProviderModel = (model: string) => {
-    setSelectedModel({ ...selectedModel, model });
-  };
-
+export default function AiSettings() {
+  const [config, setConfig] = useState<AutofillConfig>({ provider: "openai", model: "", baseUrl: "" });
+  const [profiles, setProfiles] = useState<Partial<Record<AiProviderId, { model?: string; baseUrl?: string }>>>({});
+  const [keys, setKeys] = useState<ApiKeyClientResponse[]>([]), [key, setKey] = useState("");
+  const [loading, setLoading] = useState(true), [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState(""), [error, setError] = useState("");
   useEffect(() => {
-    const fetchSettings = async () => {
-      setIsLoadingSettings(true);
-      try {
-        const settingsResult = await getUserSettings();
-
-        if (settingsResult.success && settingsResult.data?.settings?.ai) {
-          const aiSettings = settingsResult.data.settings.ai;
-          setSelectedModel({
-            provider: aiSettings.provider || defaultModel.provider,
-            model: aiSettings.model,
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching user settings:", error);
-      } finally {
-        setIsLoadingSettings(false);
-        setIsInitialized(true);
-      }
-    };
-    fetchSettings();
+    let active = true;
+    Promise.all([getUserSettings(), getUserApiKeys()]).then(([settings, stored]) => {
+      if (!active) return;
+      if (!settings?.success || !stored.success) throw new Error();
+      const ai = settings.data?.settings?.ai;
+      const provider: AiProviderId = AI_PROVIDERS.includes(ai?.provider) ? ai.provider : "openai";
+      const baseUrl = ai?.baseUrl ?? (provider === "ollama" ? stored.data?.find(k => k.provider === "ollama")?.displayValue : "") ?? "";
+      setConfig({ provider, model: ai?.model ?? "", baseUrl }); setProfiles(ai?.profiles ?? {}); setKeys(stored.data ?? []);
+    }).catch(() => { if (active) setError("Unable to load AI Settings. Reopen this page to try again."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
-
-  const getFallbackModels = (provider: AiProvider): string[] => {
-    switch (provider) {
-      case AiProvider.OPENAI:
-        return Object.values(OpenaiModel);
-      case AiProvider.DEEPSEEK:
-        return Object.values(DeepseekModel);
-      case AiProvider.GEMINI:
-        return Object.values(GeminiModel);
-      default:
-        return [];
-    }
-  };
-
-  const fetchModelsForProvider = useCallback(
-    (provider: AiProvider) => {
-      const entry = PROVIDER_REGISTRY[provider];
-      if (!entry) return () => {};
-
-      if (!entry.modelsEndpoint) {
-        const fallbackModels = getFallbackModels(provider);
-        setFetchedModels(fallbackModels);
-        setSelectedModel((prev) =>
-          prev.model && !fallbackModels.includes(prev.model)
-            ? { ...prev, model: undefined }
-            : prev,
-        );
-        return () => {};
-      }
-
-      const fallback = getFallbackModels(provider);
-      let cancelled = false;
-      setIsLoadingModels(true);
-      setFetchError("");
-      setConnectionError("");
-
-      (async () => {
-        try {
-          if (entry.category === "local") {
-            const connResult = await checkOllamaConnection(provider);
-            if (!connResult.isConnected) {
-              if (!cancelled) {
-                setFetchedModels(fallback);
-                setConnectionError(connResult.error || "Ollama is not reachable.");
-              }
-              return;
-            }
-          }
-          const response = await fetch(`/api/ai/${entry.modelsEndpoint}`);
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => null);
-            const errorMsg = errorData?.error
-              || (entry.category === "local"
-                ? `Failed to fetch ${entry.displayName} models. Make sure ${entry.displayName} is running.`
-                : `Failed to fetch ${entry.displayName} models. Please check your API key in API Keys settings.`);
-            if (!cancelled) {
-              setFetchError(errorMsg);
-              setFetchedModels(fallback);
-            }
-            return;
-          }
-          const data = await response.json();
-          const models = entry.parseModelsResponse?.(data) ?? [];
-          const finalModels = models.length > 0 ? models : fallback;
-          if (!cancelled) {
-            setFetchedModels(finalModels);
-            setSelectedModel((prev) =>
-              prev.model && !finalModels.includes(prev.model)
-                ? { ...prev, model: undefined }
-                : prev,
-            );
-          }
-        } catch (error) {
-          console.error(`Error fetching ${entry.displayName} models:`, error);
-          if (!cancelled) {
-            setFetchedModels(fallback);
-            setFetchError(
-              entry.category === "local"
-                ? `Failed to fetch ${entry.displayName} models. Make sure ${entry.displayName} is running.`
-                : `Failed to fetch ${entry.displayName} models. Please check your API key in API Keys settings.`,
-            );
-          }
-        } finally {
-          if (!cancelled) setIsLoadingModels(false);
-        }
-      })();
-
-      return () => { cancelled = true; };
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (!isInitialized) return;
-    return fetchModelsForProvider(selectedModel.provider);
-  }, [selectedModel.provider, isInitialized, fetchModelsForProvider]);
-
-  const retryConnection = () => {
-    fetchModelsForProvider(selectedModel.provider);
-  };
-
-  const saveModelSettings = async () => {
-    if (!selectedModel.model) {
-      toastError("Please select a model to save.");
-      return;
-    }
-    setIsSaving(true);
-    try {
-      const result = await updateAiSettings({
-        provider: selectedModel.provider,
-        model: selectedModel.model,
-      });
-      if (result.success) {
-        toastSuccess("AI Settings saved successfully.", "Saved!");
-
-      } else {
-        toastError(result.message || "Failed to save AI settings.");
-      }
-    } catch (error) {
-      console.error("Error saving AI settings:", error);
-      toastError("Failed to save AI settings.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Radix reads an undefined value as uncontrolled and falls back to its own
-  // internal state, which still holds the previous provider's pick; a value
-  // matching no item renders neither item text nor placeholder.
-  const modelValue =
-    selectedModel.model && fetchedModels.includes(selectedModel.model)
-      ? selectedModel.model
-      : "";
-
-  if (isLoadingSettings) {
-    return (
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-medium">AI Provider</h3>
-          <p className="text-sm text-muted-foreground">
-            Configure your AI service provider and model.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading settings...</span>
-        </div>
-      </div>
-    );
+  const entry = PROVIDER_REGISTRY[config.provider], storedKey = keys.find(k => k.provider === config.provider);
+  function selectProvider(provider: AiProviderId) {
+    setProfiles(old => ({ ...old, [config.provider]: { model: config.model, baseUrl: config.baseUrl } }));
+    setConfig({ provider, model: profiles[provider]?.model ?? "", baseUrl: profiles[provider]?.baseUrl ?? "" });
+    setKey(""); setMessage(""); setError("");
   }
-
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-medium">AI Provider</h3>
-        <p className="text-sm text-muted-foreground">
-          Configure your AI service provider and model.
-        </p>
+  function validConfig() {
+    if (!autofillConfigSchema.safeParse(config).success || config.provider === "custom" && !config.baseUrl) {
+      setError("Enter a Model and a valid HTTP(S) Base URL (required for Custom)."); return false;
+    } return true;
+  }
+  async function save() {
+    setError(""); setMessage(""); if (!validConfig()) return; setBusy(true);
+    try {
+      if (key.trim() && entry.credentialType === "api-key") {
+        const result = await saveApiKey({ provider: config.provider, key: key.trim(), sensitive: true });
+        if (!result.success || !result.data) throw new Error();
+        setKeys(old => [...old.filter(k => k.provider !== config.provider), result.data!]); setKey("");
+      }
+      const result = await saveAutofillConfiguration(config);
+      if (!result?.success) throw new Error();
+      setMessage("AI Settings saved.");
+    } catch { setError("Could not save AI Settings. Check the configuration and try again."); } finally { setBusy(false); }
+  }
+  async function removeKey() {
+    setBusy(true); setError(""); setMessage("");
+    try {
+      if (!(await deleteApiKey(config.provider)).success) throw new Error();
+      setKeys(old => old.filter(k => k.provider !== config.provider)); setKey(""); setMessage("Stored API Key deleted.");
+    } catch { setError("Could not delete the API Key."); } finally { setBusy(false); }
+  }
+  async function test() {
+    setError(""); setMessage(""); if (!validConfig()) return; setBusy(true);
+    try {
+      const response = await fetch("/api/ai/test-connection", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ config, ...(key.trim() ? { key: key.trim() } : {}) }), signal: AbortSignal.timeout(25_000) });
+      const data = await response.json();
+      if (!response.ok) { setError(data.error ?? "Connection failed."); return; }
+      setMessage("Connection successful. The selected model is callable.");
+    } catch { setError("Connection failed or timed out. Check Model and Base URL."); } finally { setBusy(false); }
+  }
+  if (loading) return <p>Loading AI Settings...</p>;
+  return <section className="min-w-0 max-w-xl space-y-4">
+    <div><h3 className="text-lg font-medium">AI Settings</h3><p className="text-sm text-muted-foreground">Configure the provider used by Add Job autofill. Model names are entered manually.</p></div>
+    <fieldset disabled={busy} className="min-w-0 space-y-4">
+      <div className="space-y-2"><Label htmlFor="ai-provider">Provider</Label>
+        <Select value={config.provider} onValueChange={selectProvider}><SelectTrigger id="ai-provider" aria-label="Select AI provider"><SelectValue /></SelectTrigger>
+          <SelectContent>{AI_PROVIDERS.map(id => <SelectItem value={id} key={id}>{PROVIDER_REGISTRY[id].displayName}</SelectItem>)}</SelectContent></Select>
       </div>
-      <div>
-        <Label className="my-4" htmlFor="ai-provider">
-          AI Service Provider
-        </Label>
-        <Select
-          value={selectedModel.provider}
-          onValueChange={setSelectedProvider}
-        >
-          <SelectTrigger
-            id="ai-provider"
-            aria-label="Select AI provider"
-            className="w-full min-w-0 sm:max-w-xs"
-          >
-            <SelectValue placeholder="Select AI Service Provider" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {AI_PROVIDERS.map((id) => {
-                const entry = PROVIDER_REGISTRY[id];
-                return (
-                  <SelectItem key={id} value={id}>
-                    {entry.displayName}
-                  </SelectItem>
-                );
-              })}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+      {entry.credentialType === "api-key" && <div className="space-y-2"><Label htmlFor="autofill-api-key">API Key</Label>
+        <Input id="autofill-api-key" type="password" value={key} autoComplete="off" onChange={e => setKey(e.target.value)} placeholder={storedKey ? "Leave blank to keep the stored key" : "Enter API Key"} />
+        <p className="text-sm text-muted-foreground">{storedKey ? `Stored key: ••••${storedKey.last4}` : "No stored key for this provider. A configured environment key can also be used."}</p>
+        {storedKey && <Button variant="outline" type="button" onClick={removeKey}>Delete API Key</Button>}
+      </div>}
+      <div className="space-y-2"><Label htmlFor="autofill-model">Model</Label><Input id="autofill-model" value={config.model} onChange={e => setConfig({ ...config, model: e.target.value })} placeholder="Enter the model name from your provider" /></div>
+      <div className="space-y-2"><Label htmlFor="autofill-base-url">Base URL</Label><Input id="autofill-base-url" value={config.baseUrl} onChange={e => setConfig({ ...config, baseUrl: e.target.value })} placeholder={entry.defaultBaseUrl ?? "https://your-provider.example/v1"} />
+        <p className="text-sm text-muted-foreground">{config.provider === "custom" ? "OpenAI Chat Completions-compatible endpoint root, usually ending in /v1." : "Leave blank to use the standard endpoint. Ollama uses its server root, without /api."}</p>
       </div>
-      <div>
-        <Label className="my-4" htmlFor="ai-model">
-          Model
-        </Label>
-        <div className="flex flex-wrap items-start gap-2">
-          <Select
-            value={isLoadingModels ? "" : modelValue}
-            onValueChange={setSelectedProviderModel}
-            disabled={isLoadingModels}
-          >
-            <SelectTrigger
-              id="ai-model"
-              aria-label="Select Model"
-              className="w-full min-w-0 sm:max-w-xs"
-            >
-              {/* a flex row here must nest inside SelectValue's span, which the
-                  trigger's [&>span]:line-clamp-1 outranks */}
-              <SelectValue
-                placeholder={
-                  isLoadingModels ? (
-                    <span className="flex items-center gap-2 whitespace-nowrap">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Loading models...
-                    </span>
-                  ) : (
-                    "Select Model"
-                  )
-                }
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {fetchedModels.map((model) => (
-                  <SelectItem key={model} value={model}>
-                    {model}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {fetchError && (
-            <div className="flex items-start gap-1 text-red-600 text-sm mt-2">
-              <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{fetchError}</span>
-            </div>
-          )}
-          {connectionError && (
-            <div className="flex items-start gap-2 mt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 shrink-0 text-muted-foreground"
-                onClick={retryConnection}
-                disabled={isLoadingModels}
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${isLoadingModels ? "animate-spin" : ""}`} />
-                Retry
-              </Button>
-              <div className="flex items-start gap-1 text-red-600 text-sm">
-                <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                <span>{connectionError}</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      <Button
-        className="mt-4"
-        onClick={saveModelSettings}
-        disabled={!selectedModel.model || isLoadingModels || isSaving}
-      >
-        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Save
-      </Button>
-    </div>
-  );
+      <div className="flex flex-wrap gap-2"><Button type="button" onClick={save}>Save AI Settings</Button><Button type="button" variant="outline" onClick={test}>Test Connection</Button></div>
+    </fieldset>
+    <p className="text-xs text-muted-foreground">Test Connection uses the current fields and a small request. Save settings to use them for Autofill. Testing may use a small number of tokens.</p>
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}{message && <p role="status" className="text-sm">{message}</p>}
+  </section>;
 }
-
-export default AiSettings;

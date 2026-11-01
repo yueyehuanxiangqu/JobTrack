@@ -6,6 +6,7 @@ import { requireUser } from "./shared";
 import { handleError } from "@/lib/utils";
 import { encrypt, getLast4 } from "@/lib/encryption";
 import { apiKeySaveSchema } from "@/models/apiKey.schema";
+import { PROVIDER_REGISTRY } from "@/lib/ai/provider-registry";
 import type {
   ApiKeyClientResponse,
   ApiKeyProvider,
@@ -36,11 +37,11 @@ export async function getUserApiKeys(): Promise<{
     return {
       success: true,
       data: keys.map((k) => {
-        const isSensitive = k.iv !== "";
+        const isSensitive = k.iv !== "" || PROVIDER_REGISTRY[k.provider]?.keyConfig.sensitive !== false;
         return {
           id: k.id,
           provider: k.provider as ApiKeyProvider,
-          last4: k.last4,
+          last4: isSensitive ? getLast4(k.last4) : k.last4,
           ...(isSensitive ? {} : { displayValue: k.encryptedKey }),
           label: k.label,
           createdAt: k.createdAt,

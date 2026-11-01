@@ -12,6 +12,7 @@ export interface ProviderRegistryEntry {
   parseModelsResponse?: (data: any) => string[];
   requiresRunningCheck: boolean;
   supportsKeepAlive: boolean;
+  defaultBaseUrl?: string;
   keyConfig: {
     placeholder: string;
     inputType: "password" | "text";
@@ -22,6 +23,7 @@ export interface ProviderRegistryEntry {
 
 export const PROVIDER_REGISTRY: Record<string, ProviderRegistryEntry> = {
   ollama: {
+    defaultBaseUrl: "http://127.0.0.1:11434",
     id: "ollama",
     displayName: "Ollama",
     credentialType: "base-url",
@@ -41,6 +43,7 @@ export const PROVIDER_REGISTRY: Record<string, ProviderRegistryEntry> = {
   },
 
   openai: {
+    defaultBaseUrl: "https://api.openai.com/v1",
     id: "openai",
     displayName: "OpenAI",
     credentialType: "api-key",
@@ -56,12 +59,13 @@ export const PROVIDER_REGISTRY: Record<string, ProviderRegistryEntry> = {
     keyConfig: {
       placeholder: "sk-...",
       inputType: "password",
-      description: "Used for GPT models in resume review and job matching",
+      description: "Used for OpenAI models in job autofill",
       sensitive: true,
     },
   },
 
   deepseek: {
+    defaultBaseUrl: "https://api.deepseek.com",
     id: "deepseek",
     displayName: "DeepSeek",
     credentialType: "api-key",
@@ -74,11 +78,12 @@ export const PROVIDER_REGISTRY: Record<string, ProviderRegistryEntry> = {
     keyConfig: {
       placeholder: "sk-...",
       inputType: "password",
-      description: "Used for DeepSeek models in resume review and job matching",
+      description: "Used for DeepSeek models in job autofill",
       sensitive: true,
     },
   },
   openrouter: {
+    defaultBaseUrl: "https://openrouter.ai/api/v1",
     id: "openrouter",
     displayName: "OpenRouter",
     credentialType: "api-key",
@@ -98,6 +103,7 @@ export const PROVIDER_REGISTRY: Record<string, ProviderRegistryEntry> = {
   },
 
   gemini: {
+    defaultBaseUrl: "https://generativelanguage.googleapis.com/v1beta",
     id: "gemini",
     displayName: "Google Gemini",
     credentialType: "api-key",
@@ -111,13 +117,18 @@ export const PROVIDER_REGISTRY: Record<string, ProviderRegistryEntry> = {
     keyConfig: {
       placeholder: "AIza...",
       inputType: "password",
-      description: "Used for Gemini models in resume review and job matching",
+      description: "Used for Gemini models in job autofill",
       sensitive: true,
     },
   },
+  custom: {
+    id: "custom", displayName: "Custom / OpenAI-compatible API",
+    credentialType: "api-key", category: "cloud", requiresRunningCheck: false, supportsKeepAlive: false,
+    keyConfig: { placeholder: "API key", inputType: "password", description: "Key for the configured OpenAI-compatible endpoint", sensitive: true },
+  },
 };
 
-export const AI_PROVIDERS = ["ollama", "openai", "deepseek", "openrouter", "gemini"] as const;
+export const AI_PROVIDERS = ["ollama", "openai", "deepseek", "openrouter", "gemini", "custom"] as const;
 export type AiProviderId = (typeof AI_PROVIDERS)[number];
 
 export function getAiProviders(): ProviderRegistryEntry[] {

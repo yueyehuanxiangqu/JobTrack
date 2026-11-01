@@ -5,8 +5,9 @@ describe("AI_PROVIDERS", () => {
     expect(AI_PROVIDERS).toContain("openrouter");
   });
 
-  it("contains exactly 5 providers", () => {
-    expect(AI_PROVIDERS).toHaveLength(5);
+  it("includes the retained providers and a custom OpenAI-compatible provider", () => {
+    expect(AI_PROVIDERS).toHaveLength(6);
+    expect(PROVIDER_REGISTRY.custom.credentialType).toBe("api-key");
   });
 
   it("contains ollama, openai, deepseek, openrouter, gemini", () => {

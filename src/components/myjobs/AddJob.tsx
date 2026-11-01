@@ -59,6 +59,14 @@ import { NotesCollapsibleSection } from "./NotesCollapsibleSection";
 import { DocumentInputs, SelectedDocuments } from "./DocumentInputs";
 import { DOCUMENT_KINDS, DOCUMENT_LABELS, JobDocument, documentInputError } from "@/models/jobAttachment.model";
 import Link from "next/link";
+import { JobAutofill } from "./JobAutofill";
+import { descriptionHtml, type AutofillResult } from "@/models/jobAutofill.schema";
+import { addCompany } from "@/actions/company.actions";
+import { createJobTitle } from "@/actions/jobtitle.actions";
+import { createLocation } from "@/actions/job.actions";
+
+type DraftField = "company" | "title" | "location";
+type DraftOption = { id: string; label: string; value: string };
 
 type AddJobProps = {
   jobStatuses: JobStatus[];
@@ -99,6 +107,7 @@ export function AddJob({
   const [documentError, setDocumentError] = useState("");
   const [availableTags, setAvailableTags] = useState<Tag[]>(tags);
   const [isPending, startTransition] = useTransition();
+  const [drafts, setDrafts] = useState<Partial<Record<DraftField, DraftOption>>>({});
 
   useEffect(() => {
     if (!dialogOpen && searchParams.get("add-job") === "true") {
@@ -149,6 +158,7 @@ export function AddJob({
 
   useEffect(() => {
     if (editJob) {
+      setDrafts({});
       setFiles({}); setSavedJobId(null); setDocumentError("");
       reset({
         id: editJob.id,
@@ -196,6 +206,44 @@ export function AddJob({
     if (!onSaved) router.push(redirectPath ?? "/dashboard/myjobs");
     router.refresh();
   };
+  function applyAutofill(result: AutofillResult, overwrite: boolean) {
+    const nextDrafts = { ...drafts };
+    const lookups = { company: companies, title: jobTitles, location: locations };
+    for (const [field, label] of [["company", result.fields.company], ["title", result.fields.jobTitle], ["location", result.fields.location]] as const) {
+      const current = form.getValues(field);
+      const untouchedDefault = field === "location" && !form.getFieldState(field).isDirty && current === newJobDefaultValues.location;
+      if (!overwrite && current && !untouchedDefault) continue;
+      if (!label) { setValue(field, "", { shouldDirty: true }); delete nextDrafts[field]; continue; }
+      const existing = lookups[field].find(option => option.label.trim().toLowerCase() === label.toLowerCase());
+      if (existing) { setValue(field, existing.id, { shouldDirty: true }); delete nextDrafts[field]; }
+      else {
+        const option = { id: `autofill:${field}:${crypto.randomUUID()}`, label, value: label.toLowerCase() };
+        nextDrafts[field] = option; setValue(field, option.id, { shouldDirty: true });
+      }
+    }
+    setDrafts(nextDrafts);
+    for (const [field, value] of [["type", result.fields.jobType], ["workplaceType", result.fields.workplaceType]] as const) {
+      if (overwrite || !form.getValues(field) || !form.getFieldState(field).isDirty) setValue(field, value ?? "", { shouldDirty: true });
+    }
+    if (result.fields.jobUrl && (overwrite || !form.getValues("jobUrl"))) setValue("jobUrl", result.fields.jobUrl, { shouldDirty: true });
+    const description = form.getValues("jobDescription");
+    if (overwrite || !description || description === "N/A" || description === "<p>N/A</p>") {
+      setValue("jobDescription", descriptionHtml(result.description), { shouldDirty: true });
+    }
+  }
+  async function resolveDrafts(data: z.infer<typeof AddJobFormSchema>) {
+    const resolved = { ...data };
+    for (const field of ["company", "title", "location"] as const) {
+      const draft = drafts[field];
+      if (!draft || resolved[field] !== draft.id || !draft.id.startsWith("autofill:")) continue;
+      const record = field === "company" ? (await addCompany({ company: draft.label }))?.data :
+        field === "title" ? await createJobTitle(draft.label) : (await createLocation(draft.label))?.data;
+      if (!record?.id) throw new Error("Could not create a selected company, title or location. Check the name and try saving again.");
+      resolved[field] = record.id; setValue(field, record.id);
+      setDrafts(current => ({ ...current, [field]: { ...draft, id: record.id } }));
+    }
+    return resolved;
+  }
   function onSubmit(data: z.infer<typeof AddJobFormSchema>) {
     for (const kind of DOCUMENT_KINDS) {
       if (files[kind] && documentInputError(files[kind]!)) { setDocumentError(`${DOCUMENT_LABELS[kind]}: ${documentInputError(files[kind]!)}`); return; }
@@ -204,7 +252,10 @@ export function AddJob({
       setDocumentError("");
       let jobId = savedJobId;
       if (!jobId) {
-        const result = editJob ? await updateJob(data) : await addJob(data);
+        let prepared;
+        try { prepared = await resolveDrafts(data); }
+        catch { toastError("Could not prepare the job's company, title or location. Check these fields and save again."); return; }
+        const result = editJob ? await updateJob(prepared) : await addJob(prepared);
         if (!result?.success) { toastActionResult(result, { success: `Job has been ${editJob ? "updated" : "created"} successfully` }); return; }
         jobId = editJob?.id ?? result.data?.id;
         setSavedJobId(jobId ?? null);
@@ -240,6 +291,7 @@ export function AddJob({
     : "Track a new job application.";
 
   const addJobForm = () => {
+    setDrafts({});
     reset(newJobDefaultValues); setFiles({}); setSavedJobId(null); setDocumentError("");
     autoFilledDate.current = null;
     resetEditJob();
@@ -305,6 +357,7 @@ export function AddJob({
               <DialogDescription>{pageDescription}</DialogDescription>
             </DialogHeader>
             <Form {...form}>
+                {!editJob && <JobAutofill onApply={applyAutofill} disabled={isPending || !!savedJobId} />}
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="grid min-w-0 grid-cols-1 gap-4 sm:p-2 md:grid-cols-2"
@@ -321,6 +374,7 @@ export function AddJob({
                         <FormControl>
                           <Combobox
                             options={jobTitles}
+                              draftOptions={drafts.title ? [drafts.title] : []}
                             field={field}
                             creatable
                           />
@@ -361,6 +415,7 @@ export function AddJob({
                         <FormControl>
                           <Combobox
                             options={companies}
+                              draftOptions={drafts.company ? [drafts.company] : []}
                             field={field}
                             creatable
                           />
@@ -381,6 +436,7 @@ export function AddJob({
                         <FormControl>
                           <Combobox
                             options={locations}
+                              draftOptions={drafts.location ? [drafts.location] : []}
                             field={field}
                             creatable
                           />
@@ -401,7 +457,7 @@ export function AddJob({
                         <RadioGroup
                           name="type"
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value ?? ""}
                           className="flex space-y-1"
                         >
                           {Object.entries(JOB_TYPES).map(([key, value]) => (
@@ -434,7 +490,7 @@ export function AddJob({
                         <RadioGroup
                           name="workplaceType"
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value ?? ""}
                           className="flex space-y-1"
                         >
                           {Object.entries(WORKPLACE_TYPES).map(

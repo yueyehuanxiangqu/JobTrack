@@ -7,6 +7,7 @@ JobTrack helps individual job seekers organize applications, interviews, tasks, 
 ## Features
 
 - **Job application tracking** — Keep application details in one place.
+- **AI Autofill** — Fill an Add Job draft from a public recruitment URL or pasted JD, then review and save it yourself. See [AI Autofill](AI_AUTOFILL.md) for provider setup.
 - **Application status management** — Update statuses and review each application's timeline.
 - **Activity Calendar** — View daily application counts and time spent on recorded activities.
 - **Interview management** — Keep interview rounds and schedules linked to applications.

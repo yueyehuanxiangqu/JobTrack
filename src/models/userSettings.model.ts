@@ -3,6 +3,8 @@ import { AiProvider } from "./ai.model";
 export interface AiSettings {
   provider: AiProvider;
   model: string | undefined;
+  baseUrl?: string;
+  profiles?: Partial<Record<AiProvider, { model?: string; baseUrl?: string }>>;
 }
 
 export interface DisplaySettings {

@@ -49,7 +49,9 @@ interface ProviderConfig {
   sensitive: boolean;
 }
 
-const PROVIDERS: ProviderConfig[] = getAiProviders().map((entry) => ({
+// Custom endpoints require a model and Base URL; manage their credentials in
+// AI Settings, whose connection test checks that complete configuration.
+const PROVIDERS: ProviderConfig[] = getAiProviders().filter(entry => entry.id !== "custom").map((entry) => ({
   id: entry.id as ApiKeyProvider,
   name: entry.displayName,
   placeholder: entry.keyConfig.placeholder,

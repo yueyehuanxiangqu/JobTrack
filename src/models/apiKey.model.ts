@@ -1,4 +1,4 @@
-export type ApiKeyProvider = "openai" | "deepseek" | "openrouter" | "ollama";
+export type ApiKeyProvider = import("@/lib/ai/provider-registry").AiProviderId;
 
 export interface ApiKeyRecord {
   id: string;

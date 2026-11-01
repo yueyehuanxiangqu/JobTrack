@@ -8,15 +8,17 @@ import { APP_CONSTANTS } from "@/lib/constants";
 
 export const PROVIDER_FACTORIES: Record<
   string,
-  (credential: string, modelName: string) => any
+  (credential: string, modelName: string, options?: { baseURL?: string; fetch?: typeof fetch }) => any
 > = {
-  openai: (apiKey, model) => createOpenAI({ apiKey })(model),
-  openrouter: (apiKey, model) =>
-    createOpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" })(model),
-  deepseek: (apiKey, model) => createDeepSeek({ apiKey })(model),
-  ollama: (baseURL, model) =>
-    createOllama({ baseURL: baseURL + "/api" })(model),
-  gemini: (apiKey, model) => createGoogleGenerativeAI({ apiKey })(model),
+  openai: (apiKey, model, options) => options ? createOpenAI({ apiKey, ...options }).chat(model) : createOpenAI({ apiKey })(model),
+  openrouter: (apiKey, model, options) => options
+    ? createOpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1", ...options }).chat(model)
+    : createOpenAI({ apiKey, baseURL: "https://openrouter.ai/api/v1" })(model),
+  custom: (apiKey, model, options) => createOpenAI({ apiKey, ...options }).chat(model),
+  deepseek: (apiKey, model, options) => createDeepSeek({ apiKey, ...options })(model),
+  ollama: (baseURL, model, options) =>
+    createOllama({ baseURL: (options?.baseURL ?? baseURL).replace(/\/+$/, "") + "/api", ...(options?.fetch ? { fetch: options.fetch } : {}) })(model),
+  gemini: (apiKey, model, options) => createGoogleGenerativeAI({ apiKey, ...options })(model),
 };
 
 export const PROVIDER_VERIFIERS: Record<

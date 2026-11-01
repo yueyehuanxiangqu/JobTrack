@@ -10,6 +10,11 @@ import { getCurrentUser } from "@/utils/user.utils";
 import { render,screen,waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
+import { addCompany } from "@/actions/company.actions";
+import { createJobTitle } from "@/actions/jobtitle.actions";
+import { createLocation } from "@/actions/job.actions";
+vi.mock("@/actions/company.actions", () => ({ addCompany: vi.fn().mockResolvedValue({ success: true, data: { id: "created-company" } }) }));
+vi.mock("@/actions/jobtitle.actions", () => ({ createJobTitle: vi.fn().mockResolvedValue({ id: "created-title" }) }));
 const navigation = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn(), replace: vi.fn() }));
 vi.mock("@/utils/user.utils", () => ({
   getCurrentUser: vi.fn(),
@@ -18,6 +23,7 @@ vi.mock("@/utils/user.utils", () => ({
 vi.mock("@/actions/job.actions", () => ({
   addJob: vi.fn().mockResolvedValue({ success: true }),
   updateJob: vi.fn().mockResolvedValue({ success: true }),
+  createLocation: vi.fn().mockResolvedValue({ success: true, data: { id: "created-location" } }),
 }));
 
 vi.mock("@/actions/profile.actions", () => ({
@@ -266,6 +272,62 @@ describe("AddJob Component", () => {
     }
 
   }
+  const aiFields = { company: "AI Example", jobTitle: "AI Engineer", location: "AI City", workplaceType: "REMOTE", jobType: "FT", jobUrl: null };
+  async function importJD() {
+    await user.click(screen.getByRole("button", { name: "Paste JD" }));
+    await user.type(screen.getByLabelText("Job description to import"), "Original JD with responsibilities and requirements.");
+    await user.click(screen.getByRole("button", { name: "AI Autofill" }));
+    await screen.findByText(/Autofill complete/);
+  }
+  it("fills visible lookup drafts/editor, saves only on confirmation and preserves attachment handling/list notification", async () => {
+    const fetcher = vi.fn().mockImplementation(async (url: string) => ({ ok: true, json: async () => url === "/api/jobs/autofill"
+      ? { fields: aiFields, description: "Original source JD. <script>not executable</script>" } : { documents: [] } }));
+    vi.stubGlobal("fetch", fetcher);
+    (addJob as any).mockResolvedValueOnce({ success: true, data: { id: "autofill-saved" } });
+    try {
+      await importJD();
+      expect(screen.getByLabelText("Job Title")).toHaveTextContent("AI Engineer");
+      expect(screen.getByLabelText("Company")).toHaveTextContent("AI Example");
+      await waitFor(() => expect(screen.getByLabelText("Job Description")).toHaveTextContent("Original source JD."));
+      expect(addCompany).not.toHaveBeenCalled(); expect(createJobTitle).not.toHaveBeenCalled(); expect(createLocation).not.toHaveBeenCalled(); expect(addJob).not.toHaveBeenCalled();
+      // A manual correction is applied to the same existing form before Save.
+      await user.click(screen.getByLabelText("Company")); await user.click(screen.getByRole("option", { name: "Amazon" }));
+      await user.click(screen.getByLabelText("Job Source")); await user.click(screen.getByRole("option", { name: "Indeed" }));
+      await user.upload(screen.getByLabelText("CV", { exact: true }), new File(["private CV"], "cv.pdf", { type: "application/pdf" }));
+      await user.upload(screen.getByLabelText("Cover Letter", { exact: true }), new File(["private letter"], "letter.docx", { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }));
+      await user.click(screen.getByTestId("save-job-btn"));
+      await waitFor(() => expect(addJob).toHaveBeenCalledTimes(1));
+      expect(addJob).toHaveBeenCalledWith(expect.objectContaining({ company: "2zz", title: "created-title", location: "created-location" }));
+      expect(addCompany).not.toHaveBeenCalled(); expect(createJobTitle).toHaveBeenCalledTimes(1); expect(createLocation).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(fetcher).toHaveBeenCalledWith("/api/jobs/autofill-saved/documents", expect.objectContaining({ method: "PUT" })));
+      expect(fetcher.mock.calls[0][1].body).not.toContain("private CV"); expect(onSaved).toHaveBeenCalledTimes(1);
+    } finally { vi.unstubAllGlobals(); }
+  }, 10000);
+  it("keeps manual input on API failure and offers paste after URL restrictions", async () => {
+    const fetcher = vi.fn().mockResolvedValue({ ok: false, json: async () => ({ error: "Unable to retrieve the job description. Please paste the job description manually." }) });
+    vi.stubGlobal("fetch", fetcher);
+    try {
+      await user.type(screen.getByLabelText("Job URL"), "https://my-manual.example/job");
+      await user.type(screen.getByLabelText("Recruitment URL"), "https://restricted.example/job");
+      await user.click(screen.getByRole("button", { name: "AI Autofill" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent("Please paste");
+      expect(screen.getByLabelText("Job URL")).toHaveValue("https://my-manual.example/job");
+      await user.click(screen.getByRole("button", { name: "Paste JD" })); expect(screen.getByLabelText("Job description to import")).toBeVisible();
+      expect(addJob).not.toHaveBeenCalled();
+    } finally { vi.unstubAllGlobals(); }
+  });
+  it("keeps manually chosen fields unless replacement is explicitly enabled and leaves unknown type/mode empty", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ fields: { ...aiFields, jobType: null, workplaceType: null }, description: "Original JD with responsibilities and requirements." }) }));
+    try {
+      await user.click(screen.getByLabelText("Company")); await user.click(screen.getByRole("option", { name: "Amazon" }));
+      await importJD(); expect(screen.getByLabelText("Company")).toHaveTextContent("Amazon");
+      expect(screen.getByRole("radio", { name: "Full-time" })).not.toBeChecked(); expect(screen.getByRole("radio", { name: "Onsite" })).not.toBeChecked();
+      await user.click(screen.getByRole("checkbox", { name: /Allow replacement/ }));
+      await user.click(screen.getByRole("button", { name: "AI Autofill" }));
+      await waitFor(() => expect(screen.getByLabelText("Company")).toHaveTextContent("AI Example"));
+      expect(addCompany).not.toHaveBeenCalled(); expect(addJob).not.toHaveBeenCalled();
+    } finally { vi.unstubAllGlobals(); }
+  });
   it("should closes the dialog and submit to save job when clicked on save button", async () => {
     await fillValidForm();
     const dialog = await screen.findByRole("dialog");

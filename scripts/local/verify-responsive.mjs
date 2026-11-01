@@ -159,7 +159,7 @@ try {
       await dialogControls();
     }
     await go("/dashboard/settings");
-    for (const name of ["API Keys", "Appearance", "Data", "AI Provider"]) {
+    for (const name of ["API Keys", "Appearance", "Data", "AI Settings"]) {
       await page.getByRole("button", { name, exact: true }).click();
       await page.waitForLoadState("networkidle");
       await noPageOverflow(`Settings ${name}`);

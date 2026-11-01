@@ -11,7 +11,7 @@ const SETTINGS_SECTIONS: {
   label: string;
   icon: typeof Bot;
 }[] = [
-  { id: "ai-provider", label: "AI Provider", icon: Bot },
+  { id: "ai-provider", label: "AI Settings", icon: Bot },
   { id: "api-keys", label: "API Keys", icon: Key },
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "data", label: "Data", icon: Database },

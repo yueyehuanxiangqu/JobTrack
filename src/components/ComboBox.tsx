@@ -39,6 +39,7 @@ interface ComboboxProps {
   onSearchChange?: (search: string) => void;
   // Opt out of the default fixed trigger width when the field sits in a grid
   fullWidth?: boolean;
+  draftOptions?: { id: string; label: string; value: string }[];
 }
 
 export function Combobox({
@@ -49,7 +50,9 @@ export function Combobox({
   label,
   onSearchChange,
   fullWidth,
+  draftOptions = [],
 }: ComboboxProps) {
+  const availableOptions = [...options, ...draftOptions];
   // Placeholder text only; the accessible name comes from FormLabel/FormControl
   const displayName = label ?? field.name;
   const [newOption, setNewOption] = useState<string>("");
@@ -150,7 +153,7 @@ export function Combobox({
           >
             <span className="min-w-0 truncate">
               {field.value
-                ? (options.find((option) => option.id === field.value)?.label ??
+                ? (availableOptions.find((option) => option.id === field.value)?.label ??
                   (freeText ? field.value : null))
                 : `Select ${displayName}`}
             </span>
@@ -209,7 +212,7 @@ export function Combobox({
               )}
             </CommandEmpty>
             <CommandGroup>
-              {options.map((option) => (
+              {availableOptions.map((option) => (
                 <CommandItem
                   value={option.value}
                   key={option.id}

@@ -62,16 +62,6 @@ async function Header({ user, signOutAction }: { user?: CurrentUser; signOutActi
       <h1 className="min-w-0 break-words font-semibold">
         JobSync<span className="hidden sm:inline"> - Job Search Assistant</span>
       </h1>
-      <div className="relative ml-auto flex-1 md:grow-0">
-        {/* <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          id="search"
-          type="search"
-          placeholder="Search..."
-          className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
-        /> */}
-      </div>
-
     </header>
   );
 }

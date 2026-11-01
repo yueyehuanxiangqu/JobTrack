@@ -1,7 +1,7 @@
 import JSZip from "jszip";
 import pkg from "../../../package.json";
 import { APP_CONSTANTS } from "@/lib/constants";
-import { preflightZip } from "@/lib/ai/import/extract-text";
+import { preflightZip } from "@/lib/files/formats";
 import { INSERT_ORDER } from "./ordering";
 import {
   BACKUP_FORMAT_VERSION,

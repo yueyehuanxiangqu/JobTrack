@@ -10,8 +10,10 @@ The native runtime retains Dashboard, Activity Calendar, jobs and interview
 timeline, document files, tasks, activities, CSV/PDF export and ZIP backup/restore.
 Retired assistant, automation and MCP runtime features have been removed in
 Phase 3. It does not require Docker,
-WSL, a Windows service, or an external database. The original Dockerfile and
-Compose configuration remain available and use their original storage defaults.
+WSL, a Windows service, or an external database. The inherited Docker, Jenkins
+and server deployment scripts were retired in Phase 4. The optional local npm
+CLI is retained for development and diagnostics, and supplies shared runtime
+code used by Electron.
 
 ## Optional browser-mode setup
 

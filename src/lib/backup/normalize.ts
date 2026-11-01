@@ -1,4 +1,4 @@
-import { sniffFileType } from "@/lib/ai/import/extract-text";
+import { sniffFileType } from "@/lib/files/formats";
 import { APP_CONSTANTS } from "@/lib/constants";
 import { storagePaths } from "@/lib/storagePaths";
 import path from "path";

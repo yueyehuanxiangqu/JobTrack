@@ -1,7 +1,7 @@
 import "server-only";
 import path from "node:path";
 import JSZip from "jszip";
-import { preflightZip } from "@/lib/ai/import/extract-text";
+import { preflightZip } from "@/lib/files/formats";
 import { MAX_DOCUMENT_BYTES } from "@/models/jobAttachment.model";
 
 export class DocumentError extends Error {

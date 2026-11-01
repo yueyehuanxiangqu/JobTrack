@@ -3,7 +3,6 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import SidebarInset from "@/components/SidebarInset";
 import { ActivityProvider } from "@/context/ActivityContext";
-import { RightRailProvider } from "@/context/RightRailContext";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { cookies } from "next/headers";
 
@@ -38,23 +37,18 @@ export default async function RootLayout({
   return (
     <ActivityProvider>
       <SidebarProvider initialExpanded={initialExpanded}>
-        <RightRailProvider>
-
-              <div className="flex min-h-screen w-full flex-col bg-muted/40">
-                <Sidebar user={user} signOutAction={signOutAction} />
-                <SidebarInset>
-                  <Header user={user} signOutAction={signOutAction} />
-                  <GlobalActivityBanner />
-                  <main className="@container/main min-w-0 flex-1 p-4 lg:py-0">
-                    <div className="min-w-0 items-start gap-4 @3xl/main:grid @3xl/main:grid-cols-3 [&>*]:min-w-0">
-                      {children}
-                    </div>
-                  </main>
-                </SidebarInset>
-
+        <div className="flex min-h-screen w-full flex-col bg-muted/40">
+          <Sidebar user={user} signOutAction={signOutAction} />
+          <SidebarInset>
+            <Header user={user} signOutAction={signOutAction} />
+            <GlobalActivityBanner />
+            <main className="@container/main min-w-0 flex-1 p-4 lg:py-0">
+              <div className="min-w-0 items-start gap-4 @3xl/main:grid @3xl/main:grid-cols-3 [&>*]:min-w-0">
+                {children}
               </div>
-
-        </RightRailProvider>
+            </main>
+          </SidebarInset>
+        </div>
       </SidebarProvider>
     </ActivityProvider>
   );

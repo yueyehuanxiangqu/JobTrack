@@ -8,7 +8,7 @@ import {
 import path from "path";
 import fs from "fs";
 import { APP_CONSTANTS } from "@/lib/constants";
-import { PDF_MAGIC, ZIP_MAGIC } from "@/lib/ai/import/extract-text";
+import { PDF_MAGIC, ZIP_MAGIC } from "@/lib/files/formats";
 import { log } from "@/lib/telemetry";
 import prisma from "@/lib/db";
 import {

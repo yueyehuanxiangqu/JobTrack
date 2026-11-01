@@ -31,9 +31,9 @@ existing file is rewritten by the migration.
 Files stay under the existing local data root:
 
 ```text
-%LOCALAPPDATA%\JobSync\data\files\jobs\<SHA-256 of Job ID>\<random File ID>.pdf
-%LOCALAPPDATA%\JobSync\data\files\jobs\<SHA-256 of Job ID>\<random File ID>.docx
-%LOCALAPPDATA%\JobSync\data\files\jobs\.operations\<operation ID>.json
+%LOCALAPPDATA%\JobTrack\data\files\jobs\<SHA-256 of Job ID>\<random File ID>.pdf
+%LOCALAPPDATA%\JobTrack\data\files\jobs\<SHA-256 of Job ID>\<random File ID>.docx
+%LOCALAPPDATA%\JobTrack\data\files\jobs\.operations\<operation ID>.json
 ```
 
 Original names are metadata, never disk paths. Requests accept no storage path.

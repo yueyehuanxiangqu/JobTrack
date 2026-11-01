@@ -1,4 +1,4 @@
-# JobSync Windows desktop
+# JobTrack Windows desktop
 
 The Electron desktop shell runs the local Next.js application. Dashboard,
 Activity Calendar, jobs, interviews, tasks, activities, document files and exports
@@ -8,10 +8,14 @@ MIT License and upstream copyright are unchanged.
 
 ## Install and use
 
-1. Run `JobSync-Setup-1.1.22.exe` on Windows 11 x64. It installs for the current
+The branded NSIS installer is deferred to Phase 6C and has not been published.
+The following steps describe a future source-built installer. Phase 6A/6B
+verification uses an unpacked production application, not a new installation.
+
+1. Run `JobTrack-Setup-1.1.22.exe` on Windows 11 x64. It installs for the current
    account and creates desktop and Start menu shortcuts. No Node.js, npm,
    Prisma, Docker, external browser or Windows service is needed.
-2. Open **JobSync**. A small startup window remains visible while the local
+2. Open **JobTrack**. A small startup window remains visible while the local
    database is checked/migrated. The main window appears after an authenticated
    health check and the first page has rendered.
    Sign in with a username and password. Existing email accounts use the
@@ -26,16 +30,16 @@ a SmartScreen reputation prompt. Code signing is a future distribution step;
 it is not required to build or run the local installation. No Windows security
 settings are changed by this project.
 
-The installer uses current-user mode (normally `%LOCALAPPDATA%\Programs\JobSync`),
+The installer uses current-user mode (normally `%LOCALAPPDATA%\Programs\JobTrack`),
 without elevation or service registration. Updates are manual: close the app,
 then install the new installer. Automatic updates are not configured.
 
 ## Data and upgrades
 
-The Phase 1 root and formats remain unchanged:
+The native root is now `%LOCALAPPDATA%\JobTrack`. Existing JobSync data uses the verified, one-time [home migration](DATA_MIGRATION.md). Historical SQLite migration formats remain unchanged:
 
 ```text
-%LOCALAPPDATA%\JobSync\
+%LOCALAPPDATA%\JobTrack\
   config\runtime.json           original stable authentication/encryption keys
   config\instance.json          private identity of the currently owned backend
   config\electron\              Electron cookies/cache/preferences
@@ -62,7 +66,7 @@ the other. Electron refuses to adopt/kill a pre-existing service on port 3737.
 If another application occupies the port, an error identifies the conflict and
 no process belonging to that application is stopped.
 
-`JOBSYNC_HOME` is an absolute test override. Leave it unset in ordinary use.
+`JOBTRACK_HOME` is an absolute test override. Leave it unset in ordinary use.
 
 Phase 3C adds [per-job documents](JOB_ATTACHMENTS.md) without changing the data
 root, authentication or desktop lifecycle. Its verification uses an unpacked
@@ -114,8 +118,8 @@ npm ci
 npm run desktop:build
 ```
 
-The installer is written to `dist-desktop\JobSync-Setup-1.1.22.exe`, alongside
-`dist-desktop\win-unpacked\JobSync.exe` for packaged-directory testing.
+The installer is written to `dist-desktop\JobTrack-Setup-1.1.22.exe`, alongside
+`dist-desktop\win-unpacked\JobTrack.exe` for packaged-directory testing.
 `npm run desktop:pack` produces only the packaged directory. `desktop:start`
 is a developer convenience after staging and is not an end-user requirement.
 

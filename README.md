@@ -21,16 +21,18 @@ JobTrack helps individual job seekers organize applications, interviews, tasks, 
 No GitHub Release is available yet. To try the desktop app:
 
 1. On Windows 11 x64, follow the [Windows desktop guide](WINDOWS_DESKTOP.md#build-from-source) to build the installer.
-2. Run the generated installer, then open **JobSync** from the desktop or Start menu shortcut.
+2. Run the generated installer, then open **JobTrack** from the desktop or Start menu shortcut.
 3. Create a local account with a username and password. Existing email accounts can use the [one-time username setup](USERNAME_MIGRATION.md).
 
-The installed app includes its runtime; daily use does not require Docker, a separate Node.js installation, or an external browser. Data is stored under `%LOCALAPPDATA%\JobSync\`.
+The installed app includes its runtime; daily use does not require Docker, a separate Node.js installation, or an external browser. Data is stored under `%LOCALAPPDATA%\JobTrack\`.
 
 See the [Windows desktop guide](WINDOWS_DESKTOP.md) for installation, data storage, and development instructions.
 
+Upgrading from a JobSync desktop build? See the [local data migration guide](DATA_MIGRATION.md) before removing old data or using an older executable.
+
 ## Project Status
 
-JobTrack is under active development, with a focus on simplifying its interface and feature set. The desktop app and installer still use the JobSync name.
+JobTrack is under active development, with a focus on simplifying its interface and feature set. The desktop application uses the JobTrack name and icon.
 
 ## Acknowledgements
 

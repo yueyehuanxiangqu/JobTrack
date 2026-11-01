@@ -13,8 +13,8 @@ import { localPaths, databaseUrl, origin } from "./paths.mjs";
 import { projectRoot } from "./project.mjs";
 
 const paths = localPaths();
-if (!paths.home.startsWith(path.join(projectRoot, ".local-runtime-test") + path.sep)) throw Error("An isolated JOBSYNC_HOME is required.");
-if (!process.env.JOBSYNC_ELECTRON_EXE) throw Error("Set JOBSYNC_ELECTRON_EXE to the current unpacked application.");
+if (!paths.home.startsWith(path.join(projectRoot, ".local-runtime-test") + path.sep)) throw Error("An isolated JOBTRACK_HOME is required.");
+if (!process.env.JOBTRACK_ELECTRON_EXE) throw Error("Set JOBTRACK_ELECTRON_EXE to the current unpacked application.");
 const artifacts = path.join(paths.home, "verification"); await fs.mkdir(artifacts, { recursive: true });
 const report = [], errors = [], requests = [];
 const mark = step => { report.push({ step, passed: true }); console.log(`PASS ${step}`); };
@@ -55,7 +55,7 @@ let owner;
 try {
   const env = { ...process.env, PATH: `${process.env.SystemRoot}\\System32;${process.env.SystemRoot}` };
   delete env.ELECTRON_RUN_AS_NODE; delete env.NODE_OPTIONS;
-  app = await _electron.launch({ executablePath: process.env.JOBSYNC_ELECTRON_EXE, env, timeout: 120000 });
+  app = await _electron.launch({ executablePath: process.env.JOBTRACK_ELECTRON_EXE, env, timeout: 120000 });
   await expect.poll(() => { page = app.windows().find(w => w.url().startsWith(origin)); return !!page; }, { timeout: 120000 }).toBe(true);
   page.setDefaultTimeout(30000); page.on("pageerror", error => errors.push(error.message));
   const security = await app.evaluate(({ BrowserWindow }) => {
@@ -65,6 +65,9 @@ try {
   expect(security).toEqual({ sandbox: true, contextIsolation: true, nodeIntegration: false });
   await go("/signup"); await page.getByLabel("Username", { exact: true }).fill(username); await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Create an account", exact: true }).click(); await expect(page).toHaveURL(`${origin}/dashboard`);
+  // Isolated fixture credentials support a later home-migration/restart check.
+  // This directory is Git-ignored; never print this checkpoint or real keys.
+  await fs.writeFile(path.join(artifacts, "autofill-account.json"), JSON.stringify({ username, password }));
   owner = await prisma.user.findUniqueOrThrow({ where: { username } });
   await prisma.company.create({ data: { label: "Manual Company", value: `manual-${suffix}`, createdBy: owner.id } });
   await prisma.location.create({ data: { label: "Manual City", value: `city-${suffix}`, createdBy: owner.id } });

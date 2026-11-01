@@ -158,5 +158,5 @@ async function buildBackupZipUnlocked(userId: string, sourceEmail: string, sourc
     compression: "DEFLATE",
   });
   const stamp = new Date().toISOString().slice(0, 10);
-  return { buffer, fileName: `jobsync-backup-${stamp}.zip` };
+  return { buffer, fileName: `jobtrack-backup-${stamp}.zip` };
 }

@@ -1,3 +1,5 @@
+> Historical report: this records a pre-Phase-6 build. Current JobTrack branding, data paths and migration procedures are documented in [DATA_MIGRATION.md](DATA_MIGRATION.md). Original commands and observations below are preserved as historical evidence.
+
 # Phase 4: responsive desktop layout and cleanup
 
 Original Phase 4 work was isolated on `feat/phase4-responsive-cleanup`, based on

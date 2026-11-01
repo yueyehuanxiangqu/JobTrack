@@ -11,18 +11,18 @@ import { projectRoot } from "./project.mjs";
 
 const paths = localPaths();
 const testRoot = path.join(projectRoot, ".local-runtime-test") + path.sep;
-if (!paths.home.startsWith(testRoot)) throw new Error("Browser verification requires JOBSYNC_HOME inside this checkout's .local-runtime-test directory.");
+if (!paths.home.startsWith(testRoot)) throw new Error("Browser verification requires JOBTRACK_HOME inside this checkout's .local-runtime-test directory.");
 const report = [];
 const artifacts = path.join(paths.home, "verification");
 await fs.mkdir(artifacts, { recursive: true });
 const record = (step) => { report.push({ step, passed: true }); console.log(`PASS ${step}`); };
 const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl(paths.database) } } });
 let browser, page, desktopApp;
-if (process.env.JOBSYNC_ELECTRON_EXE) {
+if (process.env.JOBTRACK_ELECTRON_EXE) {
   const desktopEnv = { ...process.env, PATH: `${process.env.SystemRoot}\\System32;${process.env.SystemRoot}` };
   delete desktopEnv.ELECTRON_RUN_AS_NODE;
   delete desktopEnv.NODE_OPTIONS;
-  desktopApp = await _electron.launch({ executablePath: process.env.JOBSYNC_ELECTRON_EXE,
+  desktopApp = await _electron.launch({ executablePath: process.env.JOBTRACK_ELECTRON_EXE,
     env: desktopEnv, timeout: 120_000 });
   const deadline = Date.now() + 120_000;
   while (Date.now() < deadline) {

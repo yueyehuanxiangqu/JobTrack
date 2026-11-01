@@ -10,7 +10,7 @@ import { projectRoot } from "./project.mjs";
 import { readJson } from "./runtime.mjs";
 
 const paths = localPaths();
-assert(paths.home.startsWith(path.join(projectRoot, ".local-runtime-test") + path.sep), "Use an isolated JOBSYNC_HOME under .local-runtime-test");
+assert(paths.home.startsWith(path.join(projectRoot, ".local-runtime-test") + path.sep), "Use an isolated JOBTRACK_HOME under .local-runtime-test");
 const log = [];
 const mark = (name) => { console.log(`PASS ${name}`); log.push(name); };
 const cli = path.join(projectRoot, "scripts/local/cli.mjs");

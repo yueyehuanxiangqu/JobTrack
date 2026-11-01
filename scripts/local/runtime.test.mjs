@@ -9,13 +9,13 @@ import { projectRoot } from "./project.mjs";
 import { ensureSettings, ensureDatabaseFile, runtimeEnv, control } from "./runtime.mjs";
 
 const testRoot = path.join(projectRoot, ".local-runtime-test", `unit-${randomUUID()}`, "中文 空格");
-const paths = localPaths({ JOBSYNC_HOME: testRoot });
+const paths = localPaths({ JOBTRACK_HOME: testRoot });
 
 test("absolute native paths and SQLite URL preserve spaces and Unicode", () => {
   assert.equal(paths.resumes, path.join(testRoot, "data", "files", "resumes"));
   assert.equal(databaseUrl(paths.database), `file:${paths.database.replace(/\\/g, "/")}`);
-  assert.throws(() => localPaths({ JOBSYNC_HOME: "relative" }), /absolute/);
-  assert.equal(localPaths({ LOCALAPPDATA: path.dirname(testRoot) }).home, path.join(path.dirname(testRoot), "JobSync"));
+  assert.throws(() => localPaths({ JOBTRACK_HOME: "relative" }), /absolute/);
+  assert.equal(localPaths({ LOCALAPPDATA: path.dirname(testRoot) }).home, path.join(path.dirname(testRoot), "JobTrack"));
 });
 
 test("first-run secrets remain unchanged and a damaged config is never replaced", async () => {
@@ -68,18 +68,18 @@ test("control verifies both the random instance identity and PID", async () => {
 });
 
 test("Docker retains standalone output while native builds use a separate directory", async () => {
-  const before = process.env.JOBSYNC_LOCAL_RUNTIME;
+  const before = process.env.JOBTRACK_LOCAL_RUNTIME;
   try {
-    delete process.env.JOBSYNC_LOCAL_RUNTIME;
+    delete process.env.JOBTRACK_LOCAL_RUNTIME;
     const docker = (await import(`../../next.config.mjs?docker=${randomUUID()}`)).default;
-    process.env.JOBSYNC_LOCAL_RUNTIME = "1";
+    process.env.JOBTRACK_LOCAL_RUNTIME = "1";
     const native = (await import(`../../next.config.mjs?native=${randomUUID()}`)).default;
     assert.equal(docker.output, "standalone");
     assert.equal(docker.distDir, undefined);
     assert.equal(native.distDir, ".next-local");
     assert.equal(native.output, undefined);
   } finally {
-    if (before === undefined) delete process.env.JOBSYNC_LOCAL_RUNTIME;
-    else process.env.JOBSYNC_LOCAL_RUNTIME = before;
+    if (before === undefined) delete process.env.JOBTRACK_LOCAL_RUNTIME;
+    else process.env.JOBTRACK_LOCAL_RUNTIME = before;
   }
 });

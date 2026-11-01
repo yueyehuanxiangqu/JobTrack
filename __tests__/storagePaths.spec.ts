@@ -7,8 +7,8 @@ afterEach(() => vi.unstubAllEnvs());
 
 it("uses the isolated native data root for every attachment and backup path", () => {
   const home = path.resolve(".local-runtime-test", "路径 空格");
-  vi.stubEnv("JOBSYNC_LOCAL_RUNTIME", "1");
-  vi.stubEnv("JOBSYNC_HOME", home);
+  vi.stubEnv("JOBTRACK_LOCAL_RUNTIME", "1");
+  vi.stubEnv("JOBTRACK_HOME", home);
   expect(storagePaths()).toEqual({
     data: path.join(home, "data"),
     files: path.join(home, "data", "files"),
@@ -19,7 +19,7 @@ it("uses the isolated native data root for every attachment and backup path", ()
 });
 
 it("retains Docker/dev storage defaults outside native mode", () => {
-  vi.stubEnv("JOBSYNC_LOCAL_RUNTIME", "");
-  vi.stubEnv("JOBSYNC_HOME", path.resolve("unused"));
+  vi.stubEnv("JOBTRACK_LOCAL_RUNTIME", "");
+  vi.stubEnv("JOBTRACK_HOME", path.resolve("unused"));
   expect(storagePaths().data).toBe(APP_CONSTANTS.UPLOADS_DIR);
 });

@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  ...(process.env.JOBSYNC_DESKTOP === "1"
+  ...(process.env.JOBTRACK_DESKTOP === "1"
     ? { distDir: ".next-desktop", output: "standalone" }
-    : process.env.JOBSYNC_LOCAL_RUNTIME === "1"
+    : process.env.JOBTRACK_LOCAL_RUNTIME === "1"
     ? { distDir: ".next-local" }
     : { output: "standalone" }),
   devIndicators: false,

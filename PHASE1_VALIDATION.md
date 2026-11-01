@@ -1,3 +1,5 @@
+> Historical report: this records a pre-Phase-6 build. Current JobTrack branding, data paths and migration procedures are documented in [DATA_MIGRATION.md](DATA_MIGRATION.md). Original commands and observations below are preserved as historical evidence.
+
 # Phase 1 validation — Windows native local runtime
 
 Historical report: the root CMD wrappers described below were retired after

@@ -6,6 +6,9 @@ been retired. The shared Node runtime and optional npm CLI commands below remain
 available for development and diagnostics. Desktop and CLI modes share the same
 database/configuration root and should be used one at a time.
 
+The current root is `%LOCALAPPDATA%\JobTrack`. See [Data migration](DATA_MIGRATION.md)
+for the one-time transition from JobSync, verified offline backup and cleanup.
+
 The native runtime retains Dashboard, Activity Calendar, jobs and interview
 timeline, document files, tasks, activities, CSV/PDF export and ZIP backup/restore.
 Retired assistant, automation and MCP runtime features have been removed in
@@ -47,7 +50,7 @@ before Next loads any checkout `.env` file. It does not change Windows settings.
 ## Persistent local files
 
 ```text
-%LOCALAPPDATA%\JobSync\
+%LOCALAPPDATA%\JobTrack\
   config\runtime.json           stable authentication and encryption keys
   config\instance.json          current instance identity and private control token
   data\jobsync.db               SQLite database
@@ -58,7 +61,7 @@ before Next loads any checkout `.env` file. It does not change Windows settings.
   logs\server-<timestamp>.log    server output
 ```
 
-On this computer the normal root resolves to `C:\Users\yueye\AppData\Local\JobSync`.
+On this computer the normal root resolves to `C:\Users\yueye\AppData\Local\JobTrack`.
 No native database is stored in the source tree. The launcher generates keys only
 once and refuses to replace a damaged existing configuration. **Keep runtime.json
 when moving/restoring the entire installation**: losing its encryption key makes
@@ -70,7 +73,7 @@ way to transfer business data, including from Docker to the native runtime. Nati
 mode does not automatically open or modify a Docker database or move its files.
 New exports use ZIP format v2 for job documents. Current versions also restore v1
 backups; older builds cannot read v2. See [job document storage](JOB_ATTACHMENTS.md).
-For a complete offline filesystem copy, stop JobSync first and copy the entire
+For a complete offline filesystem copy, stop JobTrack first and copy the entire
 local root, including config and all SQLite sidecar files if present. Do not copy a
 live database file by itself.
 
@@ -101,9 +104,9 @@ node scripts/local/cli.mjs setup --rebuild
 npm run test:local-runtime
 ```
 
-For automated verification only, set **JOBSYNC_HOME** to an absolute isolated test
+For automated verification only, set **JOBTRACK_HOME** to an absolute isolated test
 directory, and add `--no-browser` to `start`. The same override must be present for
-start, status and stop. Production users should leave JOBSYNC_HOME unset.
+start, status and stop. Production users should leave JOBTRACK_HOME unset.
 
 ## Process ownership and troubleshooting
 
@@ -120,7 +123,7 @@ verified, the launcher refuses to stop/replace anything. Inspect the stated serv
 log and restart Windows if necessary. Do not delete data to resolve a port conflict.
 
 During shutdown, existing HTTP requests have up to 60 seconds to close. A grace
-timeout is logged as a failure; only the authenticated JobSync server itself exits.
+timeout is logged as a failure; only the authenticated JobTrack server itself exits.
 Finish uploads and backup/restore operations before stopping. Normal SQLite
 transaction recovery still applies after crashes or power loss.
 

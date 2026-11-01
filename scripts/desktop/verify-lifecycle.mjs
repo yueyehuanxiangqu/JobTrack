@@ -11,7 +11,7 @@ import { readJson, health } from "../local/runtime.mjs";
 
 const paths = localPaths();
 assert(paths.home.startsWith(path.join(projectRoot, ".local-runtime-test") + path.sep), "Use an isolated test home");
-const executablePath = process.env.JOBSYNC_ELECTRON_EXE;
+const executablePath = process.env.JOBTRACK_ELECTRON_EXE;
 assert(executablePath && path.isAbsolute(executablePath));
 const env = { ...process.env, PATH: `${process.env.SystemRoot}\\System32;${process.env.SystemRoot}` };
 delete env.ELECTRON_RUN_AS_NODE; delete env.NODE_OPTIONS;
@@ -99,7 +99,7 @@ try {
     const failure = await _electron.launch({ executablePath, env });
     current = { application: failure };
     const splash = await failure.firstWindow();
-    await expect(splash.locator("#title")).toHaveText("JobSync could not start");
+    await expect(splash.locator("#title")).toHaveText("JobTrack could not start");
     await expect(splash.locator("#status")).toContainText("Port 3737 is unavailable");
     assert(unrelated.listening);
     assert.equal(await readJson(paths.state), null);
@@ -108,7 +108,7 @@ try {
   } finally { await new Promise((resolve) => unrelated.close(resolve)); }
 
   const cancelHome = path.join(paths.home, `startup-close-${randomUUID()}`);
-  const cancel = await _electron.launch({ executablePath, env: { ...env, JOBSYNC_HOME: cancelHome } });
+  const cancel = await _electron.launch({ executablePath, env: { ...env, JOBTRACK_HOME: cancelHome } });
   current = { application: cancel };
   const startupWindow = await cancel.firstWindow();
   await startupWindow.waitForURL(/^file:/);

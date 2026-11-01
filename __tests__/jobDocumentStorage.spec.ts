@@ -38,7 +38,7 @@ async function job(userId: string, label: string) {
   return (await db.job.create({ data: { userId, companyId: Company.id, jobTitleId: title.id, statusId: status.id, description: "Existing job description", jobType: "Full-time", createdAt: new Date(), applied: true, appliedDate: new Date() } })).id;
 }
 beforeAll(async () => {
-  vi.stubEnv("JOBSYNC_LOCAL_RUNTIME", "0");
+  vi.stubEnv("JOBTRACK_LOCAL_RUNTIME", "0");
   (APP_CONSTANTS as { UPLOADS_DIR: string }).UPLOADS_DIR = root;
   owner = await seedAccount(db, "documents@example.test"); other = await seedAccount(db, "other@example.test"); compat = await seedAccount(db, "compat@example.test");
   const zip = new JSZip();

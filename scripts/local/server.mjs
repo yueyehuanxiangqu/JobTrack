@@ -8,9 +8,9 @@ import { projectRoot } from "./project.mjs";
 import { readJson, ensureDatabaseFile, runNode } from "./runtime.mjs";
 
 const paths = localPaths();
-const instanceId = process.env.JOBSYNC_INSTANCE_ID;
-const token = process.env.JOBSYNC_INSTANCE_TOKEN;
-if (!instanceId || !token || process.env.JOBSYNC_LOCAL_RUNTIME !== "1") throw new Error("Start this server through the JobSync local launcher.");
+const instanceId = process.env.JOBTRACK_INSTANCE_ID;
+const token = process.env.JOBTRACK_INSTANCE_TOKEN;
+if (!instanceId || !token || process.env.JOBTRACK_LOCAL_RUNTIME !== "1") throw new Error("Start this server through the JobTrack local launcher.");
 let status = "starting";
 let app;
 let database;
@@ -67,7 +67,7 @@ process.on("SIGINT", () => void shutdown());
 process.on("SIGTERM", () => void shutdown());
 // Electron owns the IPC channel. Even a hard-killed GUI closes it, so the
 // backend shuts itself down instead of remaining as a detached Node process.
-if (process.env.JOBSYNC_DESKTOP === "1") {
+if (process.env.JOBTRACK_DESKTOP === "1") {
   if (!process.send) throw new Error("Desktop backend requires its parent IPC channel.");
   process.on("disconnect", () => void shutdown());
 }
@@ -76,7 +76,7 @@ async function startServer() {
 try {
   await new Promise((resolve, reject) => { ipc.once("error", reject); ipc.listen(paths.serverPipe, resolve); });
   if (stopping) return;
-  if (process.env.JOBSYNC_DESKTOP === "1") {
+  if (process.env.JOBTRACK_DESKTOP === "1") {
     await ensureDatabaseFile(paths.database);
     if (stopping) return;
     migrationInFlight = runNode(path.join(projectRoot, "node_modules/prisma/build/index.js"), ["migrate", "deploy"], process.env,
@@ -94,7 +94,7 @@ try {
   await app.prepare();
   const handler = app.getRequestHandler();
   web = http.createServer(async (req, res) => {
-    if (req.url?.split("?")[0] === "/_jobsync/health") {
+    if (req.url?.split("?")[0] === "/_jobtrack/health") {
       res.setHeader("Cache-Control", "no-store");
       if (req.method !== "GET" || !authenticated(req.headers.authorization?.replace(/^Bearer /, ""))) { res.writeHead(404).end(); return; }
       try {
@@ -112,5 +112,5 @@ try {
   console.log(`[local] Ready on http://127.0.0.1:3737; PID ${process.pid}; timezone ${process.env.TZ}`);
 } catch (error) { console.error("[local] Startup failed:", error); await shutdown(1); }
 }
-if (process.env.JOBSYNC_DESKTOP === "1" && !process.connected) await shutdown();
+if (process.env.JOBTRACK_DESKTOP === "1" && !process.connected) await shutdown();
 else await startServer();

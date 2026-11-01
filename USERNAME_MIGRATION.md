@@ -52,9 +52,9 @@ Backup restore does not replace the current account or migrate its credentials.
 The confirmation before replacing application data remains required.
 
 Before upgrading your own installation, close it and keep an offline copy of
-`%LOCALAPPDATA%\JobSync\`, including `config/runtime.json`, database and files.
+`%LOCALAPPDATA%\JobTrack\`, including `config/runtime.json`, database and files.
 The in-app ZIP export excludes account credentials and runtime keys. See
 [Windows local storage](WINDOWS_LOCAL.md) for the existing backup boundaries.
 
-The app and installer still use the JobSync name and existing data directory.
+The app and installer still use the JobTrack name and existing data directory.
 These changes do not introduce per-job attachments or new AI functionality.

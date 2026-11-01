@@ -34,7 +34,7 @@ async function Header({ user, signOutAction }: { user?: CurrentUser; signOutActi
                 className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
               >
                 <Briefcase className="h-5 w-5 transition-all group-hover:scale-110" />
-                <span className="sr-only">JobSync</span>
+                <span className="sr-only">JobTrack</span>
               </Link>
             </SheetClose>
             {SIDEBAR_LINKS.map((item) => {
@@ -60,7 +60,7 @@ async function Header({ user, signOutAction }: { user?: CurrentUser; signOutActi
       </Sheet>
       <SidebarToggle />
       <h1 className="min-w-0 break-words font-semibold">
-        JobSync<span className="hidden sm:inline"> - Job Search Assistant</span>
+        JobTrack<span className="hidden sm:inline"> - Job Application Tracker</span>
       </h1>
     </header>
   );

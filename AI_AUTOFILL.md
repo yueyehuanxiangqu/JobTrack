@@ -133,9 +133,9 @@ mock-based testing.
   settings row existed and the existing `Select Job Status` accessible name.
   No full tests or production builds were repeated for these harness fixes.
 
-The opt-in harness is `scripts/local/verify-ai-autofill.mjs`. Set `JOBSYNC_HOME`
+The opt-in harness is `scripts/local/verify-ai-autofill.mjs`. Set `JOBTRACK_HOME`
 to a disposable directory inside this checkout's `.local-runtime-test`, and
-`JOBSYNC_ELECTRON_EXE` to the current unpacked executable. Reports/screenshots
+`JOBTRACK_ELECTRON_EXE` to the current unpacked executable. Reports/screenshots
 stay ignored in that home's `verification/` directory. Never use personal data
 or a real paid API key for this harness.
 

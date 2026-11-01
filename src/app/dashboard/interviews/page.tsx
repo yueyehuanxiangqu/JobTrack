@@ -6,7 +6,7 @@ import { getAllJobStageTypes } from "@/actions/jobStageType.actions";
 import { getStatusList } from "@/actions/job.actions";
 
 export const metadata: Metadata = {
-  title: "Interviews | JobSync",
+  title: "Interviews | JobTrack",
 };
 
 async function Interviews() {

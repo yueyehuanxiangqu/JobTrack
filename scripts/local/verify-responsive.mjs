@@ -1,5 +1,5 @@
 // Opt-in layout regression check against an isolated, already initialized fixture.
-// JOBSYNC_HOME/verification/account.json: { username, password, jobId }.
+// JOBTRACK_HOME/verification/account.json: { username, password, jobId }.
 // Never point this harness at a personal account or the default data directory.
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -9,11 +9,11 @@ import { projectRoot } from "./project.mjs";
 
 const paths = localPaths();
 if (!paths.home.startsWith(path.join(projectRoot, ".local-runtime-test") + path.sep)) {
-  throw new Error("Use an isolated JOBSYNC_HOME inside .local-runtime-test.");
+  throw new Error("Use an isolated JOBTRACK_HOME inside .local-runtime-test.");
 }
 const artifacts = path.join(paths.home, "verification");
 const account = JSON.parse(await fs.readFile(path.join(artifacts, "account.json"), "utf8"));
-const report = { mode: process.env.JOBSYNC_ELECTRON_EXE ? "electron" : "edge", layouts: [], checks: [], errors: [] };
+const report = { mode: process.env.JOBTRACK_ELECTRON_EXE ? "electron" : "edge", layouts: [], checks: [], errors: [] };
 let app, browser, page;
 const record = (name) => { report.checks.push(name); console.log(`PASS ${name}`); };
 async function go(route) {
@@ -66,10 +66,10 @@ async function dialogControls() {
   await cancel.click();
 }
 try {
-  if (process.env.JOBSYNC_ELECTRON_EXE) {
+  if (process.env.JOBTRACK_ELECTRON_EXE) {
     const env = { ...process.env, PATH: `${process.env.SystemRoot}\\System32;${process.env.SystemRoot}` };
     delete env.ELECTRON_RUN_AS_NODE; delete env.NODE_OPTIONS;
-    app = await _electron.launch({ executablePath: process.env.JOBSYNC_ELECTRON_EXE, env, timeout: 120_000 });
+    app = await _electron.launch({ executablePath: process.env.JOBTRACK_ELECTRON_EXE, env, timeout: 120_000 });
     await expect.poll(() => {
       page = app.windows().find(w => w.url().startsWith(origin)); return !!page;
     }, { timeout: 120_000 }).toBe(true);

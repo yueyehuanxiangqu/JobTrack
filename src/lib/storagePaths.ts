@@ -6,7 +6,7 @@ import { localPaths } from "../../scripts/local/paths.mjs";
 // Keep the existing Docker/dev defaults. Native mode is selected only by
 // the local launcher; no server paths are imported into client components.
 export function storagePaths() {
-  const data = process.env.JOBSYNC_LOCAL_RUNTIME === "1"
+  const data = process.env.JOBTRACK_LOCAL_RUNTIME === "1"
     ? localPaths().data
     : APP_CONSTANTS.UPLOADS_DIR;
   return {

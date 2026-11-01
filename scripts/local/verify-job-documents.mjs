@@ -11,8 +11,8 @@ import { localPaths, databaseUrl, origin } from "./paths.mjs";
 import { projectRoot } from "./project.mjs";
 
 const paths = localPaths();
-if (!paths.home.startsWith(path.join(projectRoot, ".local-runtime-test") + path.sep)) throw new Error("Use an isolated JOBSYNC_HOME inside .local-runtime-test.");
-if (!process.env.JOBSYNC_ELECTRON_EXE) throw new Error("Set JOBSYNC_ELECTRON_EXE to an unpacked desktop application.");
+if (!paths.home.startsWith(path.join(projectRoot, ".local-runtime-test") + path.sep)) throw new Error("Use an isolated JOBTRACK_HOME inside .local-runtime-test.");
+if (!process.env.JOBTRACK_ELECTRON_EXE) throw new Error("Set JOBTRACK_ELECTRON_EXE to an unpacked desktop application.");
 const artifacts = path.join(paths.home, "verification"); await fs.mkdir(artifacts, { recursive: true });
 const report = [], errors = [];
 const pass = (step) => { report.push({ step, passed: true }); console.log(`PASS ${step}`); };
@@ -25,7 +25,7 @@ let app, page;
 async function open() {
   const env = { ...process.env, PATH: `${process.env.SystemRoot}\\System32;${process.env.SystemRoot}` };
   delete env.ELECTRON_RUN_AS_NODE; delete env.NODE_OPTIONS;
-  app = await _electron.launch({ executablePath: process.env.JOBSYNC_ELECTRON_EXE, env, timeout: 120_000 });
+  app = await _electron.launch({ executablePath: process.env.JOBTRACK_ELECTRON_EXE, env, timeout: 120_000 });
   await expect.poll(() => {
     page = app.windows().find((window) => window.url().startsWith(origin)); return !!page;
   }, { timeout: 120_000 }).toBe(true);

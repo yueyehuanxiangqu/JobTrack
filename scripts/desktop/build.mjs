@@ -4,7 +4,6 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import JSZip from "jszip";
-import sharp from "sharp";
 import { projectRoot } from "../local/project.mjs";
 
 if (process.platform !== "win32" || process.arch !== "x64") throw new Error("Build this Windows x64 distribution on Windows x64.");
@@ -63,7 +62,7 @@ async function bundledNode() {
 }
 
 const env = {
-  JOBSYNC_LOCAL_RUNTIME: "1", JOBSYNC_DESKTOP: "1", NEXT_TELEMETRY_DISABLED: "1",
+  JOBTRACK_LOCAL_RUNTIME: "1", JOBTRACK_DESKTOP: "1", NEXT_TELEMETRY_DISABLED: "1",
   DATABASE_URL: `file:${path.join(root, "build-only.db").replace(/\\/g, "/")}`,
 };
 await run("node_modules/prisma/build/index.js", ["generate"], env);
@@ -80,10 +79,14 @@ await fs.cp(path.join(projectRoot, "public"), path.join(web, "public"), { recurs
 await fs.cp(path.join(projectRoot, "prisma"), path.join(web, "prisma"), { recursive: true });
 await fs.mkdir(path.join(web, "scripts/local"), { recursive: true });
 await fs.mkdir(path.join(app, "scripts/local"), { recursive: true });
-for (const name of ["paths", "project", "runtime", "server"]) {
+for (const destination of [web, app]) {
+  await fs.mkdir(path.join(destination, "branding"), { recursive: true });
+  await fs.copyFile(path.join(projectRoot, "branding/brand.json"), path.join(destination, "branding/brand.json"));
+}
+for (const name of ["paths", "project", "runtime", "server", "home-migration", "migrate-home"]) {
   const source = path.join(projectRoot, `scripts/local/${name}.mjs`);
   await fs.copyFile(source, path.join(web, `scripts/local/${name}.mjs`));
-  if (name !== "server") await fs.copyFile(source, path.join(app, `scripts/local/${name}.mjs`));
+  if (!["server", "migrate-home"].includes(name)) await fs.copyFile(source, path.join(app, `scripts/local/${name}.mjs`));
 }
 
 // Standalone traces do not cover custom launcher/migration entrypoints. Copy
@@ -119,17 +122,13 @@ for (const name of [...Object.keys(pkg.dependencies), "prisma"]) await copyPacka
 await fs.cp(path.join(projectRoot, "node_modules/.prisma"), path.join(web, "node_modules/.prisma"), { recursive: true });
 await fs.cp(path.join(projectRoot, "desktop"), path.join(app, "desktop"), { recursive: true, filter: (source) => !source.endsWith(".test.mjs") });
 await fs.copyFile(path.join(projectRoot, "LICENSE"), path.join(app, "LICENSE"));
-// Reuse the project's existing vector artwork; the web favicon is only 48px.
-const icon = await sharp(path.join(projectRoot, "public/images/jobsync-logo.svg")).resize(256, 256).png().toBuffer();
-const header = Buffer.alloc(22);
-header.writeUInt16LE(1, 2); header.writeUInt16LE(1, 4);
-header.writeUInt16LE(1, 10); header.writeUInt16LE(32, 12);
-header.writeUInt32LE(icon.length, 14); header.writeUInt32LE(22, 18);
-await fs.writeFile(path.join(root, "icon.ico"), Buffer.concat([header, icon]));
-await fs.writeFile(path.join(app, "desktop/icon.png"), icon);
+// Copy the selected multi-resolution ICO byte-for-byte. Never downsample its
+// optically adjusted 16/32px frames into a single generic frame.
+await fs.copyFile(path.join(projectRoot, "branding/jobtrack.ico"), path.join(root, "icon.ico"));
+await fs.copyFile(path.join(projectRoot, "branding/jobtrack-256.png"), path.join(app, "desktop/icon.png"));
 await fs.writeFile(path.join(app, "package.json"), JSON.stringify({
-  name: "jobsync-desktop", productName: "JobSync", version: pkg.version,
-  description: "JobSync local job search manager", author: "JobSync contributors", license: "MIT", main: "desktop/main.cjs",
+  name: "jobtrack-desktop", productName: "JobTrack", version: pkg.version,
+  description: "JobTrack local job application manager", author: "JobTrack contributors", license: "MIT", main: "desktop/main.cjs",
   dependencies: {},
 }, null, 2));
 await bundledNode();
@@ -138,7 +137,7 @@ await run("node_modules/electron-builder/cli.js", ["--config", "electron-builder
   CSC_IDENTITY_AUTO_DISCOVERY: "false",
 });
 if (!process.argv.includes("--dir")) {
-  const installer = path.join(projectRoot, "dist-desktop", `JobSync-Setup-${pkg.version}.exe`);
+  const installer = path.join(projectRoot, "dist-desktop", `JobTrack-Setup-${pkg.version}.exe`);
   const hash = createHash("sha256");
   for await (const chunk of createReadStream(installer)) hash.update(chunk);
   await fs.writeFile(`${installer}.sha256`, `${hash.digest("hex")}  ${path.basename(installer)}\n`);

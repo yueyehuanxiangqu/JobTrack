@@ -1,0 +1,7 @@
+{
+  "name": "JobTrack",
+  "appId": "io.github.yueyehuanxiangqu.jobtrack",
+  "dataDirectory": "JobTrack",
+  "legacyDataDirectory": "JobSync",
+  "repository": "https://github.com/yueyehuanxiangqu/JobTrack"
+}

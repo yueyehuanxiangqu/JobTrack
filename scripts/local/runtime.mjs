@@ -6,6 +6,7 @@ import { spawn } from "node:child_process";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { localPaths, databaseUrl, origin } from "./paths.mjs";
 import { projectRoot } from "./project.mjs";
+import { prepareHomeMigration } from "./home-migration.mjs";
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const samePath = (a, b) => path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase();
@@ -50,8 +51,8 @@ export async function ensureSettings(paths) {
 export function runtimeEnv(paths, settings) {
   return {
     ...process.env,
-    JOBSYNC_LOCAL_RUNTIME: "1",
-    JOBSYNC_HOME: paths.home,
+    JOBTRACK_LOCAL_RUNTIME: "1",
+    JOBTRACK_HOME: paths.home,
     DATABASE_URL: databaseUrl(paths.database),
     AUTH_SECRET: settings.authSecret,
     ENCRYPTION_KEY: settings.encryptionKey,
@@ -79,19 +80,19 @@ export function control(paths, state, command, timeout = 2000) {
       if (data.includes("\n")) {
         try {
           const result = JSON.parse(data.split("\n")[0]);
-          if (!result.ok || result.instanceId !== state.instanceId || result.pid !== state.pid) throw new Error("JobSync instance identity did not match");
+          if (!result.ok || result.instanceId !== state.instanceId || result.pid !== state.pid) throw new Error("JobTrack instance identity did not match");
           socket.end(); resolve(result);
         } catch (error) { socket.destroy(); reject(error); }
       }
     });
-    socket.on("timeout", () => socket.destroy(new Error("JobSync control timed out")));
+    socket.on("timeout", () => socket.destroy(new Error("JobTrack control timed out")));
     socket.on("error", reject);
     socket.on("end", () => { if (!data.includes("\n")) reject(new Error("Incomplete control response")); });
   });
 }
 
 export async function health(state) {
-  const response = await fetch(`${origin}/_jobsync/health`, {
+  const response = await fetch(`${origin}/_jobtrack/health`, {
     headers: { authorization: `Bearer ${state.token}` },
     signal: AbortSignal.timeout(2000),
   });
@@ -106,10 +107,10 @@ export async function waitReady(paths, state) {
   while (Date.now() < until) {
     try { await health(state); return; } catch { /* prepare() may still be running */ }
     try { process.kill(state.pid, 0); }
-    catch (error) { if (error.code === "ESRCH") throw new Error(`JobSync exited before becoming ready. See ${state.log}`); }
+    catch (error) { if (error.code === "ESRCH") throw new Error(`JobTrack exited before becoming ready. See ${state.log}`); }
     await pause(500);
   }
-  throw new Error(`JobSync did not become ready within 120 seconds. See ${state.log}. Close the desktop app or run npm run local:stop for a CLI instance before retrying.`);
+  throw new Error(`JobTrack did not become ready within 120 seconds. See ${state.log}. Close the desktop app or run npm run local:stop for a CLI instance before retrying.`);
 }
 
 export async function assertPortFree() {
@@ -133,11 +134,11 @@ export async function acquireLock(paths, waitMs = 20 * 60_000) {
     } catch (error) {
       server.close();
       if (error.code !== "EADDRINUSE") throw error;
-      if (!announced) { console.log("Another JobSync launcher is working. Waiting for it to finish..."); announced = true; }
+      if (!announced) { console.log("Another JobTrack launcher is working. Waiting for it to finish..."); announced = true; }
       await pause(1000);
     }
   }
-  throw new Error("Another JobSync launcher is still working. Check the initialization log and try again later.");
+  throw new Error("Another JobTrack launcher is still working. Check the initialization log and try again later.");
 }
 
 async function fingerprint(names) {
@@ -170,7 +171,7 @@ export async function runNode(script, args, env, logFile, signal) {
 
 async function initialize(paths, env, rebuild) {
   const logFile = path.join(paths.logs, "initialization.log");
-  const depsFile = path.join(projectRoot, "node_modules", ".jobsync-local-deps.json");
+  const depsFile = path.join(projectRoot, "node_modules", ".jobtrack-local-deps.json");
   const depsHash = await fingerprint(["package.json", "package-lock.json", "prisma/schema.prisma"]);
   const deps = await readJson(depsFile);
   const installed = ["next/dist/bin/next", "prisma/build/index.js", ".prisma/client/index.js"].every((file) => existsSync(path.join(projectRoot, "node_modules", file)));
@@ -185,7 +186,7 @@ async function initialize(paths, env, rebuild) {
   await ensureDatabaseFile(paths.database);
   await runNode(path.join(projectRoot, "node_modules/prisma/build/index.js"), ["migrate", "deploy"], env, logFile);
   const sourceHash = await fingerprint(["src", "public", "prisma", "scripts/local/paths.mjs", "package.json", "package-lock.json", "next.config.mjs", "tsconfig.json", "postcss.config.mjs"]);
-  const marker = path.join(projectRoot, ".next-local", "jobsync-build.json");
+  const marker = path.join(projectRoot, ".next-local", "jobtrack-build.json");
   const build = await readJson(marker);
   if (rebuild || build?.hash !== sourceHash || !existsSync(path.join(projectRoot, ".next-local", "BUILD_ID"))) {
     await runNode(path.join(projectRoot, "node_modules/next/dist/bin/next"), ["build"], env, logFile);
@@ -205,8 +206,9 @@ async function openBrowser() {
 export async function launch(command = "start", { noBrowser = false, rebuild = false } = {}) {
   if (process.platform !== "win32") throw new Error("The native launcher requires Windows 11.");
   const [major, minor] = process.versions.node.split(".").map(Number);
-  if (!((major === 22 && minor >= 12) || (major >= 24 && major % 2 === 0))) throw new Error("Install Node.js 24 LTS (or Node.js 22.12+ LTS) before starting JobSync.");
+  if (!((major === 22 && minor >= 12) || (major >= 24 && major % 2 === 0))) throw new Error("Install Node.js 24 LTS (or Node.js 22.12+ LTS) before starting JobTrack.");
   const paths = localPaths();
+  if (["start", "setup"].includes(command)) await prepareHomeMigration();
   // No configuration, database or attachment is created by stop/status.
   const release = await acquireLock(paths);
   try {
@@ -218,29 +220,29 @@ export async function launch(command = "start", { noBrowser = false, rebuild = f
         // Never replace ownership metadata if a recorded process still exists.
         let alive = true;
         try { process.kill(state.pid, 0); } catch (e) { if (e.code === "ESRCH") alive = false; }
-        if (alive) throw new Error(`The recorded JobSync process cannot be identified safely. No process was stopped. Check ${state.log}. ${error.message}`);
+        if (alive) throw new Error(`The recorded JobTrack process cannot be identified safely. No process was stopped. Check ${state.log}. ${error.message}`);
         await fs.unlink(paths.state);
         state = null;
       }
     }
     if (command === "stop") {
-      if (!running) { console.log("JobSync is not running."); return; }
+      if (!running) { console.log("JobTrack is not running."); return; }
       await control(paths, state, "stop");
       const deadline = Date.now() + 70_000;
       while (Date.now() < deadline) {
         try { process.kill(state.pid, 0); } catch (error) {
-          if (error.code === "ESRCH") { console.log("JobSync stopped. All local data was kept."); return; }
+          if (error.code === "ESRCH") { console.log("JobTrack stopped. All local data was kept."); return; }
         }
         await pause(250);
       }
-      throw new Error(`JobSync has not finished shutting down. No other process was stopped. See ${state.log}`);
+      throw new Error(`JobTrack has not finished shutting down. No other process was stopped. See ${state.log}`);
     }
-    if (command === "status") { console.log(running ? `JobSync ${running.status}: PID ${state.pid}, ${origin}` : "JobSync is not running."); return; }
+    if (command === "status") { console.log(running ? `JobTrack ${running.status}: PID ${state.pid}, ${origin}` : "JobTrack is not running."); return; }
     if (running) {
-      if (!samePath(running.projectRoot, projectRoot)) throw new Error(`Another checkout is using this JobSync data directory: ${running.projectRoot}`);
-      if (rebuild || command === "setup") throw new Error("Stop JobSync before initializing or rebuilding.");
+      if (!samePath(running.projectRoot, projectRoot)) throw new Error(`Another checkout is using this JobTrack data directory: ${running.projectRoot}`);
+      if (rebuild || command === "setup") throw new Error("Stop JobTrack before initializing or rebuilding.");
       await waitReady(paths, state);
-      console.log(`JobSync is already running (PID ${state.pid}).`);
+      console.log(`JobTrack is already running (PID ${state.pid}).`);
       if (!noBrowser) await openBrowser();
       return;
     }
@@ -257,7 +259,7 @@ export async function launch(command = "start", { noBrowser = false, rebuild = f
     let child;
     try {
       child = spawn(process.execPath, [path.join(projectRoot, "scripts/local/server.mjs")], {
-        cwd: projectRoot, env: { ...env, JOBSYNC_INSTANCE_ID: instanceId, JOBSYNC_INSTANCE_TOKEN: token },
+        cwd: projectRoot, env: { ...env, JOBTRACK_INSTANCE_ID: instanceId, JOBTRACK_INSTANCE_TOKEN: token },
         detached: true, windowsHide: true, stdio: ["ignore", output.fd, output.fd],
       });
       await new Promise((resolve, reject) => { child.once("spawn", resolve); child.once("error", reject); });
@@ -266,7 +268,7 @@ export async function launch(command = "start", { noBrowser = false, rebuild = f
     await writeJson(paths.state, state);
     child.unref();
     await waitReady(paths, state);
-    console.log(`JobSync is ready: ${origin}\nServer log: ${logFile}`);
+    console.log(`JobTrack is ready: ${origin}\nServer log: ${logFile}`);
     if (!noBrowser) await openBrowser();
   } finally { await release(); }
 }

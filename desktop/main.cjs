@@ -1,16 +1,31 @@
-const { app, BrowserWindow, session, shell } = require("electron");
+const { app, BrowserWindow, session, shell, dialog } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const { pathToFileURL } = require("node:url");
-const { spawn } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 const { randomBytes, randomUUID } = require("node:crypto");
 const { APP_ORIGIN, classifyUrl, permissionAllowed } = require("./security.cjs");
+const brand = require("../branding/brand.json");
+// desktop:start loads .desktop-build/app; development resources are its
+// sibling web/runtime directories, not a nested app/.desktop-build directory.
+const resourceBase = app.isPackaged ? process.resourcesPath : path.dirname(app.getAppPath());
 
 // Loaded before ready so Chromium's cookies/cache also follow the native home.
-const home = process.env.JOBSYNC_HOME || path.join(process.env.LOCALAPPDATA, "JobSync");
-if (!path.isAbsolute(home)) throw new Error("JobSync data directory must be absolute.");
+const home = process.env.JOBTRACK_HOME || path.join(process.env.LOCALAPPDATA, brand.dataDirectory);
+if (!path.isAbsolute(home)) throw new Error("JobTrack data directory must be absolute.");
+app.setName(brand.name);
+// Complete the copy before Chromium or the single-instance lock creates the
+// destination. A separate bundled Node process can read asar-external files.
+if (!process.env.JOBTRACK_HOME && fs.existsSync(path.join(process.env.LOCALAPPDATA, brand.legacyDataDirectory))) {
+  const migration = spawnSync(path.join(resourceBase, "runtime/node.exe"), [path.join(resourceBase, "web/scripts/local/migrate-home.mjs"), "prepare"], { windowsHide: true, encoding: "utf8", timeout: 15 * 60_000 });
+  if (migration.error || migration.status !== 0) {
+    dialog.showErrorBox("JobTrack data migration", migration.stderr || migration.error?.message || "Migration could not finish. Original data was kept.");
+    app.exit(1);
+    throw new Error("Data migration did not finish; original data was kept.");
+  }
+}
 app.setPath("userData", path.join(home, "config", "electron"));
-app.setAppUserModelId("ca.jobsync.desktop");
+app.setAppUserModelId(brand.appId);
 let mainWindow, splash, child, state, paths, runtime, log;
 let quitting = false;
 let allowQuit = false;
@@ -33,7 +48,8 @@ function splashWindow() {
   if (splash && !splash.isDestroyed()) return splash;
   splash = new BrowserWindow({
     width: 540, height: 350, resizable: false, autoHideMenuBar: true,
-    title: "JobSync", backgroundColor: "#f8fafc", show: false,
+    title: "JobTrack", backgroundColor: "#f8fafc", show: false,
+    icon: path.join(__dirname, "icon.png"),
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, webviewTag: false },
   });
   splash.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
@@ -53,7 +69,7 @@ async function showFailure(error) {
   if (window.isDestroyed() || quitting) return;
   const message = `${error.message}\n\nLog: ${log || path.join(home, "logs")}`;
   // Only our bundled static splash receives this text. No privileged preload.
-  await window.webContents.executeJavaScript(`document.getElementById('status').textContent = ${JSON.stringify(message)}; document.getElementById('title').textContent = 'JobSync could not start'; document.getElementById('close').hidden = false;`);
+  await window.webContents.executeJavaScript(`document.getElementById('status').textContent = ${JSON.stringify(message)}; document.getElementById('title').textContent = 'JobTrack could not start'; document.getElementById('close').hidden = false;`);
   window.show();
 }
 
@@ -103,7 +119,7 @@ function openExternal(url) {
 function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1280, height: 900, minWidth: 800, minHeight: 600,
-    title: "JobSync", autoHideMenuBar: true, backgroundColor: "#f8fafc", show: false,
+    title: "JobTrack", autoHideMenuBar: true, backgroundColor: "#f8fafc", show: false,
     icon: path.join(__dirname, "icon.png"),
     webPreferences: { contextIsolation: true, nodeIntegration: false, nodeIntegrationInWorker: false,
       sandbox: true, webSecurity: true, allowRunningInsecureContent: false, webviewTag: false },
@@ -134,13 +150,13 @@ function createMainWindow() {
 }
 
 async function start() {
-  const base = app.isPackaged ? process.resourcesPath : path.join(__dirname, "../.desktop-build");
+  const base = resourceBase;
   runtime = await import(pathToFileURL(path.join(__dirname, "../scripts/local/runtime.mjs")).href);
   const shared = await import(pathToFileURL(path.join(__dirname, "../scripts/local/paths.mjs")).href);
   paths = shared.localPaths();
   fs.mkdirSync(paths.logs, { recursive: true });
   log = path.join(paths.logs, `desktop-${new Date().toISOString().replace(/[:.]/g, "-")}.log`);
-  append(`Starting JobSync ${app.getVersion()} (${process.arch})`);
+  append(`Starting JobTrack ${app.getVersion()} (${process.arch})`);
   release = await runtime.acquireLock(paths, 15_000);
   try {
     if (quitting) return;
@@ -149,11 +165,11 @@ async function start() {
     const settings = await runtime.ensureSettings(paths);
     const webRoot = path.join(base, "web");
     const node = path.join(base, "runtime", "node.exe");
-    if (!fs.existsSync(node) || !fs.existsSync(path.join(webRoot, ".next-desktop/BUILD_ID"))) throw new Error("Desktop resources are missing. Reinstall JobSync or rebuild the desktop package.");
+    if (!fs.existsSync(node) || !fs.existsSync(path.join(webRoot, ".next-desktop/BUILD_ID"))) throw new Error("Desktop resources are missing. Reinstall JobTrack or rebuild the desktop package.");
     if (quitting) return;
     const instanceId = randomUUID();
     const token = randomBytes(32).toString("hex");
-    const backendEnv = { ...runtime.runtimeEnv(paths, settings), JOBSYNC_DESKTOP: "1", JOBSYNC_INSTANCE_ID: instanceId, JOBSYNC_INSTANCE_TOKEN: token };
+    const backendEnv = { ...runtime.runtimeEnv(paths, settings), JOBTRACK_DESKTOP: "1", JOBTRACK_INSTANCE_ID: instanceId, JOBTRACK_INSTANCE_TOKEN: token };
     delete backendEnv.NODE_OPTIONS;
     delete backendEnv.NODE_PATH;
     delete backendEnv.ELECTRON_RUN_AS_NODE;
@@ -172,7 +188,7 @@ async function start() {
     await Promise.race([runtime.waitReady(paths, state), childExited.then(() => { throw new Error(`Internal service exited. See ${log}`); })]);
     if (quitting) return;
     createMainWindow();
-    childExited.then(() => { if (ready && !quitting) void showFailure(new Error("The internal service stopped unexpectedly. Close and reopen JobSync.")); });
+    childExited.then(() => { if (ready && !quitting) void showFailure(new Error("The internal service stopped unexpectedly. Close and reopen JobTrack.")); });
   } catch (error) { await stopOwnedService(); throw error; }
   finally { await unlock(); }
 }
@@ -191,7 +207,7 @@ else {
     session.defaultSession.setPermissionCheckHandler((wc, permission, origin) =>
       wc === mainWindow?.webContents && permissionAllowed(permission, origin));
     session.defaultSession.on("will-download", (_event, item) => {
-      item.setSaveDialogOptions({ title: "Save JobSync export", defaultPath: path.join(app.getPath("downloads"), path.basename(item.getFilename())) });
+      item.setSaveDialogOptions({ title: "Save JobTrack export", defaultPath: path.join(app.getPath("downloads"), path.basename(item.getFilename())) });
     });
     splashWindow();
     startup = start();

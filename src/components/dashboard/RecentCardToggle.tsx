@@ -120,7 +120,7 @@ export default function RecentCardToggle({
                   <div key={job.id} className="flex items-center gap-4">
                     <Avatar className="hidden h-8 w-8 sm:flex">
                       <AvatarImage
-                        src={job.Company?.logoUrl || "/images/jobsync-logo.svg"}
+                        src={job.Company?.logoUrl || "/images/jobtrack-logo.svg"}
                         alt="Avatar"
                       />
                       <AvatarFallback>JS</AvatarFallback>

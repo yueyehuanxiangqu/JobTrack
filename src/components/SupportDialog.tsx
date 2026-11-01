@@ -23,7 +23,6 @@ export function SupportDialog({
   version,
 }: SupportDialogProps) {
   const appVersion = packageJson.version;
-  const currentYear = new Date().getFullYear();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -32,26 +31,26 @@ export function SupportDialog({
           <DialogTitle>Support</DialogTitle>
           <DialogDescription className="space-y-1">
             <a
-              href="https://github.com/Gsync/jobsync/issues"
+              href="https://github.com/yueyehuanxiangqu/JobTrack/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="block text-primary hover:underline"
             >
-              https://github.com/Gsync/jobsync/issues
+              https://github.com/yueyehuanxiangqu/JobTrack/issues
             </a>
             <a
-              href="https://github.com/Gsync/jobsync/discussions"
+              href="https://github.com/yueyehuanxiangqu/JobTrack"
               target="_blank"
               rel="noopener noreferrer"
               className="block text-primary hover:underline"
             >
-              https://github.com/Gsync/jobsync/discussions
+              https://github.com/yueyehuanxiangqu/JobTrack
             </a>
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <a
-            href="https://github.com/Gsync/jobsync"
+            href="https://github.com/yueyehuanxiangqu/JobTrack"
             target="_blank"
             rel="noopener noreferrer"
             className="group flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 transition-colors hover:bg-amber-500/20"
@@ -59,7 +58,7 @@ export function SupportDialog({
             <Star className="h-5 w-5 shrink-0 fill-amber-400 text-amber-500 transition-transform group-hover:scale-110" />
             <span className="space-y-0.5">
               <span className="block text-sm font-semibold">
-                Is JobSync helping your search? Give it a star
+                Is JobTrack helping your search? Give it a star
               </span>
               <span className="block text-xs text-muted-foreground">
                 It takes one click and helps other job seekers find it.
@@ -85,15 +84,15 @@ export function SupportDialog({
           <div className="space-y-2">
             <h3 className="text-sm font-semibold">Copyright</h3>
             <p className="text-sm text-muted-foreground">
-              © {currentYear} JobSync. All rights reserved.
+              Based on JobSync. Copyright (c) 2024 gsync. MIT License.
             </p>
             <a
-              href="https://jobsync.ca/"
+              href="https://github.com/Gsync/jobsync"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-primary hover:underline"
             >
-              https://jobsync.ca/
+              https://github.com/Gsync/jobsync
             </a>
           </div>
         </div>

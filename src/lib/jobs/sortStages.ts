@@ -1,6 +1,6 @@
 // Stage order is the Library -> Stages order (JobStageType.sortOrder), not
 // chronology: a job is routinely added days after it was applied to, so the
-// New stage's date (when the job entered JobSync) postdates the Applied
+// New stage's date (when the job entered JobTrack) postdates the Applied
 // stage's. Dates break ties within one sortOrder. Undated stages sort last
 // among their peers — SQLite sorts NULL first on ASC and Prisma's
 // nulls:"last" is unsupported there, so none of this can live in the query.

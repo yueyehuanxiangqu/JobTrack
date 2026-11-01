@@ -7,5 +7,5 @@ if (!["start", "stop", "setup", "status"].includes(command) || args.slice(1).som
   process.exitCode = 1;
 } else {
   try { await launch(command, { noBrowser: args.includes("--no-browser"), rebuild: args.includes("--rebuild") }); }
-  catch (error) { console.error(`\nJobSync: ${error.message}`); process.exitCode = 1; }
+  catch (error) { console.error(`\nJobTrack: ${error.message}`); process.exitCode = 1; }
 }

@@ -21,8 +21,8 @@ await expect.poll(() => {
 }, { timeout: 30_000 }).toBe(true);
 await page.waitForLoadState("load");
 await page.screenshot({ path: path.join(paths.home, "verification/shortcut-desktop.png"), fullPage: true });
-assert((await page.title()).includes("JobSync"));
-console.log("PASS Installed desktop shortcut opens the standalone JobSync application");
+assert((await page.title()).includes("JobTrack"));
+console.log("PASS Installed desktop shortcut opens the standalone JobTrack application");
 await page.evaluate(() => window.close()).catch(() => {});
 await browser.close().catch(() => {});
 const alive = (pid) => { try { process.kill(pid, 0); return true; } catch (error) { if (error.code === "ESRCH") return false; throw error; } };

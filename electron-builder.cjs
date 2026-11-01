@@ -1,3 +1,4 @@
+const brand = require("./branding/brand.json");
 module.exports = {
   afterPack: async ({ appOutDir }) => {
     const fs = require("node:fs");
@@ -8,10 +9,10 @@ module.exports = {
       if (!fs.existsSync(path.join(appOutDir, "resources", file))) throw new Error(`Incomplete desktop resources: ${file}`);
     }
   },
-  appId: "ca.jobsync.desktop",
-  productName: "JobSync",
+  appId: brand.appId,
+  productName: brand.name,
   directories: { app: ".desktop-build/app", output: "dist-desktop" },
-  files: ["desktop/**", "scripts/local/{runtime,paths,project}.mjs", "package.json", "LICENSE", "!node_modules/**"],
+  files: ["desktop/**", "scripts/local/{runtime,paths,project,home-migration}.mjs", "branding/brand.json", "package.json", "LICENSE", "!node_modules/**"],
   extraResources: [
     { from: ".desktop-build/web", to: "web", filter: ["**/*"] },
     // electron-builder excludes a root node_modules from generic directory
@@ -24,7 +25,7 @@ module.exports = {
   electronFuses: { runAsNode: false, enableNodeOptionsEnvironmentVariable: false, onlyLoadAppFromAsar: true },
   asar: true,
   npmRebuild: false,
-  artifactName: "JobSync-Setup-${version}.${ext}",
+  artifactName: "JobTrack-Setup-${version}.${ext}",
   win: { target: [{ target: "nsis", arch: ["x64"] }], icon: ".desktop-build/icon.ico" },
-  nsis: { oneClick: true, perMachine: false, allowElevation: false, runAfterFinish: false, createDesktopShortcut: "always", createStartMenuShortcut: true, deleteAppDataOnUninstall: false },
+  nsis: { oneClick: true, perMachine: false, allowElevation: false, runAfterFinish: false, createDesktopShortcut: "always", createStartMenuShortcut: true, shortcutName: brand.name, installerIcon: "branding/jobtrack.ico", uninstallerIcon: "branding/jobtrack.ico", installerHeaderIcon: "branding/jobtrack.ico", deleteAppDataOnUninstall: false },
 };

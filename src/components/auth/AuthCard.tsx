@@ -17,7 +17,7 @@ export default function AuthCard({ mode }: AuthCardProps) {
     <div className="mx-auto w-full max-w-md px-4">
       {/* App branding */}
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight">JobSync</h1>
+        <h1 className="text-3xl font-bold tracking-tight">JobTrack</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Keep your job search organized
         </p>

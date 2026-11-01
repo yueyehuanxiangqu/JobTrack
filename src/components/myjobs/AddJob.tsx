@@ -72,6 +72,8 @@ type AddJobProps = {
   initialOpen?: boolean;
   hideTrigger?: boolean;
   redirectPath?: string;
+  /** Refresh an owning list in place, retaining its search/filter/sort state. */
+  onSaved?: () => void;
 };
 
 export function AddJob({
@@ -86,6 +88,7 @@ export function AddJob({
   initialOpen,
   hideTrigger,
   redirectPath,
+  onSaved,
 }: AddJobProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -190,7 +193,8 @@ export function AddJob({
 
   const finishSave = () => {
     reset(); setFiles({}); setSavedJobId(null); setDocumentError(""); setDialogOpen(false);
-    router.push(redirectPath ?? "/dashboard/myjobs"); router.refresh();
+    if (!onSaved) router.push(redirectPath ?? "/dashboard/myjobs");
+    router.refresh();
   };
   function onSubmit(data: z.infer<typeof AddJobFormSchema>) {
     for (const kind of DOCUMENT_KINDS) {
@@ -206,6 +210,9 @@ export function AddJob({
         setSavedJobId(jobId ?? null);
         saveToLocalStorage(APP_CONSTANTS.LAST_JOB_LOCATION_STORAGE_KEY, data.location);
         saveToLocalStorage(APP_CONSTANTS.LAST_JOB_SOURCE_STORAGE_KEY, data.source);
+        // RSC refresh preserves the list's client state. Notify its existing
+        // reload handler once the record is saved, even if attachments need retry.
+        onSaved?.();
       }
       const selected = DOCUMENT_KINDS.filter((kind) => files[kind]);
       if (selected.length) {

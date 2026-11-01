@@ -10,6 +10,7 @@ import { getCurrentUser } from "@/utils/user.utils";
 import { render,screen,waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
+const navigation = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn(), replace: vi.fn() }));
 vi.mock("@/utils/user.utils", () => ({
   getCurrentUser: vi.fn(),
 }));
@@ -41,7 +42,7 @@ vi.mock("@/lib/toast", () => ({
 
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),
-  useRouter: vi.fn(() => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() })),
+  useRouter: vi.fn(() => navigation),
   useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
 
@@ -79,6 +80,7 @@ describe("AddJob Component", () => {
   const mockJobStatuses = JOB_STATUSES;
   const mockJobSources = JOB_SOURCES;
   const mockResetEditJob = vi.fn();
+  const onSaved = vi.fn();
   const user = userEvent.setup({ skipHover: true });
   window.HTMLElement.prototype.scrollIntoView = vi.fn(); // Fixes the issue with combobox
   window.HTMLElement.prototype.hasPointerCapture = vi.fn();
@@ -98,6 +100,7 @@ describe("AddJob Component", () => {
         tags={[]}
         editJob={null}
         resetEditJob={mockResetEditJob}
+        onSaved={onSaved}
       />,
     );
     const addJobButton = screen.getByTestId("add-job-btn");
@@ -160,6 +163,7 @@ describe("AddJob Component", () => {
     const dialog = await screen.findByRole("dialog");
     await user.click(cancelBtn);
     expect(dialog).not.toBeInTheDocument();
+    expect(onSaved).not.toHaveBeenCalled();
   });
   it("should load and show the job title combobox list", async () => {
     const jobTitleCombobox = screen.getByLabelText("Job Title");
@@ -271,6 +275,9 @@ describe("AddJob Component", () => {
     await waitFor(() => {
       expect(addJob).toHaveBeenCalledTimes(1);
       expect(dialog).not.toBeInTheDocument();
+      expect(onSaved).toHaveBeenCalledTimes(1);
+      expect(navigation.push).not.toHaveBeenCalled();
+      expect(navigation.refresh).toHaveBeenCalled();
       expect(addJob).toHaveBeenCalledWith({
         title: "1xx",
         company: "2zz",
@@ -288,6 +295,14 @@ describe("AddJob Component", () => {
       });
     });
   }, 10000);
+  it("does not reload the owning list when saving the record fails", async () => {
+    (addJob as any).mockResolvedValueOnce({ success: false, message: "Save failed" });
+    await fillValidForm();
+    await user.click(screen.getByTestId("save-job-btn"));
+    await waitFor(() => expect(addJob).toHaveBeenCalledTimes(1));
+    expect(onSaved).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBeVisible();
+  });
   it("stages both optional files in memory and leaves no upload when cancelled", async () => {
     const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
     try {
@@ -308,12 +323,14 @@ describe("AddJob Component", () => {
       await user.upload(screen.getByLabelText("CV", { exact: true }), new File(["cv"], "中文.pdf", { type: "application/pdf" }));
       await user.click(screen.getByTestId("save-job-btn"));
       expect(await screen.findByRole("alert")).toHaveTextContent("Job saved, but documents could not be confirmed");
+      expect(onSaved).toHaveBeenCalledTimes(1);
       expect(screen.getByRole("link", { name: "Open saved job" })).toHaveAttribute("href", "/dashboard/myjobs/saved-job");
       const retry = screen.getByRole("button", { name: "Retry documents" });
       await waitFor(() => expect(retry).toBeEnabled(), { timeout: 3000 });
       await user.click(retry);
       await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument(), { timeout: 3000 });
       expect(addJob).toHaveBeenCalledTimes(1);
+      expect(onSaved).toHaveBeenCalledTimes(1);
       expect(fetcher).toHaveBeenCalledTimes(2);
       expect(fetcher.mock.calls.every((call) => call[0] === "/api/jobs/saved-job/documents")).toBe(true);
     } finally { vi.unstubAllGlobals(); }

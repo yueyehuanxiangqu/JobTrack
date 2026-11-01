@@ -7,6 +7,8 @@ import {
   getJobDetails,
   deleteJobById,
   updateJobStatus,
+  addJob,
+  updateJob,
 } from "@/actions/job.actions";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { EMPTY_JOB_FACETS } from "@/lib/jobs/jobFacets";
@@ -47,6 +49,12 @@ vi.mock("@/actions/job.actions", () => ({
   getJobDetails: vi.fn(),
   deleteJobById: vi.fn(),
   updateJobStatus: vi.fn(),
+  addJob: vi.fn(),
+  updateJob: vi.fn(),
+}));
+vi.mock("@/actions/note.actions", () => ({
+  getNotesByJobId: vi.fn().mockResolvedValue({ success: true, data: [] }),
+  addNote: vi.fn(), updateNote: vi.fn(), deleteNote: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -244,6 +252,92 @@ describe("JobsContainer Search Functionality", () => {
       />,
     );
   };
+
+  describe("mutation-driven list refresh", () => {
+    beforeEach(() => { localStorage.clear(); });
+    // The list-only fixtures use one-character IDs. Real form validation
+    // requires at least two characters for lookup IDs, as production UUIDs have.
+    const formRows = <T extends { id: string }>(rows: T[]) => rows.map(row => ({ ...row, id: row.id.padStart(2, "0") }));
+    const renderSavingComponent = () => render(<JobsContainer
+      statuses={formRows(mockStatuses)} companies={formRows(mockCompanies)}
+      titles={formRows(mockTitles)} locations={formRows(mockLocations)}
+      sources={formRows(mockSources)} tags={[]}
+    />);
+    const choose = async (label: string, option: string) => {
+      await user.click(screen.getByLabelText(label));
+      await user.click(screen.getByRole("option", { name: option }));
+    };
+
+    it("shows a newly saved job without manual reload and retains filters, search and sort", async () => {
+      (useSearchParams as any).mockReturnValue(new URLSearchParams("company=amazon&status=applied"));
+      let rows = [mockJobs[0]];
+      (getJobsList as any).mockImplementation(async () => ({ success: true, data: rows, total: rows.length }));
+      (addJob as any).mockImplementationOnce(async () => {
+        rows = [...rows, { ...mockJobs[0], id: "new-job" }];
+        return { success: true, data: { id: "new-job" } };
+      });
+      renderSavingComponent();
+      await screen.findByRole("table");
+      await user.type(screen.getByPlaceholderText("Search jobs..."), "Full");
+      await act(async () => { vi.advanceTimersByTime(300); });
+      await user.click(screen.getByRole("button", { name: /^Company/ }));
+      mockRouter.push.mockClear();
+      await user.click(screen.getByTestId("add-job-btn"));
+      await choose("Job Title", "Full Stack Developer");
+      await choose("Company", "Amazon");
+      await choose("Job Location", "Remote");
+      await choose("Job Source", "Indeed");
+      await choose("Status", "Applied");
+      await user.click(screen.getByTestId("save-job-btn"));
+      await waitFor(() => expect(screen.getAllByRole("button", { name: "Edit Job" })).toHaveLength(2));
+      expect(getJobsList).toHaveBeenLastCalledWith(1, 25,
+        { ...EMPTY_JOB_FACETS, statuses: ["applied"] }, "Full", "amazon",
+        undefined, undefined, undefined, undefined, { field: "company", dir: "asc" });
+      expect(screen.getByPlaceholderText("Search jobs...")).toHaveValue("Full");
+      expect(mockRouter.push).not.toHaveBeenCalled();
+    });
+
+    it("replaces the edited row after a successful save", async () => {
+      let rows = [mockJobs[0]];
+      (getJobsList as any).mockImplementation(async () => ({ success: true, data: rows, total: rows.length }));
+      (getJobDetails as any).mockResolvedValueOnce({ success: true, job: {
+        ...mockJobs[0], JobTitle: formRows(mockTitles)[0], Company: formRows(mockCompanies)[0],
+        Location: formRows(mockLocations)[0], JobSource: formRows(mockSources)[0],
+        Status: formRows(mockStatuses)[0], description: "<p>Existing description</p>", tags: [],
+      } });
+      (updateJob as any).mockImplementationOnce(async () => {
+        rows = [{ ...mockJobs[0], Company: { ...mockJobs[0].Company, ...mockCompanies[1] } }];
+        return { success: true };
+      });
+      renderSavingComponent();
+      await user.click(await screen.findByRole("button", { name: "Edit Job" }));
+      await choose("Company", "Google");
+      await user.click(screen.getByTestId("save-job-btn"));
+      await waitFor(() => expect(screen.getByRole("table")).toHaveTextContent("Google"));
+      expect(updateJob).toHaveBeenCalledTimes(1);
+    });
+
+    it("updates application status and removes a deleted job through the existing reload handlers", async () => {
+      let rows = [mockJobs[0]];
+      (getJobsList as any).mockImplementation(async () => ({ success: true, data: rows, total: rows.length }));
+      (updateJobStatus as any).mockImplementationOnce(async () => {
+        rows = [{ ...mockJobs[0], Status: mockStatuses[1] }];
+        return { success: true };
+      });
+      (deleteJobById as any).mockImplementationOnce(async () => {
+        rows = []; return { success: true };
+      });
+      renderComponent();
+      await user.click(await screen.findByRole("button", { name: "Change status, currently Applied" }));
+      await user.click(screen.getByRole("menuitem", { name: "Interview" }));
+      await screen.findByRole("button", { name: "Change status, currently Interview" });
+      await user.click(screen.getByRole("button", { name: "Delete Job" }));
+      await user.click(screen.getByRole("button", { name: /^Delete$/ }));
+      await waitFor(() => expect(screen.queryByRole("button", { name: "Edit Job" })).not.toBeInTheDocument());
+      expect(updateJobStatus).toHaveBeenCalledWith("1", mockStatuses[1]);
+      expect(deleteJobById).toHaveBeenCalledWith("1");
+    });
+  });
 
   describe("Search Input", () => {
     it("should render search input with placeholder", async () => {

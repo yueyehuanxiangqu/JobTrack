@@ -1,8 +1,42 @@
 # Phase 4: responsive desktop layout and cleanup
 
-Work is isolated on `feat/phase4-responsive-cleanup`. `main` remains at
-`c5b4f8365d39e9b34f76de16e6ba466fd1b96f90`. No push, release, NSIS installer,
-installation, database schema change or Phase 5 work is included.
+Original Phase 4 work was isolated on `feat/phase4-responsive-cleanup`, based on
+`c5b4f8365d39e9b34f76de16e6ba466fd1b96f90`, without updating or pushing `main`.
+The authorized closeout below fixes Jobs refresh before fast-forwarding and
+pushing `main`. No release, Electron packaging, installation, database schema
+change or Phase 5 work is included in that closeout.
+
+## Closeout: Jobs list refresh
+
+The list is owned by `useJobsList` client state. Server actions already save to
+SQLite and invalidate server content, but `router.refresh()` preserves client
+state and the stable list-query dependencies do not change after a save. There
+was no callback from Add Job/Edit Job to reload that list. Default navigation
+could also discard the list's current URL filters.
+
+`AddJob` now accepts an optional `onSaved` callback, wired by `JobsToolbar` to
+the existing Reload jobs handler. It fires once when the record is successfully
+saved, including when document upload subsequently needs a retry. Retrying only
+documents does not re-save or create another record. An owning list stays on its
+current URL; other callers retain their existing redirect and server refresh.
+Status changes and deletion retain their existing reload handlers. Search,
+filters, sorting, newest-response protection and existing pagination behavior
+are reused without a new cache, global store or polling.
+
+Changed application files: `src/components/myjobs/AddJob.tsx` and
+`src/components/myjobs/jobs-container/JobsToolbar.tsx`. Regression coverage is in
+`__tests__/AddJob.spec.tsx` and `__tests__/JobsContainer.spec.tsx`.
+
+Closeout checks: TypeScript and ESLint pass; **13 related test files / 283 tests
+pass**, including list mutations, query preservation, pagination, both document
+slots/retries and calendar statistics. The full Vitest suite is not rerun.
+One local Node/Next.js production build passes. The original, unmodified
+`verify-browser.mjs` passes against that production server in the isolated
+`.local-runtime-test/Phase4 jobs refresh` home: create/edit/delete update the list
+without Reload jobs, interview/status consistency, real Tasks/Activities,
+attachment round-trips, PDF/CSV, ZIP restore/rollback and the real application/hour
+calendar tooltip all pass. No temporary manual-reload adaptation is used in this
+closeout. Electron is not rebuilt, packaged, installed or reinstalled.
 
 ## Layout changes
 
@@ -99,10 +133,11 @@ system security setting is changed. Runtime checks hide system Node from PATH.
   ZIP preflight/restore, attachment recovery, snapshot/rollback, duplicate username
   rejection and isolation between two test users. These checks use real local
   SQLite records and bytes, not mocked server responses.
-- **Known pre-existing limitation:** the original `verify-browser.mjs` run fails
+- **Historical limitation, fixed by the closeout above:** the original Phase 4
+  `verify-browser.mjs` run failed
   its automatic list-refresh expectation after creating a job in an empty Jobs
   list. The record is correctly saved; the list displays it after **Reload jobs**.
-  `AddJob.finishSave` and the list refresh logic are unchanged from `main`.
+  At that point, `AddJob.finishSave` and list refresh logic were unchanged from `main`.
   A temporary, ignored harness adaptation explicitly clicks the existing Reload
   button after saving to verify the remaining core workflows. This is not
   reported as an automatic-refresh pass, and no business logic fix is included.

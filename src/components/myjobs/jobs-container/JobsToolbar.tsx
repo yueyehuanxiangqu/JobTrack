@@ -179,6 +179,7 @@ export function JobsToolbar({
           tags={tags}
           editJob={editJob}
           resetEditJob={resetEditJob}
+          onSaved={onReload}
           initialOpen={addJobInitialOpen}
         />
       </div>

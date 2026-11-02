@@ -1,5 +1,6 @@
-import { Briefcase,PanelLeft } from "lucide-react";
+import { PanelLeft } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 import {
 Sheet,
@@ -31,9 +32,9 @@ async function Header({ user, signOutAction }: { user?: CurrentUser; signOutActi
             <SheetClose asChild>
               <Link
                 href="/dashboard"
-                className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
+                className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-lg text-lg font-semibold md:text-base"
               >
-                <Briefcase className="h-5 w-5 transition-all group-hover:scale-110" />
+                <Image src="/images/jobtrack-logo.svg" width={40} height={40} alt="" className="h-10 w-10 transition-transform group-hover:scale-110" />
                 <span className="sr-only">JobTrack</span>
               </Link>
             </SheetClose>

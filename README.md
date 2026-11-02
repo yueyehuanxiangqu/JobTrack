@@ -18,7 +18,7 @@ JobTrack helps individual job seekers organize applications, interviews, tasks, 
 
 ## Getting Started
 
-No GitHub Release is available yet. To try the desktop app:
+The current local Windows test build is **0.1.0**. No GitHub Release is available yet. To try the desktop app:
 
 1. On Windows 11 x64, follow the [Windows desktop guide](WINDOWS_DESKTOP.md#build-from-source) to build the installer.
 2. Run the generated installer, then open **JobTrack** from the desktop or Start menu shortcut.

@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Briefcase } from "lucide-react";
 import { APP_CONSTANTS, SIDEBAR_LINKS } from "@/lib/constants";
 import NavLink from "./NavLink";
 import { ProfileDropdown } from "./ProfileDropdown";
@@ -40,9 +40,9 @@ function Sidebar({ user, signOutAction }: SidebarProps) {
               onClick={(e) => {
                 if (isOnDashboard) e.preventDefault();
               }}
-              className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground md:h-8 md:w-8"
+              className="group flex h-9 w-9 shrink-0 items-center justify-center rounded-lg md:h-8 md:w-8"
             >
-              <Briefcase className="h-4 w-4 transition-transform group-hover:scale-110" />
+              <Image src="/images/jobtrack-logo.svg" width={36} height={36} alt="" className="h-9 w-9 transition-transform group-hover:scale-110 md:h-8 md:w-8" />
               <span className="sr-only">JobTrack</span>
             </Link>
           </div>

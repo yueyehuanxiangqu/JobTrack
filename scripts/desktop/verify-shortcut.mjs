@@ -22,6 +22,15 @@ await expect.poll(() => {
 await page.waitForLoadState("load");
 await page.screenshot({ path: path.join(paths.home, "verification/shortcut-desktop.png"), fullPage: true });
 assert((await page.title()).includes("JobTrack"));
+const current = await page.request.get('http://127.0.0.1:3737/api/version');
+if (current.ok()) {
+  const pkg = JSON.parse(await fs.readFile(path.join(projectRoot, 'package.json'), 'utf8'));
+  assert.equal((await current.json()).current, pkg.version);
+}
+await fs.writeFile(path.join(paths.home, 'verification/shortcut-metadata.json'), JSON.stringify({
+  title: await page.title(), devicePixelRatio: await page.evaluate(() => window.devicePixelRatio),
+  installedShortcutStartedApp: true, ownedBackendPid: state.pid,
+}, null, 2));
 console.log("PASS Installed desktop shortcut opens the standalone JobTrack application");
 await page.evaluate(() => window.close()).catch(() => {});
 await browser.close().catch(() => {});

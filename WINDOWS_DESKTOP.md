@@ -8,11 +8,11 @@ MIT License and upstream copyright are unchanged.
 
 ## Install and use
 
-The branded NSIS installer is deferred to Phase 6C and has not been published.
-The following steps describe a future source-built installer. Phase 6A/6B
-verification uses an unpacked production application, not a new installation.
+The local Windows test installer is JobTrack 0.1.0. It has not been published
+as a GitHub Release. See [Phase 6C validation](PHASE6C_VALIDATION.md) for the
+installed-app checks and known distribution limits.
 
-1. Run `JobTrack-Setup-1.1.22.exe` on Windows 11 x64. It installs for the current
+1. Run `JobTrack-Setup-0.1.0.exe` on Windows 11 x64. It installs for the current
    account and creates desktop and Start menu shortcuts. No Node.js, npm,
    Prisma, Docker, external browser or Windows service is needed.
 2. Open **JobTrack**. A small startup window remains visible while the local
@@ -30,7 +30,8 @@ a SmartScreen reputation prompt. Code signing is a future distribution step;
 it is not required to build or run the local installation. No Windows security
 settings are changed by this project.
 
-The installer uses current-user mode (normally `%LOCALAPPDATA%\Programs\JobTrack`),
+The installer uses current-user mode (`%LOCALAPPDATA%\Programs\jobtrack-desktop`,
+electron-builder's default based on the internal desktop package name),
 without elevation or service registration. Updates are manual: close the app,
 then install the new installer. Automatic updates are not configured.
 
@@ -118,7 +119,7 @@ npm ci
 npm run desktop:build
 ```
 
-The installer is written to `dist-desktop\JobTrack-Setup-1.1.22.exe`, alongside
+The installer is written to `dist-desktop\JobTrack-Setup-0.1.0.exe`, alongside
 `dist-desktop\win-unpacked\JobTrack.exe` for packaged-directory testing.
 `npm run desktop:pack` produces only the packaged directory. `desktop:start`
 is a developer convenience after staging and is not an end-user requirement.
@@ -135,7 +136,8 @@ Electron, so no Electron ABI rebuild of Prisma is needed.
 The application ASAR contains only desktop code and shared helpers. The web
 runtime lives under `resources/web`, and official Node plus its license under
 `resources/runtime`. Developer `.env` files and user databases are not packaged.
-The original vector logo supplies the 256px Windows icon.
+The selected A — J-Track artwork supplies the 256px Electron PNG and seven-frame
+Windows ICO. Staging preserves the tuned 16/32px frames without rerasterising it.
 
 Packaging deliberately retains runtime dependency closures for reliable
 offline execution, so this distribution is larger than a browser-only frontend.

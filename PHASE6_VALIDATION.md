@@ -1,5 +1,7 @@
 # Phase 6A / 6B verification
 
+This is the historical 6A/6B report. Later installation checks are recorded in [PHASE6C_VALIDATION.md](PHASE6C_VALIDATION.md).
+
 Branch: `feat/phase6-branding-data-migration`. No Push, Release or NSIS installer is part of this phase.
 
 ## Implemented

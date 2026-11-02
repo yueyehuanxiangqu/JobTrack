@@ -120,6 +120,9 @@ describe("Sidebar", () => {
   it("renders a link for each nav item", () => {
     renderSidebar();
 
+    expect(screen.getByRole("link", { name: "JobTrack" }).querySelector("img"))
+      .toHaveAttribute("src", "/images/jobtrack-logo.svg");
+
     expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
       "href",
       "/dashboard"

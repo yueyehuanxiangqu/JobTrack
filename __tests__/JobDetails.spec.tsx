@@ -269,7 +269,7 @@ describe("JobDetails – tabs", () => {
   it("renders the four core tabs without AI actions", () => {
     render(<JobDetails {...baseProps} job={makeJob()} />);
 
-    expect(screen.getByRole("tab", { name: /description/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /job summary/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /contacts/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /timeline/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /notes/i })).toBeInTheDocument();
@@ -282,7 +282,7 @@ describe("JobDetails – tabs", () => {
     );
 
     const tabs = screen.getAllByRole("tab").map((t) => t.textContent);
-    const descriptionAt = tabs.findIndex((t) => t?.startsWith("Description"));
+    const descriptionAt = tabs.findIndex((t) => t?.startsWith("Job Summary"));
     const timelineAt = tabs.findIndex((t) => t?.startsWith("Timeline"));
 
     expect(timelineAt).toBe(descriptionAt + 1);
@@ -315,7 +315,7 @@ describe("JobDetails – tabs", () => {
   it("opens on the Description tab", () => {
     render(<JobDetails {...baseProps} job={makeJob()} />);
 
-    expect(screen.getByRole("tab", { name: /description/i })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: /job summary/i })).toHaveAttribute(
       "data-state",
       "active",
     );

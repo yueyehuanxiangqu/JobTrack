@@ -56,3 +56,8 @@ it("bounds a DNS lookup with the request abort signal", async () => {
   const result = publicDestination(new URL("https://example.com"), controller.signal); controller.abort();
   await expect(result).rejects.toThrow();
 });
+it("returns only the revalidated final URL after a public redirect", async () => {
+  responses=[{status:302,headers:{location:"https://careers.example/current"}},{body:"public HTML"}];
+  expect((await fetchPublicPage("https://example.com/short")).url).toBe("https://careers.example/current");
+  expect(mocks.lookup).toHaveBeenCalledTimes(2);
+});

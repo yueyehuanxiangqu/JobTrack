@@ -162,13 +162,13 @@ try {
   await page.getByRole("option", { name: "Indeed", exact: true }).click();
   await page.getByLabel("Select Job Status").click();
   await page.getByRole("option", { name: "Applied", exact: true }).click();
-  await page.getByLabel("Job Description").locator("div").fill("Native Windows runtime verification job description.");
+  await page.getByLabel("Job Summary").locator("div").fill("Native Windows runtime verification job description.");
   await page.getByTestId("save-job-btn").click();
   const row = page.getByRole("row", { name: jobTitle }).first();
   await expect(row).toBeVisible();
   record("Create applied job through original form");
   await row.getByRole("button", { name: "Edit Job" }).click();
-  await page.getByLabel("Job Description").locator("div").fill("Edited native Windows runtime job description.");
+  await page.getByLabel("Job Summary").locator("div").fill("Edited native Windows runtime job description.");
   await page.getByTestId("save-job-btn").click();
   await expect(page.getByTestId("save-job-btn")).toBeHidden();
   const owner = await prisma.user.findUniqueOrThrow({ where: { username } });

@@ -42,7 +42,7 @@ export const AddJobFormSchema = z.object({
       message: "Status must be at least 2 characters.",
     })
     .default("draft"),
-  dueDate: z.date(),
+  dueDate: z.date().optional(), // Legacy callers only; not part of the Job UI.
   /**
    * Note: Timezone offsets can be allowed by setting the offset option to true.
    * z.string().datetime({ offset: true });
@@ -54,7 +54,7 @@ export const AddJobFormSchema = z.object({
     .string({
       error: "Job description is required.",
     })
-    .refine((val) => val === "N/A" || val.length >= 10, {
+    .refine((val) => !val || val === "N/A" || val.length >= 10, {
       message: "Job description must be at least 10 characters.",
     }),
   jobUrl: z.string().optional(),

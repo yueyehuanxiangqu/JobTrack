@@ -9,7 +9,7 @@ import { Toggle } from "./ui/toggle";
 import { Bold, Heading2, Italic, List, ListOrdered } from "lucide-react";
 import { useEffect } from "react";
 
-const Tiptap = ({ field }: { field: ControllerRenderProps<any, any> }) => {
+const Tiptap = ({ field, summaryOnly = false }: { field: ControllerRenderProps<any, any>; summaryOnly?: boolean }) => {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -27,7 +27,7 @@ const Tiptap = ({ field }: { field: ControllerRenderProps<any, any> }) => {
 
         bulletList: {
           HTMLAttributes: {
-            class: "list-disc pl-4",
+            class: "list-disc pl-5 space-y-2",
           },
         },
       }),
@@ -35,7 +35,7 @@ const Tiptap = ({ field }: { field: ControllerRenderProps<any, any> }) => {
     editorProps: {
       attributes: {
         class:
-          "min-h-[140px] border rounded-md px-3 py-2 placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:outline-hidden",
+          "min-h-[140px] max-w-full border rounded-md px-3 py-2 leading-relaxed [overflow-wrap:anywhere] placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:outline-hidden",
       },
     },
     content: field.value,
@@ -53,6 +53,7 @@ const Tiptap = ({ field }: { field: ControllerRenderProps<any, any> }) => {
     <div className="flex flex-col gap-2">
       {editor && (
         <div className="border-input border rounded-md">
+          {!summaryOnly && <>
           <Toggle
             pressed={editor.isActive("bold")}
             onPressedChange={() => editor.chain().focus().toggleBold().run()}
@@ -85,8 +86,10 @@ const Tiptap = ({ field }: { field: ControllerRenderProps<any, any> }) => {
           >
             <ListOrdered className="w-4 h-4" />
           </Toggle>
+          </>}
           <Toggle
             pressed={editor.isActive("bulletList")}
+            aria-label="Bullet list"
             onPressedChange={() =>
               editor.chain().focus().toggleBulletList().run()
             }

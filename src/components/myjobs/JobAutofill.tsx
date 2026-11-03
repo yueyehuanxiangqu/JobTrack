@@ -21,8 +21,7 @@ export function JobAutofill({ onApply, disabled }: { onApply: (result: AutofillR
       const data = await response.json(); if (controller.signal.aborted) return;
       if (!response.ok) { setError(data.error ?? "AI Autofill failed. Your form has not been changed."); return; }
       const fields = extractedJobSchema.parse(data.fields);
-      if (typeof data.description !== "string" || data.description.length > MAX_JD_CHARS) throw new Error();
-      onApply({ fields, description: data.description }, overwrite);
+      onApply({ fields }, overwrite);
       setMessage("Autofill complete. Existing entries were kept unless replacement was allowed. Review every field, then click Save.");
     } catch { if (!controller.signal.aborted) setError("AI Autofill failed or timed out. Your form has not been changed; try again or enter details manually."); }
     finally { if (!controller.signal.aborted) setBusy(false); }

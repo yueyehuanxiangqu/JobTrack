@@ -22,7 +22,7 @@ const suffix = randomUUID().slice(0, 8), username = `autofill-${suffix}`, passwo
 const key = `local-autofill-fixture-${suffix}`, geminiKey = `local-gemini-fixture-${suffix}`;
 const title = `Platform Engineer ${suffix}`, company = `Autofill Company ${suffix}`;
 const description = `${company} is hiring a ${title}. This full-time remote role involves building reliable software, collaborating with engineers and maintaining services. Location is not specified.`;
-const fields = { company, jobTitle: title, location: null, workplaceType: "REMOTE", jobType: "FT", jobUrl: "https://invented.example/not-trusted" };
+const fields = { company, jobTitle: title, location: null, workplaceType: "REMOTE", jobType: "FT", jobUrl: "https://invented.example/not-trusted", summary: ["Build reliable software.", "Collaborate with engineers.", "Maintain services."], salary: null };
 let invalidOutput = false;
 const server = http.createServer(async (req, res) => {
   let raw = ""; for await (const chunk of req) { raw += chunk; if (raw.length > 256000) { req.destroy(); return; } }
@@ -97,12 +97,13 @@ try {
   await page.getByRole("button", { name: "AI Autofill", exact: true }).click(); await expect(page.getByRole("status")).toContainText("Autofill complete");
   await expect(page.getByLabel("Job Title", { exact: true })).toContainText(title); await expect(page.getByLabel("Company", { exact: true })).toContainText(company);
   await expect(page.getByLabel("Job Location", { exact: true })).toContainText("Select"); await expect(page.getByRole("radio", { name: "Remote", exact: true })).toBeChecked();
-  await expect(page.getByLabel("Job Description", { exact: true })).toContainText(description); await expect(page.getByLabel("Job URL", { exact: true })).toHaveValue("https://manual.example/job");
+  await expect(page.getByLabel("Job Summary", { exact: true })).toContainText(fields.summary[0]); await expect(page.getByLabel("Job URL", { exact: true })).toHaveValue("https://manual.example/job");
+  await expect(page.getByLabel("Job Summary", { exact: true }).locator("li")).toHaveCount(3); await expect(page.getByLabel("Salary (optional)")).toHaveValue(""); await expect(page.getByText("Due Date", { exact: true })).toHaveCount(0);
   expect(await counts()).toEqual(before);
   mark("Private recruitment URL is rejected without a network request; pasted JD fills visible drafts/editor without creating any records or inventing a city");
   await choose("Company", "Manual Company"); await choose("Job Location", "Manual City"); await choose("Job Source", "Indeed"); await choose("Select Job Status", "Applied");
   await page.getByRole("radio", { name: "Contract", exact: true }).check();
-  await page.getByLabel("Job Description", { exact: true }).locator("div").fill(description + " Manual note kept.");
+  await page.getByLabel("Job Summary", { exact: true }).locator("div").fill(description + " Manual note kept.");
   const pdf = await renderToBuffer(React.createElement(Document, null, React.createElement(Page, null, React.createElement(Text, null, "Private CV content never sent to AI"))));
   const zip = new JSZip(); zip.file("[Content_Types].xml", "<Types/>"); zip.file("_rels/.rels", "<Relationships/>"); zip.file("word/document.xml", "<document>Private Cover Letter content</document>");
   const docx = await zip.generateAsync({ type: "nodebuffer" });
@@ -112,17 +113,42 @@ try {
   await expect.poll(() => requests.length).toBe(calls + 2);
   await expect(page.getByRole("button", { name: "AI Autofill", exact: true })).toBeEnabled();
   await expect(page.getByLabel("Company", { exact: true })).toContainText("Manual Company"); await expect(page.getByRole("radio", { name: "Contract", exact: true })).toBeChecked();
-  await expect(page.getByLabel("Job Description", { exact: true })).toContainText("Manual note kept.");
+  await expect(page.getByLabel("Job Summary", { exact: true })).toContainText("Manual note kept.");
   expect(await counts()).toEqual(before);
   expect(JSON.stringify(requests.map(r => r.body))).not.toMatch(/Private CV content|Private Cover Letter content/);
   await page.screenshot({ path: path.join(artifacts, "autofill-before-save.png"), fullPage: true });
   await page.getByTestId("save-job-btn").click(); await expect(page.getByTestId("save-job-btn")).toBeHidden();
   await expect(page.getByRole("row", { name: new RegExp(title) })).toBeVisible();
   const job = await prisma.job.findFirstOrThrow({ where: { userId: owner.id }, include: { Company: true, Documents: true } });
+  expect(job.description).toContain("<ul>"); expect(job.dueDate).toBeNull();
   expect(job.Company.label).toBe("Manual Company"); expect(job.jobType).toBe("C"); expect(job.description).toContain("Manual note kept."); expect(job.Documents).toHaveLength(2);
   for (const [kind, bytes] of [["CV", pdf], ["COVER_LETTER", docx]]) {
     const download = await page.request.get(`${origin}/api/jobs/${job.id}/documents/${kind}`); expect(download.ok()).toBe(true); expect(await download.body()).toEqual(bytes);
   }
+  await go("/dashboard/myjobs/" + job.id);
+  await expect(page.getByRole("tab", { name: "Job Summary", exact: true })).toHaveAttribute("data-state", "active");
+  await expect(page.getByRole("tabpanel").locator("li")).toHaveCount(1);
+  await page.getByTestId("job-details-edit-btn").click();
+  await expect(page.getByText("Due Date", { exact: true })).toHaveCount(0);
+  await page.getByLabel("Job Summary", { exact: true }).locator('div[contenteditable="true"]').fill("Maintain Azure services.\nReview code and tests.");
+  await page.getByLabel("Salary (optional)").fill("€3,000–€3,800 gross/month");
+  await page.getByTestId("save-job-btn").click(); await expect(page.getByTestId("save-job-btn")).toBeHidden();
+  await expect(page.getByRole("tabpanel").locator("li")).toHaveCount(2);
+  await page.reload();
+  await expect(page.getByRole("tabpanel").locator("li")).toHaveCount(2);
+  await expect(page.getByText("€3,000–€3,800 gross/month", { exact: true })).toBeVisible();
+  const edited = await prisma.job.findUniqueOrThrow({where:{id:job.id}});
+  expect(edited.description).not.toContain(description); expect(edited.salaryRange).toBe("€3,000–€3,800 gross/month");
+  await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith("http:"));w.setSize(900,800);w.webContents.setZoomFactor(1.5);});
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await page.getByRole("tabpanel").evaluate(e=>e.scrollIntoView({block:"center"}));
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect.poll(()=>page.getByRole("tabpanel").evaluate(e=>{const r=e.getBoundingClientRect();return e.scrollWidth<=e.clientWidth+1 && r.left>=-1 && r.right<=window.innerWidth+1;})).toBe(true);
+  await expect(page.getByRole("tabpanel").locator("li")).toHaveCount(2);
+  const summaryPng=await app.evaluate(async ({BrowserWindow})=>{const w=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith("http:"));return (await w.webContents.capturePage()).toPNG().toString("base64");});
+  await fs.writeFile(path.join(artifacts,"saved-summary.png"),Buffer.from(summaryPng,"base64"));
+  await app.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().startsWith("http:"));w.webContents.setZoomFactor(1);w.setSize(1280,900);});
+  mark("User-edited summary persists as separate bullet items after edit/save/reopen; optional salary remains verbatim and Jobs have no deadline");
   mark("Manual corrections survive repeated Autofill; Save alone creates the job/title, uploads both attachment slots and refreshes Jobs automatically");
   await go("/dashboard"); const calendar = page.getByRole("region", { name: "Activity Calendar days" });
   await calendar.locator('rect[style*="fill: rgb(144, 224, 239)"]').first().hover(); await expect(page.getByRole("tooltip")).toContainText("1 job applied");

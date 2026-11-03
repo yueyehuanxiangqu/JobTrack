@@ -586,3 +586,14 @@ describe("backup round trip", () => {
   }, 120_000);
 
 });
+it("round-trips new bullet summaries/salary and untouched legacy JD/deadline without a schema change", async () => {
+  const original = await prisma.job.findFirstOrThrow({where:{userId}});
+  const html = "<ul><li><p>Maintain Azure services.</p></li><li><p>Review code and tests.</p></li></ul>";
+  await prisma.job.update({where:{id:original.id},data:{description:html,salaryRange:"€3,000–€3,800 gross/month",dueDate:null}});
+  await prisma.job.create({data:{userId,description:"<h2>Legacy JD</h2><p>Original requirements remain unchanged.</p>",jobType:original.jobType,createdAt:new Date(),statusId:original.statusId,jobTitleId:original.jobTitleId,companyId:original.companyId,dueDate:new Date("2020-01-01")}});
+  const {buffer} = await buildBackupZip(userId,"owner@example.com");
+  await importBackup(buffer,userId,"owner@example.com",true);
+  const jobs = await prisma.job.findMany({where:{userId}});
+  expect(jobs.find(j=>j.description===html)).toMatchObject({salaryRange:"€3,000–€3,800 gross/month",dueDate:null});
+  expect(jobs.find(j=>j.description.startsWith("<h2>Legacy"))).toMatchObject({description:"<h2>Legacy JD</h2><p>Original requirements remain unchanged.</p>",salaryRange:null,dueDate:new Date("2020-01-01")});
+},120000);

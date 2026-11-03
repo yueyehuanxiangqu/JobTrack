@@ -10,7 +10,7 @@ type JobStatusBadgeProps = {
   className?: string;
 };
 
-// Dismissed and past-due drafts override the stored status. Shared by the
+// Dismissed discoveries override the stored status. Shared by the
 // table and card views so the two can't disagree about the same job.
 export function JobStatusBadge({ job, className }: JobStatusBadgeProps) {
   if (job.discoveryStatus === "dismissed") {
@@ -22,10 +22,6 @@ export function JobStatusBadge({ job, className }: JobStatusBadgeProps) {
         Dismissed
       </Badge>
     );
-  }
-
-  if (job.dueDate && new Date() > job.dueDate && job.Status?.value === "draft") {
-    return <StatusBadge label="Expired" color="amber" className={className} />;
   }
 
   return (

@@ -83,7 +83,7 @@ describe("JobCard", () => {
     expect(screen.queryByText("Applied")).not.toBeInTheDocument();
   });
 
-  it("shows an Expired badge for past-due draft jobs", () => {
+  it("keeps Draft status for legacy past-due jobs", () => {
     renderCard(
       makeJob({
         dueDate: new Date("2000-01-01"),
@@ -91,7 +91,7 @@ describe("JobCard", () => {
       }),
     );
 
-    expect(screen.getByText("Expired")).toBeInTheDocument();
+    expect(screen.queryByText("Expired")).not.toBeInTheDocument(); expect(screen.getByText("Draft")).toBeInTheDocument();
   });
 
   it("shows a notes count badge only when the job has notes", () => {

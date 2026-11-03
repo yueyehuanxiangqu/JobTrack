@@ -1,6 +1,6 @@
 import { parseExtractedJob, autofillConfigSchema, autofillInputSchema, descriptionHtml } from "@/models/jobAutofill.schema";
 it("normalizes missing fields to null without inventing values", () => {
-  expect(parseExtractedJob({ company: "Example" })).toEqual({ company: "Example", jobTitle: null, location: null, workplaceType: null, jobType: null, jobUrl: null });
+  expect(parseExtractedJob({ company: "Example" })).toEqual({ company: "Example", jobTitle: null, location: null, workplaceType: null, jobType: null, jobUrl: null, summary: [], salary: null });
 });
 it.each([{ company: 2 }, { jobType: "Internship" }, { workplaceType: "REMOTE_OR_HYBRID" }, { matchScore: 99 }, [], null])("rejects invalid extraction data", value => {
   expect(() => parseExtractedJob(value)).toThrow();

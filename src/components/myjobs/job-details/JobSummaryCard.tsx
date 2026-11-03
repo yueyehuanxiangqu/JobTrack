@@ -27,11 +27,6 @@ export function JobSummaryCard({
   job,
   currentStatus,
 }: JobSummaryCardProps) {
-  const expired =
-    job.dueDate &&
-    new Date() > new Date(job.dueDate) &&
-    currentStatus?.value === "draft";
-
   return (
     <Card>
       <CardContent className="pt-6">
@@ -39,14 +34,10 @@ export function JobSummaryCard({
           <div>
             <p className="text-sm text-muted-foreground">Status</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              {expired ? (
-                <StatusBadge label="Expired" color="amber" />
-              ) : (
                 <StatusBadge
                   label={currentStatus?.label ?? ""}
                   color={getJobStatusBadgeColor(currentStatus?.value ?? "")}
                 />
-              )}
             </div>
           </div>
           <div>
@@ -58,6 +49,10 @@ export function JobSummaryCard({
             </p>
           </div>
 
+          <div>
+            <p className="text-sm text-muted-foreground">Salary</p>
+            <p className="mt-1 font-medium whitespace-pre-wrap">{job.salaryRange || "-"}</p>
+          </div>
           <div>
             <p className="text-sm text-muted-foreground">Source</p>
             <p className="mt-1 font-medium">{job.JobSource?.label ?? "-"}</p>

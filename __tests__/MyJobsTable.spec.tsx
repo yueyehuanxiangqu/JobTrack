@@ -83,7 +83,7 @@ describe("MyJobsTable", () => {
     expect(within(statusButton).queryByText("Applied")).not.toBeInTheDocument();
   });
 
-  it("shows an Expired badge for past-due draft jobs", () => {
+  it("keeps Draft status for legacy past-due jobs", () => {
     renderTable([
       makeJob({
         dueDate: new Date("2000-01-01"),
@@ -91,7 +91,7 @@ describe("MyJobsTable", () => {
       }),
     ]);
 
-    expect(screen.getByText("Expired")).toBeInTheDocument();
+    expect(screen.queryByText("Expired")).not.toBeInTheDocument(); expect(screen.getByText("Draft")).toBeInTheDocument();
   });
 
   it("does not show Expired for past-due jobs that are not drafts", () => {

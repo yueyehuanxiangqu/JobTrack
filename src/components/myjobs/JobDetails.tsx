@@ -165,7 +165,7 @@ function JobDetails({
         <JobDocuments jobId={job.id} />
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="w-full justify-start overflow-x-auto">
-            <TabsTrigger value="description">Description</TabsTrigger>
+            <TabsTrigger value="description">Job Summary</TabsTrigger>
             <TabsTrigger value="timeline">
               Timeline
               {stages.length > 0 && (

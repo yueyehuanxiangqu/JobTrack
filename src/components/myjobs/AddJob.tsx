@@ -23,7 +23,6 @@ Tag,
 WORKPLACE_TYPES,
 } from "@/models/job.model";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addDays } from "date-fns";
 import { Loader,PlusCircle } from "lucide-react";
 import {
 useEffect,
@@ -60,7 +59,8 @@ import { DocumentInputs, SelectedDocuments } from "./DocumentInputs";
 import { DOCUMENT_KINDS, DOCUMENT_LABELS, JobDocument, documentInputError } from "@/models/jobAttachment.model";
 import Link from "next/link";
 import { JobAutofill } from "./JobAutofill";
-import { descriptionHtml, type AutofillResult } from "@/models/jobAutofill.schema";
+import { summaryHtml, type AutofillResult } from "@/models/jobAutofill.schema";
+import { normalizeJobSummary } from "@/lib/job-summary";
 import { addCompany } from "@/actions/company.actions";
 import { createJobTitle } from "@/actions/jobtitle.actions";
 import { createLocation } from "@/actions/job.actions";
@@ -137,11 +137,10 @@ export function AddJob({
   const newJobDefaultValues = {
     type: Object.keys(JOB_TYPES)[0],
     workplaceType: "ONSITE",
-    dueDate: addDays(new Date(), APP_CONSTANTS.DEFAULT_JOB_DUE_DAYS),
     status: draftStatusId,
     salaryRange: "",
     jobUrl: "",
-    jobDescription: "N/A",
+    jobDescription: "",
     location: locations.find((l) => l.id === lastLocationId)?.id,
     source: jobSources.find((s) => s.id === lastSourceId)?.id,
   };
@@ -170,7 +169,6 @@ export function AddJob({
         workplaceType: editJob.workplaceType ?? undefined,
         source: editJob.JobSource?.id,
         status: editJob.Status.id,
-        dueDate: editJob.dueDate,
         salaryRange: editJob.salaryRange ?? "",
         jobDescription: editJob.description,
         jobUrl: editJob.jobUrl ?? "",
@@ -227,9 +225,10 @@ export function AddJob({
     }
     if (result.fields.jobUrl && (overwrite || !form.getValues("jobUrl"))) setValue("jobUrl", result.fields.jobUrl, { shouldDirty: true });
     const description = form.getValues("jobDescription");
-    if (overwrite || !description || description === "N/A" || description === "<p>N/A</p>") {
-      setValue("jobDescription", descriptionHtml(result.description), { shouldDirty: true });
+    if (overwrite || !form.getFieldState("jobDescription").isDirty && (!description || description === "N/A" || description === "<p>N/A</p>")) {
+      setValue("jobDescription", summaryHtml(result.fields.summary), { shouldDirty: true });
     }
+    if (overwrite || !form.getValues("salaryRange") && !form.getFieldState("salaryRange").isDirty) setValue("salaryRange", result.fields.salary ?? "", { shouldDirty: true });
   }
   async function resolveDrafts(data: z.infer<typeof AddJobFormSchema>) {
     const resolved = { ...data };
@@ -253,7 +252,7 @@ export function AddJob({
       let jobId = savedJobId;
       if (!jobId) {
         let prepared;
-        try { prepared = await resolveDrafts(data); }
+        try { prepared = await resolveDrafts({ ...data, jobDescription: !editJob || form.getFieldState("jobDescription").isDirty ? normalizeJobSummary(data.jobDescription) : data.jobDescription }); }
         catch { toastError("Could not prepare the job's company, title or location. Check these fields and save again."); return; }
         const result = editJob ? await updateJob(prepared) : await addJob(prepared);
         if (!result?.success) { toastActionResult(result, { success: `Job has been ${editJob ? "updated" : "created"} successfully` }); return; }
@@ -583,27 +582,19 @@ export function AddJob({
                   />
                 </div>
 
-                {/* Due Date */}
+                {/* Optional source-quoted salary; no salary analysis or conversion. */}
                 <div>
                   <FormField
                     control={form.control}
-                    name="dueDate"
+                    name="salaryRange"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>Due Date</FormLabel>
-                        <DatePicker
-                          field={field}
-                          presets={true}
-                          isEnabled={true}
-                        />
+                        <FormLabel>Salary (optional)</FormLabel>
+                        <FormControl><Input {...field} placeholder="Only if stated in the job description" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-
-                <div>
-
                 </div>
 
                 {/* Job Description */}
@@ -614,10 +605,10 @@ export function AddJob({
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
                         <FormLabel id="job-description-label">
-                          Job Description
+                          Job Summary
                         </FormLabel>
                         <FormControl>
-                          <TiptapEditor field={field} />
+                          <TiptapEditor field={field} summaryOnly />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

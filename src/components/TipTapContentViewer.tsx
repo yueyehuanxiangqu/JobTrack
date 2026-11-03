@@ -14,7 +14,7 @@ export const TipTapContentViewer = ({ content }: { content: string }) => {
         },
         bulletList: {
           HTMLAttributes: {
-            class: "list-disc pl-4",
+            class: "list-disc pl-5 space-y-2",
           },
         },
         orderedList: {
@@ -31,5 +31,5 @@ export const TipTapContentViewer = ({ content }: { content: string }) => {
   useEffect(() => {
     editor?.commands.setContent(content);
   }, [content, editor]);
-  return <EditorContent editor={editor} />;
+  return <EditorContent className="min-w-0 max-w-full leading-relaxed [overflow-wrap:anywhere] [&_p]:my-2" editor={editor} />;
 };

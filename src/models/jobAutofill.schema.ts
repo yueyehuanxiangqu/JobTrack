@@ -12,15 +12,17 @@ export const extractedJobSchema = z.object({
   workplaceType: z.enum(["REMOTE", "HYBRID", "ONSITE"]).nullable(),
   jobType: z.enum(["FT", "PT", "C"]).nullable(),
   jobUrl: z.string().max(2048).nullable(),
+  summary: z.array(z.string().trim().min(1).max(600).refine(v => !/[\r\n]/.test(v), "Use one point per item.")).max(6),
+  salary: z.string().trim().min(1).max(300).nullable(),
 }).strict();
 export type ExtractedJob = z.infer<typeof extractedJobSchema>;
-export type AutofillResult = { fields: ExtractedJob; description: string };
+export type AutofillResult = { fields: ExtractedJob };
 
 export function parseExtractedJob(value: unknown): ExtractedJob {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid AI result");
   // Missing fields are unknown; extra fields and wrong types remain errors.
   return extractedJobSchema.parse({ company: null, jobTitle: null, location: null,
-    workplaceType: null, jobType: null, jobUrl: null, ...value });
+    workplaceType: null, jobType: null, jobUrl: null, summary: [], salary: null, ...value });
 }
 
 export function validApiBaseUrl(value: string): boolean {
@@ -38,4 +40,9 @@ export type AutofillConfig = z.infer<typeof autofillConfigSchema>;
 export function descriptionHtml(text: string): string {
   return "<p>" + text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;").replace(/\r?\n/g, "<br>") + "</p>";
+}
+
+export function summaryHtml(points: string[]): string {
+  const unique = [...new Map(points.map(point => [point.trim().toLocaleLowerCase().replace(/[.!。]+$/, ""), point.trim()])).values()].filter(Boolean);
+  return unique.length ? "<ul>" + unique.map(point => "<li>" + descriptionHtml(point) + "</li>").join("") + "</ul>" : "";
 }

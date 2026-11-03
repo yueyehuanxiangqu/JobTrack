@@ -265,14 +265,14 @@ describe("AddJob Component", () => {
     });
     await user.click(selectedSource);
 
-    const editableDiv = screen.getByLabelText("Job Description");
+    const editableDiv = screen.getByLabelText("Job Summary");
     const pTag = editableDiv.querySelector("div > p");
     if (pTag) {
       pTag.textContent = "New Job Description";
     }
 
   }
-  const aiFields = { company: "AI Example", jobTitle: "AI Engineer", location: "AI City", workplaceType: "REMOTE", jobType: "FT", jobUrl: null };
+  const aiFields = { company: "AI Example", jobTitle: "AI Engineer", location: "AI City", workplaceType: "REMOTE", jobType: "FT", jobUrl: null, summary: ["Original source JD. <script>not executable</script>"], salary: null };
   async function importJD() {
     await user.click(screen.getByRole("button", { name: "Paste JD" }));
     await user.type(screen.getByLabelText("Job description to import"), "Original JD with responsibilities and requirements.");
@@ -288,7 +288,7 @@ describe("AddJob Component", () => {
       await importJD();
       expect(screen.getByLabelText("Job Title")).toHaveTextContent("AI Engineer");
       expect(screen.getByLabelText("Company")).toHaveTextContent("AI Example");
-      await waitFor(() => expect(screen.getByLabelText("Job Description")).toHaveTextContent("Original source JD."));
+      await waitFor(() => expect(screen.getByLabelText("Job Summary")).toHaveTextContent("Original source JD."));
       expect(addCompany).not.toHaveBeenCalled(); expect(createJobTitle).not.toHaveBeenCalled(); expect(createLocation).not.toHaveBeenCalled(); expect(addJob).not.toHaveBeenCalled();
       // A manual correction is applied to the same existing form before Save.
       await user.click(screen.getByLabelText("Company")); await user.click(screen.getByRole("option", { name: "Amazon" }));
@@ -348,10 +348,9 @@ describe("AddJob Component", () => {
         workplaceType: "ONSITE",
         source: "1359dac4-a397-4461-b747-382706dcbe79",
         status: "d7ba200a-6dc1-4ea8-acff-29ebb0d4676a",
-        dueDate: expect.any(Date),
         dateApplied: undefined,
         salaryRange: "",
-        jobDescription: "<p>New Job Description</p>",
+        jobDescription: "<ul><li><p>New Job Description</p></li></ul>",
         jobUrl: "",
         tags: [],
       });
@@ -603,6 +602,7 @@ describe("AddJob Component - Edit Mode", () => {
       expect(updateJob).toHaveBeenCalledWith(
         expect.objectContaining({
           id: "job-edit-1",
+          jobDescription: "<p>Existing job description</p>",
           title: "1xx",
           company: "2zz",
           location: "1yy",
@@ -663,7 +663,7 @@ describe("AddJob Component - Error Handling", () => {
     await user.click(sourceInput);
     await user.click(screen.getByRole("option", { name: "Indeed" }));
 
-    const editableDiv = screen.getByLabelText("Job Description");
+    const editableDiv = screen.getByLabelText("Job Summary");
     const pTag = editableDiv.querySelector("div > p");
     if (pTag) {
       pTag.textContent = "Some description";
@@ -718,4 +718,4 @@ describe("AddJob Component - Status Order", () => {
   });
 });
 
-describe("simplified job form",()=>{ it("does not offer salary or skill inputs",()=>{ render(<AddJob companies={[]} jobTitles={[]} locations={[]} jobSources={[]} jobStatuses={[]} tags={[]} resetEditJob={()=>{}} initialOpen />); expect(screen.queryByText("Salary Range")).toBeNull(); expect(screen.queryByText("Add Skill")).toBeNull(); }); });
+describe("simplified job form",()=>{ it("offers a simple optional salary but no deadline or skill inputs",()=>{ render(<AddJob companies={[]} jobTitles={[]} locations={[]} jobSources={[]} jobStatuses={[]} tags={[]} resetEditJob={()=>{}} initialOpen />); expect(screen.getByLabelText("Salary (optional)")).toBeVisible(); expect(screen.queryByText("Due Date")).toBeNull(); expect(screen.queryByText("Add Skill")).toBeNull(); }); });

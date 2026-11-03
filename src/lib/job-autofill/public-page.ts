@@ -75,7 +75,7 @@ export async function fetchPublicPage(input: string, externalSignal?: AbortSigna
   let url = publicPageUrl(input);
   for (let hop = 0; hop <= 3; hop++) {
     const page = await requestPublicPage(url, signal);
-    if (page.status === 200) return page;
+    if (page.status === 200) return { ...page, url: url.href };
     if (!page.location || hop === 3) throw new Error(URL_FALLBACK);
     const next = publicPageUrl(new URL(page.location, url).href);
     if (url.protocol === "https:" && next.protocol !== "https:") throw new Error(URL_FALLBACK);

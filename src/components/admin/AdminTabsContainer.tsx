@@ -41,7 +41,7 @@ function AdminTabsContainer() {
         <TabsTrigger value="locations">Locations</TabsTrigger>
         <TabsTrigger value="sources">Sources</TabsTrigger>
 
-        <TabsTrigger value="activity-types">Activity Types</TabsTrigger>
+        <TabsTrigger value="activity-types">Task Categories</TabsTrigger>
 
         <TabsTrigger value="roles">Roles</TabsTrigger>
         <TabsTrigger value="stages">Stages</TabsTrigger>

@@ -42,7 +42,6 @@ type TaskFormProps = {
   onTaskSaved: () => void;
   dialogOpen: boolean;
   setDialogOpen: (open: boolean) => void;
-  onSaveAndStart?: (taskId: string) => void;
 };
 
 const statusOptions = Object.entries(TASK_STATUSES).map(([value, label]) => ({
@@ -58,7 +57,6 @@ export function TaskForm({
   onTaskSaved,
   dialogOpen,
   setDialogOpen,
-  onSaveAndStart,
 }: TaskFormProps) {
   const [isPending, startTransition] = useTransition();
   const form = useForm<z.infer<typeof AddTaskFormSchema>>({
@@ -105,31 +103,22 @@ export function TaskForm({
     }
   }, [editTask, reset]);
 
-  function onSubmit(
-    data: z.infer<typeof AddTaskFormSchema>,
-    startAfterSave = false,
-  ) {
+  function onSubmit(data: z.infer<typeof AddTaskFormSchema>) {
     startTransition(async () => {
       const result = editTask ? await updateTask(data) : await createTask(data);
       toastActionResult<Task>(result, {
         success: `Task has been ${editTask ? "updated" : "created"} successfully`,
-        onSuccess: (task) => {
+        onSuccess: () => {
           reset();
           setDialogOpen(false);
           resetEditTask();
           onTaskSaved();
-          if (startAfterSave && task?.id) {
-            onSaveAndStart?.(task.id);
-          }
         },
       });
     });
   }
 
-  const onSaveClick = form.handleSubmit((data) => onSubmit(data, false));
-  const onSaveAndStartClick = form.handleSubmit((data) =>
-    onSubmit(data, true),
-  );
+  const onSaveClick = form.handleSubmit(onSubmit);
 
   const pageTitle = editTask ? "Edit Task" : "Add Task";
   const pageDescription = editTask
@@ -174,16 +163,17 @@ export function TaskForm({
                 />
               </div>
 
-              {/* Activity Type */}
+              {/* Category */}
               <div>
                 <FormField
                   control={form.control}
                   name="activityTypeId"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Activity Type</FormLabel>
+                      <FormLabel>Category</FormLabel>
                       <FormControl>
                         <Combobox
+                          label="Category"
                           options={activityTypes}
                           field={{
                             ...field,
@@ -349,18 +339,6 @@ export function TaskForm({
                       Cancel
                     </Button>
                   </div>
-                  {onSaveAndStart && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="mt-2 md:mt-0"
-                      onClick={onSaveAndStartClick}
-                      disabled={isPending}
-                      data-testid="save-and-start-task-btn"
-                    >
-                      Save & Start
-                    </Button>
-                  )}
                   <Button
                     type="submit"
                     disabled={isPending}

@@ -9,7 +9,6 @@ CardTitle,
 } from "@/components/ui/card";
 import {
 BriefcaseBusiness,
-CalendarClock,
 SquareCheckBig
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -21,7 +20,7 @@ export default function JobsAppliedCard() {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg text-green-600">Dashboard</CardTitle>
         <CardDescription className="max-w-lg text-balance leading-relaxed">
-          Record job applications, organize tasks, and track your activities.
+          Record job applications, organize tasks, and manage interviews.
         </CardDescription>
       </CardHeader>
       <CardFooter className="mt-auto grid grid-cols-1 min-[400px]:grid-cols-2 gap-2">
@@ -41,17 +40,6 @@ export default function JobsAppliedCard() {
         >
           <SquareCheckBig className="h-3.5 w-3.5 mr-1 shrink-0" />
           <span className="min-w-0">Add Task</span>
-        </Button>
-
-        <Button
-          variant="outline"
-          className="justify-start min-w-0"
-          onClick={() =>
-            router.push("/dashboard/activities?add-activity=true")
-          }
-        >
-          <CalendarClock className="h-3.5 w-3.5 mr-1 shrink-0" />
-          <span className="min-w-0">Add Activity</span>
         </Button>
 
       </CardFooter>

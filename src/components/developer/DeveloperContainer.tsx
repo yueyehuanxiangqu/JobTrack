@@ -10,8 +10,6 @@ import {
 } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import {
-  generateMockActivitiesAction,
-  clearMockActivitiesAction,
   generateMockProfileDataAction,
   clearMockProfileDataAction,
   generateMockJobsAction,
@@ -40,100 +38,6 @@ function StatusBanner({ message }: { message: StatusMessage }) {
         </p>
         <p className="text-sm">{message.text}</p>
       </div>
-    </div>
-  );
-}
-
-export function MockActivitiesCard() {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isClearing, setIsClearing] = useState(false);
-  const [message, setMessage] = useState<StatusMessage | null>(null);
-
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    setMessage(null);
-    const result = await generateMockActivitiesAction();
-    setMessage({
-      type: result.success ? "success" : "error",
-      text:
-        result.message ||
-        (result.success
-          ? "Mock activities generated successfully"
-          : "Failed to generate mock activities"),
-    });
-    setIsGenerating(false);
-  };
-
-  const handleClear = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete all mock activities? This action cannot be undone.",
-      )
-    )
-      return;
-
-    setIsClearing(true);
-    setMessage(null);
-    const result = await clearMockActivitiesAction();
-    setMessage({
-      type: result.success ? "success" : "error",
-      text:
-        result.message ||
-        (result.success
-          ? "Mock activities cleared successfully"
-          : "Failed to clear mock activities"),
-    });
-    setIsClearing(false);
-  };
-
-  return (
-    <div className="space-y-4">
-      {message && <StatusBanner message={message} />}
-      <Card>
-        <CardHeader>
-          <CardTitle>Mock Data Management</CardTitle>
-          <CardDescription>
-            Generate or clear mock activities for testing
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <h3 className="font-semibold mb-2">Generate Mock Activities</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Creates 25+ mock activities for the last 10 days with types:
-              Learning, Side Project 1, Side Project 2, Job Search, and
-              Interview Preparation. Duration is between 20-120 minutes.
-            </p>
-            <Button
-              onClick={handleGenerate}
-              disabled={isGenerating || isClearing}
-              className="w-full"
-            >
-              {isGenerating && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isGenerating ? "Generating..." : "Generate Mock Activities"}
-            </Button>
-          </div>
-
-          <div className="border-t pt-4">
-            <h3 className="font-semibold mb-2">Clear Mock Activities</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Deletes only mock activities (marked with [MOCK_DATA] identifier).
-              Regular activities are not affected.
-            </p>
-            <Button
-              onClick={handleClear}
-              disabled={isClearing || isGenerating}
-              variant="destructive"
-              className="w-full"
-            >
-              {isClearing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isClearing ? "Clearing..." : "Clear Mock Activities"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

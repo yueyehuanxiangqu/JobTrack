@@ -32,15 +32,4 @@ describe("JobsAppliedCard", () => {
 
     expect(mockPush).toHaveBeenCalledWith("/dashboard/tasks?add-task=true");
   });
-
-  it("should navigate to activities page with add-activity=true when Activity button is clicked", async () => {
-    const user = userEvent.setup();
-    render(<JobsAppliedCard />);
-
-    await user.click(screen.getByRole("button", { name: /^add activity$/i }));
-
-    expect(mockPush).toHaveBeenCalledWith(
-      "/dashboard/activities?add-activity=true",
-    );
-  });
 });

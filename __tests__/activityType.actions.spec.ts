@@ -53,111 +53,30 @@ describe("Activity Type Actions", () => {
     },
   ];
 
-  const mockDurationSums = [
-    { activityTypeId: "at-1", _sum: { duration: 300 } },
-    { activityTypeId: "at-2", _sum: { duration: 120 } },
-  ];
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe("getActivityTypeList", () => {
-    it("should return paginated activity types sorted by total duration", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.activityType.count as any).mockResolvedValue(3);
-      (prisma.activity.groupBy as any).mockResolvedValue(mockDurationSums);
-      (prisma.activityType.findMany as any).mockResolvedValue(
-        mockActivityTypes,
-      );
-
-      const result = await getActivityTypeList(1, 10);
-
+    it("sorts Task categories by label, paginates, and does not calculate hours", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.activityType.count).mockResolvedValue(3);
+      vi.mocked(prisma.activityType.findMany).mockResolvedValue(mockActivityTypes as any);
+      const result = await getActivityTypeList(1, 2);
       expect(result.total).toBe(3);
-      expect(result.data).toHaveLength(3);
-      expect(result.data[0].id).toBe("at-1");
-      expect(result.data[0].totalDuration).toBe(300);
-      expect(result.data[1].id).toBe("at-2");
-      expect(result.data[1].totalDuration).toBe(120);
-      expect(result.data[2].id).toBe("at-3");
-      expect(result.data[2].totalDuration).toBe(0);
+      expect(result.data.map((t: any) => t.id)).toEqual(["at-2", "at-1"]);
+      expect(prisma.activity.groupBy).not.toHaveBeenCalled();
+      expect(result.data[0]).not.toHaveProperty("totalDuration");
     });
-
-    it("should handle pagination correctly for page 2", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.activityType.count as any).mockResolvedValue(3);
-      (prisma.activity.groupBy as any).mockResolvedValue(mockDurationSums);
-      (prisma.activityType.findMany as any).mockResolvedValue(
-        mockActivityTypes,
-      );
-
-      const result = await getActivityTypeList(2, 2);
-
-      expect(result.data).toHaveLength(1);
-      expect(result.data[0].id).toBe("at-3");
+    it("returns the remaining category on the second page", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue(mockUser as any);
+      vi.mocked(prisma.activityType.count).mockResolvedValue(3);
+      vi.mocked(prisma.activityType.findMany).mockResolvedValue(mockActivityTypes as any);
+      expect((await getActivityTypeList(2, 2)).data.map((t: any) => t.id)).toEqual(["at-3"]);
     });
-
-    it("should return empty data when page exceeds total", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.activityType.count as any).mockResolvedValue(3);
-      (prisma.activity.groupBy as any).mockResolvedValue(mockDurationSums);
-      (prisma.activityType.findMany as any).mockResolvedValue(
-        mockActivityTypes,
-      );
-
-      const result = await getActivityTypeList(5, 10);
-
-      expect(result.data).toHaveLength(0);
-    });
-
-    it("should assign 0 duration for types with no completed activities", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.activityType.count as any).mockResolvedValue(3);
-      (prisma.activity.groupBy as any).mockResolvedValue([]);
-      (prisma.activityType.findMany as any).mockResolvedValue(
-        mockActivityTypes,
-      );
-
-      const result = await getActivityTypeList(1, 10);
-
-      result.data.forEach((at: any) => {
-        expect(at.totalDuration).toBe(0);
-      });
-    });
-
-    it("should only sum completed activities (endTime not null)", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.activityType.count as any).mockResolvedValue(0);
-      (prisma.activity.groupBy as any).mockResolvedValue([]);
-      (prisma.activityType.findMany as any).mockResolvedValue([]);
-
-      await getActivityTypeList(1, 10);
-
-      expect(prisma.activity.groupBy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId: mockUser.id, endTime: { not: null } },
-        }),
-      );
-    });
-
-    it("should return error for unauthenticated user", async () => {
-      (getCurrentUser as any).mockResolvedValue(null);
-
-      const result = await getActivityTypeList(1, 10);
-
-      expect(result).toEqual({ success: false, message: "Not authenticated" });
-      expect(prisma.activityType.findMany).not.toHaveBeenCalled();
-    });
-
-    it("should handle database errors", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.activityType.count as any).mockRejectedValue(
-        new Error("DB error"),
-      );
-
-      const result = await getActivityTypeList(1, 10);
-
-      expect(result).toEqual({ success: false, message: "DB error" });
+    it("requires a user", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue(null);
+      expect(await getActivityTypeList()).toEqual({ success: false, message: "Not authenticated" });
     });
   });
 

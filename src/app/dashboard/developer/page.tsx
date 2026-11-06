@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import {
-  MockActivitiesCard,
   MockProfileCard,
   MockJobsCard,
 } from "@/components/developer/DeveloperContainer";
@@ -20,7 +19,6 @@ export default function DeveloperPage() {
         </p>
       </div>
       <div className="col-start-1 self-start">
-        <MockActivitiesCard />
       </div>
       <div className="col-start-2 self-start">
         <MockProfileCard />

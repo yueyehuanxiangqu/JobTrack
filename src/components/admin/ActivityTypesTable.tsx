@@ -26,7 +26,6 @@ type ActivityTypeRow = {
   id: string;
   label: string;
   value: string;
-  totalDuration: number;
   _count?: { Activities?: number; Tasks?: number };
 };
 
@@ -50,7 +49,7 @@ function ActivityTypesTable({
 
     if (activityCount > 0 || taskCount > 0) {
       const links = [
-        activityCount > 0 ? `${activityCount} activity(ies)` : "",
+        activityCount > 0 ? `${activityCount} historical activity record(s)` : "",
         taskCount > 0 ? `${taskCount} task(s)` : "",
       ]
         .filter(Boolean)
@@ -58,8 +57,8 @@ function ActivityTypesTable({
 
       setAlert({
         openState: true,
-        title: "Activity type is in use!",
-        description: `This activity type is linked to ${links} and cannot be deleted.`,
+        title: "Task category is in use!",
+        description: `This task category is linked to ${links} and cannot be deleted.`,
         deleteAction: false,
       });
     } else {
@@ -75,16 +74,11 @@ function ActivityTypesTable({
     if (!id) return;
     const { success, message } = await deleteActivityTypeById(id);
     if (success) {
-      toastSuccess("Activity type has been deleted successfully");
+      toastSuccess("Task category has been deleted successfully");
       reloadActivityTypes();
     } else {
       toastError(message);
     }
-  };
-
-  const formatHours = (minutes: number) => {
-    const hours = minutes / 60;
-    return hours % 1 === 0 ? hours.toString() : hours.toFixed(1);
   };
 
   return (
@@ -94,9 +88,7 @@ function ActivityTypesTable({
           <TableRow>
             <TableHead>Label</TableHead>
             <TableHead className="hidden sm:table-cell">Value</TableHead>
-            <TableHead># Activities</TableHead>
             <TableHead># Tasks</TableHead>
-            <TableHead>Total Hours</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -108,13 +100,7 @@ function ActivityTypesTable({
                 {at.value}
               </TableCell>
               <TableCell className="font-medium">
-                {at._count?.Activities ?? 0}
-              </TableCell>
-              <TableCell className="font-medium">
                 {at._count?.Tasks ?? 0}
-              </TableCell>
-              <TableCell className="font-medium">
-                {formatHours(at.totalDuration)} hrs
               </TableCell>
               <TableCell>
                 <DropdownMenu>
@@ -141,7 +127,7 @@ function ActivityTypesTable({
         </TableBody>
       </Table>
       <DeleteAlertDialog
-        pageTitle="activity type"
+        pageTitle="task category"
         open={alert.openState}
         onOpenChange={() => setAlert({ openState: false, deleteAction: false })}
         onDelete={() => deleteType(alert.itemId)}

@@ -2,7 +2,7 @@
 import prisma from "@/lib/db";
 import { handleError } from "@/lib/utils";
 import { APP_CONSTANTS } from "@/lib/constants";
-import { requireUser } from "./shared";
+import { requireUser } from "../shared";
 
 export const getAllActivityTypes = async (): Promise<any | undefined> => {
   try {
@@ -52,20 +52,7 @@ export const getActivityTypeList = async (
     const skip = (page - 1) * limit;
     const whereClause = { createdBy: user.id };
 
-    const [total, durationSums] = await Promise.all([
-      prisma.activityType.count({ where: whereClause }),
-      prisma.activity.groupBy({
-        by: ["activityTypeId"],
-        where: { userId: user.id, endTime: { not: null } },
-        _sum: { duration: true },
-      }),
-    ]);
-
-    const durationMap = new Map(
-      durationSums.map((d) => [d.activityTypeId, d._sum.duration ?? 0]),
-    );
-
-    // Fetch all activity types with counts, then sort by total duration
+    const total = await prisma.activityType.count({ where: whereClause });
     const allTypes = await prisma.activityType.findMany({
       where: whereClause,
       select: {
@@ -76,11 +63,7 @@ export const getActivityTypeList = async (
       },
     });
 
-    const sorted = allTypes
-      .map((t) => ({ ...t, totalDuration: durationMap.get(t.id) ?? 0 }))
-      .sort((a, b) => b.totalDuration - a.totalDuration);
-
-    const data = sorted.slice(skip, skip + limit);
+    const data = allTypes.sort((a, b) => a.label.localeCompare(b.label)).slice(skip, skip + limit);
 
     return { data, total };
   } catch (error) {

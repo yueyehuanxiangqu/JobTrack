@@ -14,5 +14,3 @@ export {
   updateTaskStatus,
   deleteTaskById,
 } from "./task/mutations";
-
-export { startActivityFromTask } from "./task/activity";

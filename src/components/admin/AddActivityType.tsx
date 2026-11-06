@@ -63,7 +63,7 @@ function AddActivityType({ reloadActivityTypes }: AddActivityTypeProps) {
         reset();
         reloadActivityTypes();
       } catch {
-        toastError("Failed to create activity type.");
+        toastError("Failed to create task category.");
       }
     });
   };
@@ -78,15 +78,15 @@ function AddActivityType({ reloadActivityTypes }: AddActivityTypeProps) {
       >
         <PlusCircle className="h-3.5 w-3.5" />
         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-          New Activity Type
+          New Task Category
         </span>
       </Button>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add New Activity Type</DialogTitle>
+            <DialogTitle>Add New Task Category</DialogTitle>
             <DialogDescription>
-              Add a new activity type to categorize your activities and tasks.
+              Add a new task category to categorize your tasks.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -96,7 +96,7 @@ function AddActivityType({ reloadActivityTypes }: AddActivityTypeProps) {
                 name="label"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Activity Type Name</FormLabel>
+                    <FormLabel>Task Category Name</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="e.g. Networking, Interview Prep"

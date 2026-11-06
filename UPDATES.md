@@ -47,9 +47,9 @@ or that update files are missing. No GitHub Release is created by this change.
 2. Run the relevant checks and `npm run desktop:build` on Windows x64. Core
    frameworks and the selected multi-size icon do not need changing to release.
 3. After review, publish a stable GitHub Release with a matching tag (for
-   example `v0.1.1`) and these generated files from the **same build**:
-   - `JobTrack-Setup-0.1.1.exe`
-   - `JobTrack-Setup-0.1.1.exe.blockmap`
+   example `v0.1.2`) and these generated files from the **same build**:
+   - `JobTrack-Setup-0.1.2.exe`
+   - `JobTrack-Setup-0.1.2.exe.blockmap`
    - `latest.yml`
    - optionally the matching `.exe.sha256` checksum for manual verification.
 4. Keep older release assets available for differential updates. Do not edit

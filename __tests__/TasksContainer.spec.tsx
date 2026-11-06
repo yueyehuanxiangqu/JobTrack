@@ -6,12 +6,10 @@ import {
   getTaskById,
   deleteTaskById,
   updateTaskStatus,
-  startActivityFromTask,
   createTask,
 } from "@/actions/task.actions";
 import { Task } from "@/models/task.model";
 import { useRouter } from "next/navigation";
-import { useActivity } from "@/context/ActivityContext";
 
 vi.mock("next-auth", () => {
   const mockAuth = vi.fn();
@@ -48,7 +46,6 @@ vi.mock("@/actions/task.actions", () => ({
   getTaskById: vi.fn(),
   deleteTaskById: vi.fn(),
   updateTaskStatus: vi.fn(),
-  startActivityFromTask: vi.fn(),
   createTask: vi.fn(),
   updateTask: vi.fn(),
 }));
@@ -58,11 +55,6 @@ vi.mock("next/navigation", () => ({
   useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
 
-vi.mock("@/context/ActivityContext", () => ({
-  useActivity: vi.fn(() => ({
-    refreshCurrentActivity: vi.fn(),
-  })),
-}));
 
 global.ResizeObserver = class ResizeObserver {
   observe() {}
@@ -113,7 +105,6 @@ describe("TasksContainer Component", () => {
     prefetch: vi.fn(),
   };
 
-  const mockRefreshCurrentActivity = vi.fn();
 
   const mockActivityTypes = [
     {
@@ -184,9 +175,6 @@ describe("TasksContainer Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useRouter as any).mockReturnValue(mockRouter);
-    (useActivity as any).mockReturnValue({
-      refreshCurrentActivity: mockRefreshCurrentActivity,
-    });
   });
 
   describe("Initial Load", () => {
@@ -449,241 +437,6 @@ describe("TasksContainer Component", () => {
       await waitFor(() => {
         expect(updateTaskStatus).toHaveBeenCalledWith("task-1", "complete");
       });
-    });
-
-    it("should start activity from task successfully", async () => {
-      (startActivityFromTask as any).mockResolvedValue({
-        success: true,
-      });
-
-      const startActivityButtons = screen.getAllByTestId(/start-activity-/);
-      await user.click(startActivityButtons[0]);
-
-      await waitFor(() => {
-        expect(startActivityFromTask).toHaveBeenCalledWith("task-1");
-        expect(mockRefreshCurrentActivity).toHaveBeenCalled();
-      });
-    });
-
-    it("should handle start activity failure", async () => {
-      (startActivityFromTask as any).mockResolvedValue({
-        success: false,
-        message: "Failed to start activity",
-      });
-
-      const startActivityButtons = screen.getAllByTestId(/start-activity-/);
-      await user.click(startActivityButtons[0]);
-
-      // A rejected start resyncs the per-user running activity, but with
-      // nothing running it must not offer to switch.
-      await waitFor(() => {
-        expect(startActivityFromTask).toHaveBeenCalledWith("task-1");
-        expect(mockRefreshCurrentActivity).toHaveBeenCalledTimes(1);
-      });
-      expect(
-        screen.queryByText(/Stop current activity and start a new one/i),
-      ).not.toBeInTheDocument();
-    });
-  });
-
-  describe("Start Activity Confirmation", () => {
-    const mockStopActivity = vi.fn();
-
-    beforeEach(() => {
-      (getTasksList as any).mockResolvedValue({
-        success: true,
-        data: mockTasks,
-        total: 2,
-      });
-    });
-
-    it("starts the activity directly when nothing is currently in progress", async () => {
-      (startActivityFromTask as any).mockResolvedValue({ success: true });
-
-      render(<TasksContainer activityTypes={mockActivityTypes} />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Task 1")).toBeInTheDocument();
-      });
-
-      const startActivityButtons = screen.getAllByTestId(/start-activity-/);
-      await user.click(startActivityButtons[0]);
-
-      await waitFor(() => {
-        expect(startActivityFromTask).toHaveBeenCalledWith("task-1");
-      });
-      expect(mockStopActivity).not.toHaveBeenCalled();
-    });
-
-    it("shows a confirm dialog naming the running activity instead of starting immediately", async () => {
-      (useActivity as any).mockReturnValue({
-        refreshCurrentActivity: mockRefreshCurrentActivity,
-        currentActivity: { id: "current-1", activityName: "Ongoing Task" },
-        stopActivity: mockStopActivity,
-      });
-
-      render(<TasksContainer activityTypes={mockActivityTypes} />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Task 1")).toBeInTheDocument();
-      });
-
-      const startActivityButtons = screen.getAllByTestId(/start-activity-/);
-      await user.click(startActivityButtons[0]);
-
-      expect(startActivityFromTask).not.toHaveBeenCalled();
-      expect(
-        await screen.findByText(/"Ongoing Task" is currently in progress/i)
-      ).toBeInTheDocument();
-    });
-
-    it("stops the running activity then starts the task activity on confirm", async () => {
-      (useActivity as any).mockReturnValue({
-        refreshCurrentActivity: mockRefreshCurrentActivity,
-        currentActivity: { id: "current-1", activityName: "Ongoing Task" },
-        stopActivity: mockStopActivity,
-      });
-      (startActivityFromTask as any).mockResolvedValue({ success: true });
-
-      render(<TasksContainer activityTypes={mockActivityTypes} />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Task 1")).toBeInTheDocument();
-      });
-
-      const startActivityButtons = screen.getAllByTestId(/start-activity-/);
-      await user.click(startActivityButtons[0]);
-
-      const confirmButton = await screen.findByRole("button", {
-        name: "Stop & Start",
-      });
-      await user.click(confirmButton);
-
-      await waitFor(() => {
-        expect(mockStopActivity).toHaveBeenCalledTimes(1);
-        expect(startActivityFromTask).toHaveBeenCalledWith("task-1");
-      });
-    });
-  });
-
-  describe("Save & Start from the Add Task dialog", () => {
-    beforeEach(() => {
-      (getTasksList as any).mockResolvedValue({
-        success: true,
-        data: mockTasks,
-        total: 2,
-      });
-    });
-
-    const openAddTaskDialogAndFillForm = async () => {
-      const addButton = screen.getByTestId("add-task-btn");
-      await user.click(addButton);
-
-      await screen.findByTestId("task-form-dialog-title");
-
-      const titleInput = screen.getByLabelText(/Title/i);
-      await user.type(titleInput, "Brand New Task");
-
-      const activityTypeCombobox = screen.getByLabelText(/Activity Type/i);
-      await user.click(activityTypeCombobox);
-      const developmentOption = screen.getByRole("option", {
-        name: "Development",
-      });
-      await user.click(developmentOption);
-    };
-
-    it("creates the task and starts its activity when nothing is in progress", async () => {
-      (createTask as any).mockResolvedValue({
-        success: true,
-        data: { id: "new-task-id" },
-      });
-      (startActivityFromTask as any).mockResolvedValue({ success: true });
-
-      render(<TasksContainer activityTypes={mockActivityTypes} />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Task 1")).toBeInTheDocument();
-      });
-
-      await openAddTaskDialogAndFillForm();
-
-      const saveAndStartBtn = screen.getByTestId("save-and-start-task-btn");
-      await user.click(saveAndStartBtn);
-
-      await waitFor(() => {
-        expect(createTask).toHaveBeenCalledTimes(1);
-        expect(startActivityFromTask).toHaveBeenCalledWith("new-task-id");
-        expect(mockRefreshCurrentActivity).toHaveBeenCalled();
-      });
-      expect(
-        screen.queryByTestId("task-form-dialog-title")
-      ).not.toBeInTheDocument();
-    });
-
-    it("shows the confirm dialog instead of starting immediately when an activity is already running", async () => {
-      const mockStopActivity = vi.fn();
-      (useActivity as any).mockReturnValue({
-        refreshCurrentActivity: mockRefreshCurrentActivity,
-        currentActivity: { id: "current-1", activityName: "Ongoing Task" },
-        stopActivity: mockStopActivity,
-      });
-      (createTask as any).mockResolvedValue({
-        success: true,
-        data: { id: "new-task-id" },
-      });
-
-      render(<TasksContainer activityTypes={mockActivityTypes} />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Task 1")).toBeInTheDocument();
-      });
-
-      await openAddTaskDialogAndFillForm();
-
-      const saveAndStartBtn = screen.getByTestId("save-and-start-task-btn");
-      await user.click(saveAndStartBtn);
-
-      await waitFor(() => {
-        expect(createTask).toHaveBeenCalledTimes(1);
-      });
-      expect(startActivityFromTask).not.toHaveBeenCalled();
-      expect(
-        await screen.findByText(/"Ongoing Task" is currently in progress/i)
-      ).toBeInTheDocument();
-
-      (startActivityFromTask as any).mockResolvedValue({ success: true });
-      const confirmButton = screen.getByRole("button", {
-        name: "Stop & Start",
-      });
-      await user.click(confirmButton);
-
-      await waitFor(() => {
-        expect(mockStopActivity).toHaveBeenCalledTimes(1);
-        expect(startActivityFromTask).toHaveBeenCalledWith("new-task-id");
-      });
-    });
-
-    it("does not start an activity when task creation fails", async () => {
-      (createTask as any).mockResolvedValue({
-        success: false,
-        message: "Failed to create task",
-      });
-
-      render(<TasksContainer activityTypes={mockActivityTypes} />);
-
-      await waitFor(() => {
-        expect(screen.getByText("Task 1")).toBeInTheDocument();
-      });
-
-      await openAddTaskDialogAndFillForm();
-
-      const saveAndStartBtn = screen.getByTestId("save-and-start-task-btn");
-      await user.click(saveAndStartBtn);
-
-      await waitFor(() => {
-        expect(createTask).toHaveBeenCalledTimes(1);
-      });
-      expect(startActivityFromTask).not.toHaveBeenCalled();
     });
   });
 

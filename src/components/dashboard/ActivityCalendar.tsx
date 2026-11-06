@@ -5,6 +5,7 @@ import { ResponsiveCalendar } from "@nivo/calendar";
 import { format, parseISO } from "date-fns";
 import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { APPLICATION_BANDS, APPLICATION_COLORS, applicationLevel } from "./applicationCalendar";
 import {
   Select,
   SelectContent,
@@ -42,16 +43,18 @@ export default function ActivityCalendar({
   dataByYear,
 }: {
   years: string[];
-  dataByYear: Record<string, any[]>;
+  dataByYear: Record<string, { day: string; value: number }[]>;
 }) {
   const { resolvedTheme } = useTheme();
-  const [year, setYear] = useState(years.at(-1));
+  const availableYears = years.length ? [...years].sort() : [String(new Date().getFullYear())];
+  const [selectedYear, setYear] = useState(availableYears.at(-1)!);
+  const year = availableYears.includes(selectedYear) ? selectedYear : availableYears.at(-1)!;
   const tooltipPosition = useRef({ x: 0, y: 0 });
   const borderColor = resolvedTheme === "light" ? "#ffffff" : "#0e1117";
   const data = dataByYear[year ?? ""] ?? [];
-  const hoursMap = Object.fromEntries(
-    data.map((d) => [d.day, d.hours ?? 0]),
-  );
+  const counts = new Map(data.map((d) => [d.day, d.value]));
+  const emptyColor = resolvedTheme === "light" ? "#eeeeee" : "#30363d";
+  const calendarData = data.filter((d) => d.value > 0).map((d) => ({ ...d, value: applicationLevel(d.value) }));
   return (
     <Card className="w-[100%]">
       <CardHeader>
@@ -62,7 +65,7 @@ export default function ActivityCalendar({
               <SelectValue placeholder="Select year" />
             </SelectTrigger>
             <SelectContent>
-              {years.map((y) => (
+              {availableYears.map((y) => (
                 <SelectItem key={y} value={y}>
                   {y}
                 </SelectItem>
@@ -75,12 +78,13 @@ export default function ActivityCalendar({
         <div className="max-w-full overflow-x-auto pb-3" role="region" aria-label="Activity Calendar days" tabIndex={0}>
         <div className="h-[260px] min-w-[760px]">
         <ResponsiveCalendar
-          data={data}
-          from={`${year}-04-02`}
-          to={`${year}-04-02`}
-          emptyColor={resolvedTheme === "light" ? "#eeeeee" : "#30363d"}
-          colors={["#90e0ef", "#48cae4", "#00b4d8", "#0096c7", "#0077b6"]}
-          minValue={2}
+          data={calendarData}
+          from={`${year}-01-01`}
+          to={`${year}-12-31`}
+          emptyColor={emptyColor}
+          colors={APPLICATION_COLORS}
+          minValue={1}
+          maxValue={4}
           margin={{ top: 64, right: 0, bottom: 40, left: 0 }}
           yearSpacing={40}
           monthBorderColor={borderColor}
@@ -89,12 +93,11 @@ export default function ActivityCalendar({
           onMouseEnter={(_day, event) => { tooltipPosition.current = { x: event.clientX, y: event.clientY }; }}
           onMouseMove={(_day, event) => { tooltipPosition.current = { x: event.clientX, y: event.clientY }; }}
           tooltip={(day) => {
-            const hours = hoursMap[day.day] ?? 0;
+            const count = counts.get(day.day) ?? 0;
             return (
               <CalendarTooltip position={tooltipPosition.current}>
                 <div><strong>{format(parseISO(day.day), "EEE MMM d, yyyy")}</strong></div>
-                <div>{day.value} job{Number(day.value) === 1 ? "" : "s"} applied</div>
-                <div>{hours} hr{hours === 1 ? "" : "s"} activity</div>
+                <div>{count} job{count === 1 ? "" : "s"} applied</div>
               </CalendarTooltip>
             );
           }}
@@ -109,21 +112,14 @@ export default function ActivityCalendar({
               },
             },
           }}
-          legends={[
-            {
-              anchor: "bottom-right",
-              direction: "row",
-              // Legends use the full SVG height inside the translated plot.
-              translateY: -64,
-              itemCount: 4,
-              itemWidth: 42,
-              itemHeight: 36,
-              itemsSpacing: 14,
-              itemDirection: "right-to-left",
-            },
-          ]}
+          legends={[]}
         />
         </div>
+        </div>
+        <div className="flex items-center justify-end gap-1.5 text-xs text-muted-foreground" aria-label="Applications per day: 0, 1, 2–3, 4–5, 6 or more">
+          <span>Less</span>
+          {[null, ...APPLICATION_COLORS].map((color, index) => <span key={index} title={index === 0 ? "0 applications" : APPLICATION_BANDS[index - 1]} className={`h-3 w-3 rounded-sm${index === 0 ? " bg-[#eeeeee] dark:bg-[#30363d]" : ""}`} style={color ? { backgroundColor: color } : undefined} />)}
+          <span>More</span>
         </div>
       </CardContent>
     </Card>

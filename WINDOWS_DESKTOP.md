@@ -1,19 +1,19 @@
 # JobTrack Windows desktop
 
 The Electron desktop shell runs the local Next.js application. Dashboard,
-Activity Calendar, jobs, interviews, tasks, activities, document files and exports
+Activity Calendar, jobs, interviews, tasks, document files and exports
 remain available. Phase 3 removes the retired assistant, automations and other
 nonessential screens; AI provider/key settings and historical data remain.
 MIT License and upstream copyright are unchanged.
 
 ## Install and use
 
-The current local Windows test installer is JobTrack 0.1.1. A public GitHub
+The current local Windows test installer is JobTrack 0.1.2. A public GitHub
 Windows release is not currently accessible. [Phase 6C validation](PHASE6C_VALIDATION.md)
 records the original 0.1.0 installation checks; see [Updates](UPDATES.md) for
 the current update workflow and publication requirements.
 
-1. Run `JobTrack-Setup-0.1.1.exe` on Windows 11 x64. It installs for the current
+1. Run `JobTrack-Setup-0.1.2.exe` on Windows 11 x64. It installs for the current
    account and creates desktop and Start menu shortcuts. No Node.js, npm,
    Prisma, Docker, external browser or Windows service is needed.
 2. Open **JobTrack**. A small startup window remains visible while the local
@@ -129,7 +129,7 @@ npm ci
 npm run desktop:build
 ```
 
-The installer is written to `dist-desktop\JobTrack-Setup-0.1.1.exe`, alongside
+The installer is written to `dist-desktop\JobTrack-Setup-0.1.2.exe`, alongside
 `dist-desktop\win-unpacked\JobTrack.exe` for packaged-directory testing.
 `npm run desktop:pack` produces only the packaged directory. `desktop:start`
 is a developer convenience after staging and is not an end-user requirement.

@@ -46,9 +46,9 @@ function ActivityTypesContainer() {
         <Card>
           <ResponsiveCardHeader>
             <div className="flex items-baseline gap-2">
-              <CardTitle>Activity Types / Projects</CardTitle>
+              <CardTitle>Task Categories</CardTitle>
               {!loading && totalActivityTypes > 0 && (
-                <RecordsCount count={activityTypes.length} total={totalActivityTypes} label="activity types" />
+                <RecordsCount count={activityTypes.length} total={totalActivityTypes} label="task categories" />
               )}
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2 sm:ml-auto">

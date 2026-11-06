@@ -1,4 +1,4 @@
-import { BriefcaseBusiness,CalendarCheck,CalendarClock,LayoutDashboard,Sheet,SquareCheckBig,UserRound,Wrench } from "lucide-react";
+import { BriefcaseBusiness,CalendarCheck,LayoutDashboard,Sheet,SquareCheckBig,UserRound,Wrench } from "lucide-react";
 export const APP_CONSTANTS = {
     RECORDS_PER_PAGE: 25,
     MAX_JOB_TAGS: 10,
@@ -7,21 +7,10 @@ export const APP_CONSTANTS = {
     MAX_SKILLS_PER_CATEGORY: 20,
     MIN_RESUME_SECTIONS_FOR_SELECTION: 2,
     RESUME_PICKER_LIMIT: 100,
-    ACTIVITY_MAX_DURATION_MINUTES: 8 * 60,
-    ACTIVITY_MAX_DURATION_MS: 8 * 60 * 60 * 1000,
-    ACTIVITY_MIN_DURATION_MINUTES: 2,
-    ACTIVITY_BREAK_DEFAULT_MINUTES: 15,
-    ACTIVITY_BREAK_PRESETS: [5, 10, 15, 30],
-    ACTIVITY_BREAK_STEP_MINUTES: 5,
-    ACTIVITY_BREAK_MIN_MINUTES: 5,
-    ACTIVITY_BREAK_MAX_MINUTES: 60,
-    RECENT_NUM_JOBS_ACTIVITIES: 10,
+    RECENT_NUM_JOBS: 10,
     AI_SLOW_RESPONSE_THRESHOLD_MS: 15000,
     INTERSECTION_OBSERVER_THRESHOLD: 0.1,
     SIDEBAR_STORAGE_KEY: "sidebar-expanded",
-    DASHBOARD_WEEKLY_CHART_STORAGE_KEY: "dashboard-weekly-chart-tab",
-    DASHBOARD_RECENT_CARD_STORAGE_KEY: "dashboard-recent-card-tab",
-    DASHBOARD_JOBS_ACTIVITY_STORAGE_KEY: "dashboard-jobs-activity-tab",
     LAST_JOB_LOCATION_STORAGE_KEY: "last-job-location",
     LAST_JOB_SOURCE_STORAGE_KEY: "last-job-source",
     JOBS_VIEW_MODE_STORAGE_KEY: "jobs-view-mode",
@@ -186,11 +175,6 @@ export const SIDEBAR_LINKS = [
         icon: SquareCheckBig,
         route: "/dashboard/tasks",
         label: "Tasks",
-    },
-    {
-        icon: CalendarClock,
-        route: "/dashboard/activities",
-        label: "Activities",
     },
     {
         icon: UserRound,

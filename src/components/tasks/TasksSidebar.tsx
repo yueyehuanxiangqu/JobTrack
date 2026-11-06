@@ -46,7 +46,7 @@ function TasksSidebar({
 
       {!collapsed && (
         <>
-          <h3 className="font-semibold mb-4 text-sm px-1">Activity Types</h3>
+          <h3 className="font-semibold mb-4 text-sm px-1">Task Categories</h3>
           <ul className="space-y-1">
             <li>
               <button

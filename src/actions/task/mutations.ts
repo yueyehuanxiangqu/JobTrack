@@ -111,25 +111,14 @@ export const deleteTaskById = async (
         id: taskId,
         userId: user.id,
       },
-      include: {
-        activities: {
-          select: { id: true },
-        },
-      },
     });
 
     if (!task) {
       return { success: false, message: "Task not found" };
     }
 
-    if (task.activities.length > 0) {
-      return {
-        success: false,
-        message:
-          "Cannot delete task with linked activity. Remove the activity first.",
-      };
-    }
-
+    // Existing SQLite foreign keys use ON DELETE SET NULL: deleting a Task
+    // leaves historical Activity records intact without requiring the retired UI.
     await prisma.task.delete({
       where: {
         id: taskId,

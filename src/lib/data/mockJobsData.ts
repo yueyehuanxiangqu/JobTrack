@@ -1,4 +1,4 @@
-import { MOCK_DATA_IDENTIFIER } from "@/lib/data/mockActivities";
+import { MOCK_DATA_IDENTIFIER } from "@/lib/data/mockData";
 
 export { MOCK_DATA_IDENTIFIER };
 

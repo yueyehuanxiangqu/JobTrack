@@ -5,7 +5,6 @@ import {
   updateTask,
   updateTaskStatus,
   deleteTaskById,
-  startActivityFromTask,
   getActivityTypesWithTaskCounts,
 } from "@/actions/task.actions";
 import { getCurrentUser } from "@/utils/user.utils";
@@ -584,7 +583,7 @@ describe("taskActions", () => {
       });
     });
 
-    it("should return error when task has linked activity", async () => {
+    it("allows deleting a task with historical activity without deleting the activity", async () => {
       (getCurrentUser as any).mockResolvedValue(mockUser);
       const taskWithActivity = {
         ...mockTask,
@@ -594,12 +593,8 @@ describe("taskActions", () => {
 
       const result = await deleteTaskById("task-id");
 
-      expect(result).toEqual({
-        success: false,
-        message:
-          "Cannot delete task with linked activity. Remove the activity first.",
-      });
-      expect(prisma.task.delete).not.toHaveBeenCalled();
+      expect(result).toEqual({ success: true });
+      expect(prisma.task.delete).toHaveBeenCalledWith({ where: { id: "task-id", userId: mockUser.id } });
     });
 
     it("should return error when user is not authenticated", async () => {
@@ -620,181 +615,6 @@ describe("taskActions", () => {
       );
 
       const result = await deleteTaskById("task-id");
-
-      expect(result).toEqual({
-        success: false,
-        message: "Database error",
-      });
-    });
-  });
-
-  describe("startActivityFromTask", () => {
-    const mockActivity = {
-      id: "activity-id",
-      activityName: "Test Task",
-      activityTypeId: "activity-type-id",
-      userId: mockUser.id,
-      startTime: expect.any(Date),
-      endTime: null,
-      taskId: "task-id",
-      activityType: {
-        id: "activity-type-id",
-        label: "Development",
-        value: "development",
-      },
-    };
-
-    it("should start activity from task successfully", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.task.findFirst as any).mockResolvedValue(mockTask);
-      (prisma.activity.findFirst as any).mockResolvedValue(null);
-      (prisma.activity.create as any).mockResolvedValue(mockActivity);
-
-      const result = await startActivityFromTask("task-id");
-
-      expect(result).toEqual({
-        success: true,
-        data: mockActivity,
-      });
-      expect(prisma.activity.create).toHaveBeenCalledWith({
-        data: {
-          activityName: mockTask.title,
-          activityTypeId: mockTask.activityTypeId,
-          userId: mockUser.id,
-          startTime: expect.any(Date),
-          endTime: null,
-          taskId: mockTask.id,
-        },
-        include: {
-          activityType: true,
-        },
-      });
-    });
-
-    it("should return error when task is not found", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.task.findFirst as any).mockResolvedValue(null);
-
-      const result = await startActivityFromTask("non-existent-id");
-
-      expect(result).toEqual({
-        success: false,
-        message: "Task not found",
-      });
-    });
-
-    it("should link a new activity even when the task already has activities", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.task.findFirst as any).mockResolvedValue(mockTask);
-      (prisma.activity.findFirst as any).mockResolvedValue(null);
-      (prisma.activity.create as any).mockResolvedValue(mockActivity);
-
-      const result = await startActivityFromTask("task-id");
-
-      expect(result).toEqual({
-        success: true,
-        data: mockActivity,
-      });
-      expect(prisma.activity.create).toHaveBeenCalledWith({
-        data: {
-          activityName: mockTask.title,
-          activityTypeId: mockTask.activityTypeId,
-          userId: mockUser.id,
-          startTime: expect.any(Date),
-          endTime: null,
-          taskId: mockTask.id,
-        },
-        include: {
-          activityType: true,
-        },
-      });
-    });
-
-    it("should return error when task has no activity type", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      const taskWithoutActivityType = {
-        ...mockTask,
-        activityTypeId: null,
-      };
-      (prisma.task.findFirst as any).mockResolvedValue(
-        taskWithoutActivityType
-      );
-
-      const result = await startActivityFromTask("task-id");
-
-      expect(result).toEqual({
-        success: false,
-        message: "Task must have an activity type to start an activity.",
-      });
-    });
-
-    it("should return error when task status is complete", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      const completedTask = {
-        ...mockTask,
-        status: "complete" as const,
-      };
-      (prisma.task.findFirst as any).mockResolvedValue(completedTask);
-
-      const result = await startActivityFromTask("task-id");
-
-      expect(result).toEqual({
-        success: false,
-        message: "Cannot start an activity from a completed or cancelled task.",
-      });
-    });
-
-    it("should return error when task status is cancelled", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      const cancelledTask = {
-        ...mockTask,
-        status: "cancelled" as const,
-      };
-      (prisma.task.findFirst as any).mockResolvedValue(cancelledTask);
-
-      const result = await startActivityFromTask("task-id");
-
-      expect(result).toEqual({
-        success: false,
-        message: "Cannot start an activity from a completed or cancelled task.",
-      });
-    });
-
-    it("should return error when user already has a running activity", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.task.findFirst as any).mockResolvedValue(mockTask);
-      (prisma.activity.findFirst as any).mockResolvedValue({
-        id: "existing-activity-id",
-        endTime: null,
-      });
-
-      const result = await startActivityFromTask("task-id");
-
-      expect(result).toEqual({
-        success: false,
-        message:
-          "You already have a running activity. Please stop it before starting a new one.",
-      });
-    });
-
-    it("should return error when user is not authenticated", async () => {
-      (getCurrentUser as any).mockResolvedValue(null);
-
-      const result = await startActivityFromTask("task-id");
-
-      expect(result).toEqual({
-        success: false,
-        message: "Not authenticated",
-      });
-    });
-
-    it("should handle database errors", async () => {
-      (getCurrentUser as any).mockResolvedValue(mockUser);
-      (prisma.task.findFirst as any).mockRejectedValue(
-        new Error("Database error")
-      );
-
-      const result = await startActivityFromTask("task-id");
 
       expect(result).toEqual({
         success: false,

@@ -2,16 +2,16 @@
 
 A lightweight, open-source desktop application for tracking and managing job applications.
 
-JobTrack helps individual job seekers organize applications, interviews, tasks, and job-search activity in a local Windows desktop app. It focuses on a simple workflow for keeping track of your own search.
+JobTrack helps individual job seekers organize applications, interviews, and tasks in a local Windows desktop app. It focuses on a simple workflow for keeping track of your own search.
 
 ## Features
 
 - **Job application tracking** — Keep application details in one place.
 - **AI Autofill** — Import a public recruitment URL or pasted JD into a draft with basic details, concise summary bullets and salary when explicitly stated. Review and edit before saving. See [AI Autofill](AI_AUTOFILL.md) for provider setup.
 - **Application status management** — Update statuses and review each application's timeline.
-- **Activity Calendar** — View daily application counts and time spent on recorded activities.
+- **Activity Calendar** — View daily application counts with fixed integer color bands.
 - **Interview management** — Keep interview rounds and schedules linked to applications.
-- **Tasks and Activities** — Organize to-dos and record time spent on your job search.
+- **Tasks** — Organize to-dos, categories, priorities and due dates.
 - **Local data storage** — Store records and uploaded files on your computer.
 - **Job documents** — Keep one optional CV and one optional Cover Letter per application, with PDF/DOCX upload, download, replacement and deletion. Older library documents remain accessible under Legacy Files.
 - **Backup and export** — Create and restore ZIP backups, and export applications to CSV.
@@ -19,7 +19,7 @@ JobTrack helps individual job seekers organize applications, interviews, tasks, 
 
 ## Getting Started
 
-The current Windows test version is **0.1.1**. No publicly downloadable Windows release is currently available. To try the desktop app:
+The current Windows test version is **0.1.2**. No publicly downloadable Windows release is currently available. To try the desktop app:
 
 1. On Windows 11 x64, follow the [Windows desktop guide](WINDOWS_DESKTOP.md#build-from-source) to build the installer.
 2. Run the generated installer, then open **JobTrack** from the desktop or Start menu shortcut.

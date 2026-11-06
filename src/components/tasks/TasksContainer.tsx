@@ -5,7 +5,6 @@ import { Loader } from "lucide-react";
 import {
   deleteTaskById,
   getTaskById,
-  startActivityFromTask,
 } from "@/actions/task.actions";
 import { toastActionResult, toastError } from "@/lib/toast";
 import { Task } from "@/models/task.model";
@@ -13,8 +12,6 @@ import Loading from "../Loading";
 import TasksTable from "./TasksTable";
 import { TaskForm } from "./TaskForm";
 import { ActivityType } from "@/models/activity.model";
-import { useActivity } from "@/context/ActivityContext";
-import { useActivitySwitchConfirm } from "@/hooks/useActivitySwitchConfirm";
 import { useTasksList } from "./tasks-container/useTasksList";
 import { useAutoOpenAddTaskDialog } from "./tasks-container/useAutoOpenAddTaskDialog";
 import { TasksToolbar } from "./tasks-container/TasksToolbar";
@@ -30,8 +27,6 @@ function TasksContainer({
   filterKey,
   onTasksChanged,
 }: TasksContainerProps) {
-  const { refreshCurrentActivity } = useActivity();
-  const { requestStart, confirmDialog } = useActivitySwitchConfirm();
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -76,17 +71,6 @@ function TasksContainer({
     setDialogOpen(true);
   };
 
-  const onStartActivity = (taskId: string) => {
-    requestStart(async () => {
-      const result = await startActivityFromTask(taskId);
-      toastActionResult(result, {
-        success: "Activity started from task",
-        onSuccess: () => refreshCurrentActivity(),
-      });
-      return result.success;
-    });
-  };
-
   const resetEditTask = () => {
     setEditTask(null);
   };
@@ -115,7 +99,6 @@ function TasksContainer({
                 deleteTask={onDeleteTask}
                 editTask={onEditTask}
                 onChangeTaskStatus={onChangeTaskStatus}
-                onStartActivity={onStartActivity}
                 groupBy={groupBy}
               />
             </>
@@ -142,9 +125,7 @@ function TasksContainer({
         onTaskSaved={reloadTasks}
         dialogOpen={dialogOpen}
         setDialogOpen={setDialogOpen}
-        onSaveAndStart={onStartActivity}
       />
-      {confirmDialog}
     </>
   );
 }

@@ -51,11 +51,6 @@ vi.mock("next/navigation", () => ({
   useSearchParams: vi.fn().mockReturnValue(new URLSearchParams()),
 }));
 
-vi.mock("@/context/ActivityContext", () => ({
-  useActivity: vi.fn(() => ({
-    refreshCurrentActivity: vi.fn(),
-  })),
-}));
 
 global.ResizeObserver = class ResizeObserver {
   observe() {}
@@ -148,7 +143,7 @@ describe("TasksPageClient Component", () => {
       );
 
       // Check if sidebar is rendered
-      expect(screen.getByText("Activity Types")).toBeInTheDocument();
+      expect(screen.getByText("Task Categories")).toBeInTheDocument();
       expect(screen.getByText("Development")).toBeInTheDocument();
       expect(screen.getByText("Testing")).toBeInTheDocument();
 
@@ -298,7 +293,7 @@ describe("TasksPageClient Component", () => {
         />
       );
 
-      expect(screen.getByText("Activity Types")).toBeInTheDocument();
+      expect(screen.getByText("Task Categories")).toBeInTheDocument();
       expect(screen.getByText("Tasks")).toBeInTheDocument();
     });
 
@@ -447,7 +442,7 @@ describe("TasksPageClient Component", () => {
     });
   });
 
-  describe("Multiple Activity Types", () => {
+  describe("Multiple Task Categories", () => {
     it("should render many activity types correctly", () => {
       const manyActivityTypes = [
         {

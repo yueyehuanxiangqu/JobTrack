@@ -1,12 +1,6 @@
-import ActivitiesContainer from "@/components/activities/ActivitiesContainer";
-import React from "react";
+import { redirect } from "next/navigation";
 
-function Activities() {
-  return (
-    <div className="col-span-3">
-      <ActivitiesContainer />
-    </div>
-  );
+// Old bookmarks open the remaining planning tool; no Activity UI or timer is loaded.
+export default function RetiredActivities() {
+  redirect("/dashboard/tasks");
 }
-
-export default Activities;

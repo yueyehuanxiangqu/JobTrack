@@ -118,7 +118,7 @@ export function TasksToolbar({
                 <SelectItem value="createdDate">Created Date</SelectItem>
                 <SelectItem value="dueDate">Due Date</SelectItem>
                 <SelectItem value="updatedDate">Updated Date</SelectItem>
-                <SelectItem value="activityType">Activity Type</SelectItem>
+                <SelectItem value="activityType">Task Category</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>

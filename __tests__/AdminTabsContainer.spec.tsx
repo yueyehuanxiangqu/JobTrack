@@ -71,7 +71,7 @@ describe("AdminTabsContainer", () => {
       screen.getByRole("tab", { name: "Locations" })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("tab", { name: "Activity Types" })
+      screen.getByRole("tab", { name: "Task Categories" })
     ).toBeInTheDocument();
 
     expect(screen.getByRole("tab", { name: "Roles" })).toBeInTheDocument();
@@ -116,7 +116,7 @@ describe("AdminTabsContainer", () => {
     render(<AdminTabsContainer />);
 
     const activityTypesTab = screen.getByRole("tab", {
-      name: "Activity Types",
+      name: "Task Categories",
     });
     await user.click(activityTypesTab);
 

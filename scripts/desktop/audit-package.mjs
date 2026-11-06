@@ -30,6 +30,16 @@ await visit(base);
 const archive = path.join(base, 'resources/app.asar');
 const packedPkg = JSON.parse(asar.extractFile(archive, 'package.json'));
 if (packedPkg.version !== pkg.version || packedPkg.productName !== 'JobTrack') findings.push({ reason: 'ASAR identity/version mismatch' });
+if (packedPkg.dependencies?.['electron-updater'] !== pkg.devDependencies['electron-updater']) findings.push({ reason: 'Desktop updater dependency missing or mismatched' });
+const requireUpdater = createRequire(require.resolve('electron-updater'));
+const config = requireUpdater('js-yaml').load(await fs.readFile(path.join(base, 'resources/app-update.yml'), 'utf8'));
+if (config.provider !== 'github' || config.owner !== 'yueyehuanxiangqu' || config.repo !== 'JobTrack' || config.private !== false || config.token || config.requestHeaders) findings.push({ reason: 'Unexpected update source or embedded credentials' });
+for (const file of ['desktop/preload.cjs', 'desktop/updates.cjs', 'node_modules/electron-updater/package.json']) {
+  let bytes;
+  try { bytes = asar.extractFile(archive, file); }
+  catch { bytes = asar.extractFile(archive, path.normalize(file)); }
+  if (!bytes.length) findings.push({ reason: 'Missing packaged updater resource', file });
+}
 const image = asar.extractFile(archive, 'desktop/icon.png');
 if (!image.equals(await fs.readFile(path.join(projectRoot, 'branding/jobtrack-256.png')))) findings.push({ reason: 'Electron icon differs from selected A' });
 const ico = await fs.readFile(path.join(projectRoot, 'branding/jobtrack.ico'));

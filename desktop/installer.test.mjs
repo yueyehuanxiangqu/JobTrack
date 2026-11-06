@@ -7,10 +7,10 @@ const lock = require('../package-lock.json');
 const config = require('../electron-builder.cjs');
 
 test('independent JobTrack version is consistent with the lockfile and installer name', () => {
-  assert.equal(pkg.version, '0.1.0');
+  assert.match(pkg.version, /^\d+\.\d+\.\d+$/);
   assert.equal(lock.version, pkg.version); assert.equal(lock.packages[''].version, pkg.version);
   assert.equal(pkg.name, 'jobtrack'); assert.equal(config.productName, 'JobTrack');
-  assert.equal(config.artifactName.replace('${version}', pkg.version).replace('${ext}', 'exe'), 'JobTrack-Setup-0.1.0.exe');
+  assert.equal(config.artifactName.replace('${version}', pkg.version).replace('${ext}', 'exe'), `JobTrack-Setup-${pkg.version}.exe`);
   assert.notEqual(config.appId, 'ca.jobsync.desktop');
 });
 test('per-user installer creates branded shortcuts and preserves application data on uninstall', () => {

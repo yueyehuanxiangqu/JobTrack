@@ -63,7 +63,9 @@ The extracted JSON contains only:
   "location": null,
   "workplaceType": null,
   "jobType": null,
-  "jobUrl": null
+  "jobUrl": null,
+  "summary": [],
+  "salary": null
 }
 ```
 
@@ -73,9 +75,14 @@ rather than creating new enums. Missing fields become null. Wrong types, invalid
 enums or extra fields are rejected by a strict server-side Zod schema.
 
 For URL imports the program supplies the exact original input URL; it ignores
-AI-invented links. Pasted imports do not invent a URL. The original extracted or
-pasted JD is escaped and placed in the existing editor without asking AI to
-rewrite it. AI-generated company/title/location names that are not already in
+AI-invented links. Pasted imports do not invent a URL. The model produces 3–6
+short summary bullets about actual work and role priorities, fewer when the
+source is insufficient. The summary is escaped and saved as real list items;
+the full fetched JD is not also saved. A simple optional Salary field reuses
+the existing data column. Salary must be an exact source quote containing a
+currency and amount; otherwise it stays empty, with no estimates or conversions.
+Existing JD text stays unchanged unless edited. Job Due Date has been removed;
+Task deadlines and interview dates remain. AI-generated company/title/location names that are not already in
 the dropdowns remain visible in-memory draft options. They are resolved through
 the existing owner-scoped lookup actions only when Save is clicked. Canceling
 Autofill does not create those records. Original manual Create-option behavior
@@ -83,8 +90,10 @@ is retained for user-initiated lookup creation.
 
 ## Retrieval and limits
 
-The backend checks JSON-LD JobPosting data before readable main/article/body
-text. HTML is parsed without executing scripts or loading subresources. No
+The backend matches JSON-LD JobPosting data to the current vacancy before
+trying a single scoped JD region. Generic page/body dumps and ambiguous
+multi-job content are rejected. HTML is parsed without executing scripts or
+loading subresources. No
 browser automation, cookies, authentication bypass or scraping retries are used.
 
 Recruitment requests permit only public HTTP(S) destinations on ports 80/443.

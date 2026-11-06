@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, shell, dialog } = require("electron");
+const { app, BrowserWindow, session, shell, dialog, ipcMain } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const { pathToFileURL } = require("node:url");
@@ -6,6 +6,7 @@ const { spawn, spawnSync } = require("node:child_process");
 const { randomBytes, randomUUID } = require("node:crypto");
 const { APP_ORIGIN, classifyUrl, permissionAllowed } = require("./security.cjs");
 const brand = require("../branding/brand.json");
+const { createUpdates, registerUpdates, CHANNEL } = require("./updates.cjs");
 // desktop:start loads .desktop-build/app; development resources are its
 // sibling web/runtime directories, not a nested app/.desktop-build directory.
 const resourceBase = app.isPackaged ? process.resourcesPath : path.dirname(app.getAppPath());
@@ -33,6 +34,8 @@ let ready = false;
 let childExited;
 let release;
 let startup;
+let updates;
+let installingUpdate = false;
 
 async function unlock() {
   const action = release;
@@ -90,9 +93,10 @@ async function stopOwnedService() {
   }
 }
 
-async function quit() {
+async function quit(installUpdate) {
   if (quitting) return;
   quitting = true;
+  if (!installUpdate) updates?.cancel();
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
   if (splash && !splash.isDestroyed()) splash.hide();
   try {
@@ -108,7 +112,8 @@ async function quit() {
   finally {
     await unlock();
     allowQuit = true;
-    app.quit();
+    if (installUpdate) installUpdate();
+    else app.quit();
   }
 }
 
@@ -122,6 +127,7 @@ function createMainWindow() {
     title: "JobTrack", autoHideMenuBar: true, backgroundColor: "#f8fafc", show: false,
     icon: path.join(__dirname, "icon.png"),
     webPreferences: { contextIsolation: true, nodeIntegration: false, nodeIntegrationInWorker: false,
+      preload: path.join(__dirname, "preload.cjs"),
       sandbox: true, webSecurity: true, allowRunningInsecureContent: false, webviewTag: false },
   });
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -202,6 +208,28 @@ else {
   app.on("before-quit", (event) => { if (!allowQuit) { event.preventDefault(); void quit(); } });
   app.on("window-all-closed", () => { void quit(); });
   app.whenReady().then(async () => {
+    const supported = app.isPackaged && process.platform === "win32";
+    const sdk = supported ? require("electron-updater") : null;
+    updates = createUpdates({
+      updater: sdk?.autoUpdater, version: app.getVersion(), supported,
+      cancellationToken: () => {
+        const requireUpdater = require("node:module").createRequire(require.resolve("electron-updater"));
+        return new (requireUpdater("builder-util-runtime").CancellationToken)();
+      },
+      notify: value => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(`${CHANNEL}:state`, value); },
+      restart: async () => {
+        const result = await dialog.showMessageBox(mainWindow, { type: "question", title: "Update JobTrack",
+          message: "Restart JobTrack and install the downloaded update?",
+          detail: "Save any open forms first. Your local accounts, jobs and documents will be kept.",
+          buttons: ["Restart and install", "Cancel"], defaultId: 1, cancelId: 1 });
+        if (result.response !== 0 || quitting) return;
+        installingUpdate = true;
+        await quit(() => sdk.autoUpdater.quitAndInstall(false, true));
+      },
+    });
+    // A failed installer launch must not leave a hidden app with a stopped service.
+    sdk?.autoUpdater.on("error", () => { if (installingUpdate) { dialog.showErrorBox("JobTrack update", "The update could not start. Reopen JobTrack and try again."); app.quit(); } });
+    registerUpdates(ipcMain, () => mainWindow, updates);
     session.defaultSession.setPermissionRequestHandler((wc, permission, callback, details) =>
       callback(wc === mainWindow?.webContents && permissionAllowed(permission, details.requestingUrl)));
     session.defaultSession.setPermissionCheckHandler((wc, permission, origin) =>

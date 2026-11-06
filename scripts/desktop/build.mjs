@@ -103,22 +103,24 @@ async function packageDir(name, from) {
     current = parent;
   }
 }
-async function copyPackage(source) {
-  if (copied.has(source)) return;
-  copied.add(source);
+async function copyPackage(source, destination = web) {
+  const key = `${destination}|${source}`;
+  if (copied.has(key)) return;
+  copied.add(key);
   const relative = path.relative(path.join(projectRoot, "node_modules"), source);
   if (relative.startsWith("..") || path.isAbsolute(relative)) throw new Error("Runtime dependency resolved outside the checkout");
   const metadata = JSON.parse(await fs.readFile(path.join(source, "package.json"), "utf8"));
   const supports = (list, value) => !list || (!list.includes(`!${value}`) && (!list.some((item) => !item.startsWith("!")) || list.includes(value)));
   if (!supports(metadata.os, "win32") || !supports(metadata.cpu, "x64")) return;
-  await fs.cp(source, path.join(web, "node_modules", relative), { recursive: true, dereference: true });
-  for (const name of Object.keys(metadata.dependencies || {})) await copyPackage(await packageDir(name, source));
+  await fs.cp(source, path.join(destination, "node_modules", relative), { recursive: true, dereference: true });
+  for (const name of Object.keys(metadata.dependencies || {})) await copyPackage(await packageDir(name, source), destination);
   for (const name of Object.keys(metadata.optionalDependencies || {})) {
     if (name.startsWith("@next/swc-")) continue;
-    try { await copyPackage(await packageDir(name, source)); } catch (error) { if (!error.message.startsWith("Missing runtime dependency")) throw error; }
+    try { await copyPackage(await packageDir(name, source), destination); } catch (error) { if (!error.message.startsWith("Missing runtime dependency")) throw error; }
   }
 }
 for (const name of [...Object.keys(pkg.dependencies), "prisma"]) await copyPackage(await packageDir(name, projectRoot));
+await copyPackage(await packageDir("electron-updater", projectRoot), app);
 await fs.cp(path.join(projectRoot, "node_modules/.prisma"), path.join(web, "node_modules/.prisma"), { recursive: true });
 await fs.cp(path.join(projectRoot, "desktop"), path.join(app, "desktop"), { recursive: true, filter: (source) => !source.endsWith(".test.mjs") });
 await fs.copyFile(path.join(projectRoot, "LICENSE"), path.join(app, "LICENSE"));
@@ -129,7 +131,7 @@ await fs.copyFile(path.join(projectRoot, "branding/jobtrack-256.png"), path.join
 await fs.writeFile(path.join(app, "package.json"), JSON.stringify({
   name: "jobtrack-desktop", productName: "JobTrack", version: pkg.version,
   description: "JobTrack local job application manager", author: "JobTrack contributors", license: "MIT", main: "desktop/main.cjs",
-  dependencies: {},
+  dependencies: { "electron-updater": pkg.devDependencies["electron-updater"] },
 }, null, 2));
 await bundledNode();
 console.log(`Desktop resources staged at ${root}`);

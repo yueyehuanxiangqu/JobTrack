@@ -7,7 +7,7 @@ JobTrack helps individual job seekers organize applications, interviews, tasks, 
 ## Features
 
 - **Job application tracking** — Keep application details in one place.
-- **AI Autofill** — Fill an Add Job draft from a public recruitment URL or pasted JD, then review and save it yourself. See [AI Autofill](AI_AUTOFILL.md) for provider setup.
+- **AI Autofill** — Import a public recruitment URL or pasted JD into a draft with basic details, concise summary bullets and salary when explicitly stated. Review and edit before saving. See [AI Autofill](AI_AUTOFILL.md) for provider setup.
 - **Application status management** — Update statuses and review each application's timeline.
 - **Activity Calendar** — View daily application counts and time spent on recorded activities.
 - **Interview management** — Keep interview rounds and schedules linked to applications.
@@ -15,10 +15,11 @@ JobTrack helps individual job seekers organize applications, interviews, tasks, 
 - **Local data storage** — Store records and uploaded files on your computer.
 - **Job documents** — Keep one optional CV and one optional Cover Letter per application, with PDF/DOCX upload, download, replacement and deletion. Older library documents remain accessible under Legacy Files.
 - **Backup and export** — Create and restore ZIP backups, and export applications to CSV.
+- **In-app updates** — Check for a new Windows release, choose when to download it, then restart to install. Differential downloads are used when available.
 
 ## Getting Started
 
-The current local Windows test build is **0.1.0**. No GitHub Release is available yet. To try the desktop app:
+The current Windows test version is **0.1.1**. No publicly downloadable Windows release is currently available. To try the desktop app:
 
 1. On Windows 11 x64, follow the [Windows desktop guide](WINDOWS_DESKTOP.md#build-from-source) to build the installer.
 2. Run the generated installer, then open **JobTrack** from the desktop or Start menu shortcut.
@@ -27,6 +28,8 @@ The current local Windows test build is **0.1.0**. No GitHub Release is availabl
 The installed app includes its runtime; daily use does not require Docker, a separate Node.js installation, or an external browser. Data is stored under `%LOCALAPPDATA%\JobTrack\`.
 
 See the [Windows desktop guide](WINDOWS_DESKTOP.md) for installation, data storage, and development instructions.
+
+From version 0.1.1, open **Settings → App Updates** (also available in **Support**) to check, download and install published updates. Older versions need a one-time manual installation of 0.1.1 or later. Until a Windows release with update files is published, there is no online update to download. See [Updates](UPDATES.md).
 
 Upgrading from a JobSync desktop build? See the [local data migration guide](DATA_MIGRATION.md) before removing old data or using an older executable.
 

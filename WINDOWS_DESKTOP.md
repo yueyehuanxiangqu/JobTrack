@@ -8,11 +8,12 @@ MIT License and upstream copyright are unchanged.
 
 ## Install and use
 
-The local Windows test installer is JobTrack 0.1.0. It has not been published
-as a GitHub Release. See [Phase 6C validation](PHASE6C_VALIDATION.md) for the
-installed-app checks and known distribution limits.
+The current local Windows test installer is JobTrack 0.1.1. A public GitHub
+Windows release is not currently accessible. [Phase 6C validation](PHASE6C_VALIDATION.md)
+records the original 0.1.0 installation checks; see [Updates](UPDATES.md) for
+the current update workflow and publication requirements.
 
-1. Run `JobTrack-Setup-0.1.0.exe` on Windows 11 x64. It installs for the current
+1. Run `JobTrack-Setup-0.1.1.exe` on Windows 11 x64. It installs for the current
    account and creates desktop and Start menu shortcuts. No Node.js, npm,
    Prisma, Docker, external browser or Windows service is needed.
 2. Open **JobTrack**. A small startup window remains visible while the local
@@ -32,8 +33,14 @@ settings are changed by this project.
 
 The installer uses current-user mode (`%LOCALAPPDATA%\Programs\jobtrack-desktop`,
 electron-builder's default based on the internal desktop package name),
-without elevation or service registration. Updates are manual: close the app,
-then install the new installer. Automatic updates are not configured.
+without elevation or service registration. From 0.1.1, **Settings → App Updates**
+or **Support** provides explicit check, download, cancel and restart/install
+actions. It does not download or install updates automatically on exit. The
+internal service is stopped before installation. Changed blocks are downloaded
+when possible; a full-download fallback may be needed. Updates require a
+published GitHub Windows release with its generated metadata and blockmap.
+Versions before 0.1.1 need one manual upgrade first. Close JobTrack and run the
+new installer over the existing installation; user data remains separate.
 
 ## Data and upgrades
 
@@ -93,8 +100,11 @@ production app; a new NSIS installer is deferred. Older installers in
 - Startup errors are shown in the local startup window with a log path. A failed
   startup stops the service it created. Error windows can be closed normally.
 
-The frontend receives no preload bridge. Context isolation and Chromium sandbox
-are enabled; Node integration, workers' Node integration and webviews are disabled.
+The main frontend has a sandbox-compatible preload exposing only fixed update
+actions and sanitized status events. Exact-origin and main-frame IPC checks
+reject other senders; no URL/path/command or general IPC API is exposed.
+Context isolation and Chromium sandbox are enabled; Node integration, workers'
+Node integration and webviews are disabled. The splash has no privileged bridge.
 Permissions are denied except sanitized clipboard writes from the application's
 own window/origin, preserving existing Copy buttons without clipboard-read access.
 Only the application's exact loopback origin
@@ -119,7 +129,7 @@ npm ci
 npm run desktop:build
 ```
 
-The installer is written to `dist-desktop\JobTrack-Setup-0.1.0.exe`, alongside
+The installer is written to `dist-desktop\JobTrack-Setup-0.1.1.exe`, alongside
 `dist-desktop\win-unpacked\JobTrack.exe` for packaged-directory testing.
 `npm run desktop:pack` produces only the packaged directory. `desktop:start`
 is a developer convenience after staging and is not an end-user requirement.

@@ -10,6 +10,7 @@ import {
 import { Star } from "lucide-react";
 import { AppVersionInfo } from "@/models/version.model";
 import packageJson from "../../package.json";
+import AppUpdates from "./settings/AppUpdates";
 
 interface SupportDialogProps {
   open: boolean;
@@ -26,7 +27,7 @@ export function SupportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Support</DialogTitle>
           <DialogDescription className="space-y-1">
@@ -95,6 +96,7 @@ export function SupportDialog({
               https://github.com/Gsync/jobsync
             </a>
           </div>
+          <AppUpdates />
         </div>
       </DialogContent>
     </Dialog>

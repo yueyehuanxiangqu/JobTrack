@@ -12,7 +12,9 @@ module.exports = {
   appId: brand.appId,
   productName: brand.name,
   directories: { app: ".desktop-build/app", output: "dist-desktop" },
-  files: ["desktop/**", "scripts/local/{runtime,paths,project,home-migration}.mjs", "branding/brand.json", "package.json", "LICENSE", "!node_modules/**"],
+  files: ["desktop/**", "scripts/local/{runtime,paths,project,home-migration}.mjs", "branding/brand.json", "package.json", "LICENSE", "node_modules/**"],
+  publish: [{ provider: "github", owner: "yueyehuanxiangqu", repo: "JobTrack", private: false, releaseType: "release" }],
+  electronUpdaterCompatibility: "^6.8.12",
   extraResources: [
     { from: ".desktop-build/web", to: "web", filter: ["**/*"] },
     // electron-builder excludes a root node_modules from generic directory

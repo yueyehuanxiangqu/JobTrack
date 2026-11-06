@@ -8,8 +8,8 @@ MIT License and upstream copyright are unchanged.
 
 ## Install and use
 
-The current local Windows test installer is JobTrack 0.1.2. A public GitHub
-Windows release is not currently accessible. [Phase 6C validation](PHASE6C_VALIDATION.md)
+The current Windows test installer is JobTrack 0.1.2, available from
+[GitHub Releases](https://github.com/yueyehuanxiangqu/JobTrack/releases/latest). [Phase 6C validation](PHASE6C_VALIDATION.md)
 records the original 0.1.0 installation checks; see [Updates](UPDATES.md) for
 the current update workflow and publication requirements.
 

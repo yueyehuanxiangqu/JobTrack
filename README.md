@@ -19,17 +19,17 @@ JobTrack helps individual job seekers organize applications, interviews, and tas
 
 ## Getting Started
 
-The current Windows test version is **0.1.2**. No publicly downloadable Windows release is currently available. To try the desktop app:
+The current Windows test version is **0.1.2**, available from [GitHub Releases](https://github.com/yueyehuanxiangqu/JobTrack/releases/latest). To try the desktop app:
 
-1. On Windows 11 x64, follow the [Windows desktop guide](WINDOWS_DESKTOP.md#build-from-source) to build the installer.
-2. Run the generated installer, then open **JobTrack** from the desktop or Start menu shortcut.
+1. Download `JobTrack-Setup-0.1.2.exe` from the release page on Windows 11 x64.
+2. Run the installer, then open **JobTrack** from the desktop or Start menu shortcut.
 3. Create a local account with a username and password. Existing email accounts can use the [one-time username setup](USERNAME_MIGRATION.md).
 
 The installed app includes its runtime; daily use does not require Docker, a separate Node.js installation, or an external browser. Data is stored under `%LOCALAPPDATA%\JobTrack\`.
 
 See the [Windows desktop guide](WINDOWS_DESKTOP.md) for installation, data storage, and development instructions.
 
-From version 0.1.1, open **Settings → App Updates** (also available in **Support**) to check, download and install published updates. Older versions need a one-time manual installation of 0.1.1 or later. Until a Windows release with update files is published, there is no online update to download. See [Updates](UPDATES.md).
+From version 0.1.1, open **Settings → App Updates** (also available in **Support**) to check, download and install published updates. Older versions need a one-time manual installation of 0.1.1 or later. Version 0.1.2 and its update files are published in GitHub Releases. See [Updates](UPDATES.md).
 
 Upgrading from a JobSync desktop build? See the [local data migration guide](DATA_MIGRATION.md) before removing old data or using an older executable.
 

@@ -8,11 +8,9 @@ Save open forms first. The owned Next.js/Node service is stopped before the
 NSIS updater starts, and the app reopens after installation. Closing normally
 does not install a waiting update. No polling or automatic downloads are added.
 
-Updates are configured to use public Windows releases in
-`yueyehuanxiangqu/JobTrack`. The unauthenticated repository/release API currently
-returns 404, so public availability could not be confirmed. A private or
-inaccessible repository will need a public release source before online
-updates can work. Repository visibility was not changed by this work.
+Updates use the public Windows releases in
+[`yueyehuanxiangqu/JobTrack`](https://github.com/yueyehuanxiangqu/JobTrack/releases).
+Version 0.1.2 is published with its matching installer, block map and update metadata.
 No GitHub token is embedded or needed for a public release source.
 The renderer cannot supply an update URL, file path, command or feed. Its
 sandboxed preload exposes only update status/check/download/cancel/install;
@@ -34,9 +32,10 @@ Versions **before 0.1.1 have no updater**, so install 0.1.1 or later manually
 once. Close JobTrack and run its new installer over the old installation.
 Do not uninstall or remove the data directory to update.
 
-Pushing source code does not publish an app update. Until a Windows release
-exists with the required assets, the app reports that no update is published
-or that update files are missing. No GitHub Release is created by this change.
+Pushing source code alone does not publish an app update. The public
+[0.1.2 release](https://github.com/yueyehuanxiangqu/JobTrack/releases/tag/v0.1.2)
+contains the required Windows update assets. Future versions need the same
+release process after building and reviewing their artifacts.
 
 ## Preparing a future release
 
